@@ -1,0 +1,7 @@
+{
+  "id": "memory-claude-mem",
+  "name": "Memory (Claude-Mem)",
+  "description": "Persistent memory using claude-mem's semantic search",
+  "kind": "memory",
+  "version": "2026.2.3"
+}
