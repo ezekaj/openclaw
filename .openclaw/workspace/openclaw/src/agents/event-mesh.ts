@@ -503,7 +503,7 @@ export class AgentEventMesh {
           JSON.stringify(event.metadata || {}),
         );
     } catch (error) {
-      log.error("Failed to persist event:", error);
+      log.error(`Failed to persist event: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
