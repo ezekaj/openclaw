@@ -41,7 +41,7 @@ let ownedDb: DatabaseSync | null = null;
 /**
  * Create a SQLite database for predictive features
  */
-function createPredictiveDb(agentId: string): DatabaseSync | null {
+export function createPredictiveDb(agentId: string): DatabaseSync | null {
   try {
     const stateDir = resolveStateDir(process.env, os.homedir);
     const predictiveDir = path.join(stateDir, "predictive");
