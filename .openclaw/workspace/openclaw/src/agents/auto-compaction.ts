@@ -8,6 +8,7 @@
 import type { OpenClawConfig } from "../config/config.js";
 import { loadSessionStore, resolveSessionFilePath, resolveStorePath } from "../config/sessions.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
+import { isVerbose } from "../globals.js";
 import { compactEmbeddedPiSession } from "./pi-embedded.js";
 
 const log = createSubsystemLogger("auto-compaction");
@@ -60,7 +61,9 @@ export async function triggerAutoCompaction(
     const sessionId = sessionEntry.sessionId;
     const sessionFile = resolveSessionFilePath(sessionId, sessionEntry, { agentId });
 
-    log.info(`Triggering auto-compaction for session ${sessionKey}`);
+    if (isVerbose()) {
+      log.info(`Triggering auto-compaction for session ${sessionKey}`);
+    }
 
     // Trigger compaction with minimal required parameters
     const result = await compactEmbeddedPiSession({
@@ -74,7 +77,7 @@ export async function triggerAutoCompaction(
       groupSpace: sessionEntry.space,
       spawnedBy: sessionEntry.spawnedBy,
       skillsSnapshot: sessionEntry.skillsSnapshot,
-      customInstructions: "Auto-compaction triggered after 13 answers.",
+      customInstructions: "Auto-compaction triggered after 25 answers.",
     });
 
     if (result.ok) {

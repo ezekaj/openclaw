@@ -3,7 +3,7 @@
  *
  * Tracks agent answers per session and:
  * 1. Records briefing after EVERY answer
- * 2. Triggers auto-compact after 13 answers
+ * 2. Triggers auto-compact after 25 answers
  *
  * Listens for "answer" stream events emitted when assistant messages complete.
  */
@@ -12,6 +12,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { onAgentEvent, type AgentEventPayload } from "../infra/agent-events.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
+import { isVerbose } from "../globals.js";
 import {
   recordCompaction,
   type CompactionBriefingConfig,
@@ -23,9 +24,9 @@ const log = createSubsystemLogger("answer-briefing-tracker");
 
 /** Configuration for the answer briefing tracker */
 export interface AnswerBriefingConfig extends CompactionBriefingConfig {
-  /** Number of answers before triggering auto-compact (default: 13) */
+  /** Number of answers before triggering auto-compact (default: 25) */
   compactAfterAnswers?: number;
-  /** Number of cycles before aggregating into master briefing (default: 10) */
+  /** Number of cycles before aggregating into master briefing (default: 2) */
   aggregateAfterCycles?: number;
   /** Callback to trigger compaction */
   onCompactNeeded?: (sessionKey: string, agentId: string) => Promise<void>;
@@ -37,8 +38,8 @@ export interface AnswerBriefingConfig extends CompactionBriefingConfig {
   };
 }
 
-const DEFAULT_COMPACT_AFTER_ANSWERS = 13;
-const DEFAULT_AGGREGATE_AFTER_CYCLES = 10;
+const DEFAULT_COMPACT_AFTER_ANSWERS = 25;
+const DEFAULT_AGGREGATE_AFTER_CYCLES = 2;
 
 // Track answer counts by sessionKey
 const answerCounts = new Map<
@@ -133,7 +134,9 @@ function handleAgentEvent(evt: AgentEventPayload): void {
   // Check if we need to trigger auto-compact
   const compactAfter = config.compactAfterAnswers || DEFAULT_COMPACT_AFTER_ANSWERS;
   if (tracker.count >= compactAfter) {
-    log.info(`Session ${sessionKey} reached ${tracker.count} answers, triggering auto-compact`);
+    if (isVerbose()) {
+      log.info(`Session ${sessionKey} reached ${tracker.count} answers, triggering auto-compact`);
+    }
 
     // Generate cycle summary before resetting
     const cycleTexts = [...tracker.answerTexts];

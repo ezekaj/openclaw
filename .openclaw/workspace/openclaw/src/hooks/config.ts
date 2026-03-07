@@ -201,7 +201,20 @@ export function resolveHookConfig(sourceOrConfig: string | Record<string, unknow
   // Get hook-specific config from the config object
   const hooks = sourceOrConfig?.hooks as Record<string, unknown> | undefined;
   if (!hooks) return undefined;
-  return hooks[hookKey!] as Record<string, unknown> | undefined;
+
+  // Try direct path first: hooks[hookKey]
+  let hookConfig = hooks[hookKey!] as Record<string, unknown> | undefined;
+
+  // If not found, try nested path: hooks.internal.entries[hookKey]
+  if (!hookConfig && hooks.internal) {
+    const internal = hooks.internal as Record<string, unknown>;
+    if (internal.entries) {
+      const entries = internal.entries as Record<string, unknown>;
+      hookConfig = entries[hookKey!] as Record<string, unknown> | undefined;
+    }
+  }
+
+  return hookConfig;
 }
 
 /**

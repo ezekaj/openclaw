@@ -14,6 +14,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { resolveUserPath } from "../utils.js";
+import { isVerbose } from "../globals.js";
 
 const log = createSubsystemLogger("compaction-briefing");
 
@@ -133,7 +134,9 @@ function saveDailyBriefing(briefing: DailyBriefing, config?: CompactionBriefingC
 
   try {
     fs.writeFileSync(briefingPath, JSON.stringify(briefing, null, 2));
-    log.info(`Saved daily briefing: ${briefingPath}`);
+    if (isVerbose()) {
+      log.info(`Saved daily briefing: ${briefingPath}`);
+    }
   } catch (error) {
     log.error(`Failed to save briefing: ${error}`);
   }
@@ -281,7 +284,9 @@ export async function recordCompaction(
   // Save
   saveDailyBriefing(briefing, config);
 
-  log.info(`Recorded compaction for ${event.agentId}: ${summary.slice(0, 50)}...`);
+  if (isVerbose()) {
+    log.info(`Recorded compaction for ${event.agentId}: ${summary.slice(0, 50)}...`);
+  }
 
   // HYBRID INTEGRATION: Emit event for neuro-memory storage
   // This allows briefing summaries to be stored in ChromaDB for similarity-based retrieval

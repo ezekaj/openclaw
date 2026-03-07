@@ -7,6 +7,7 @@
 
 import { spawn, ChildProcess } from "node:child_process";
 import { createSubsystemLogger } from "../logging/subsystem.js";
+import { isVerbose } from "../globals.js";
 
 const log = createSubsystemLogger("neuro-memory");
 
@@ -115,7 +116,9 @@ export class NeuroMemoryBridge {
       });
 
       this.process.on("exit", (code) => {
-        log.warn(`Neuro-memory-agent exited with code ${code}`);
+        if (isVerbose()) {
+          log.warn(`Neuro-memory-agent exited with code ${code}`);
+        }
         this.isReady = false;
       });
 

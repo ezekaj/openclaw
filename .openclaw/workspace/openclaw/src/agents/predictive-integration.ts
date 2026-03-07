@@ -24,7 +24,7 @@ import { ToolAnalyticsManager } from "../infra/tool-analytics.js";
 import { optimizeDatabase } from "../infra/sqlite-utils.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { requireNodeSqlite } from "../memory/sqlite.js";
-import { AgentEventMesh, globalEventMeshRegistry, type EventMeshConfig } from "./event-mesh.js";
+import { AgentEventMesh, getEventMesh, globalEventMeshRegistry, type EventMeshConfig } from "./event-mesh.js";
 import { PredictiveEngine, type PredictionEngineConfig } from "./predictive-engine.js";
 import { getPredictiveService } from "./predictive-service.js";
 
@@ -151,7 +151,8 @@ export function initPredictiveIntegration(config: PredictiveIntegrationConfig): 
     // Wire neuro-memory for episodic memory
     neuroMemory: config.neuroMemory,
   };
-  eventMesh = new AgentEventMesh(meshConfig);
+  // Use singleton pattern to avoid duplicate neuro-memory initialization
+  eventMesh = getEventMesh(meshConfig);
   globalEventMeshRegistry.set(config.agentId, eventMesh);
 
   // Initialize Predictive Engine
