@@ -5,6 +5,7 @@ import type { ToolResultFormat } from "../../pi-embedded-subscribe.js";
 import { parseReplyDirectives } from "../../../auto-reply/reply/reply-directives.js";
 import { isSilentReplyText, SILENT_REPLY_TOKEN } from "../../../auto-reply/tokens.js";
 import { formatToolAggregate } from "../../../auto-reply/tool-meta.js";
+import { isVerbose } from "../../../globals.js";
 import {
   formatAssistantErrorText,
   formatRawAssistantErrorForUi,
@@ -215,9 +216,10 @@ export function buildEmbeddedRunPayloads(params: {
 
     // Show tool errors only when:
     // 1. There's no user-facing reply AND the error is not recoverable
+    // 2. Verbose mode is enabled (dev mode)
     // Recoverable errors (validation, missing params) are already in the model's context
     // and shouldn't be surfaced to users since the model should retry.
-    if (!hasUserFacingReply && !isRecoverableError) {
+    if (isVerbose() && !hasUserFacingReply && !isRecoverableError) {
       const toolSummary = formatToolAggregate(
         params.lastToolError.toolName,
         params.lastToolError.meta ? [params.lastToolError.meta] : undefined,

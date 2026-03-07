@@ -129,6 +129,14 @@ const entries: SubCliEntry[] = [
     },
   },
   {
+    name: "dev",
+    description: "Dev observer mode (logs only, no interactive TUI)",
+    register: async (program) => {
+      const mod = await import("../dev-observer.js");
+      mod.registerDevObserverCli(program);
+    },
+  },
+  {
     name: "cron",
     description: "Cron scheduler",
     register: async (program) => {

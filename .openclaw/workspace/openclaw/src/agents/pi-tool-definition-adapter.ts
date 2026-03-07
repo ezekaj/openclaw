@@ -6,6 +6,7 @@ import type {
 import type { ToolDefinition } from "@mariozechner/pi-coding-agent";
 import type { ClientToolDefinition } from "./pi-embedded-runner/run/params.js";
 import { logDebug, logError } from "../logger.js";
+import { isVerbose } from "../globals.js";
 import { runBeforeToolCallHook } from "./pi-tools.before-tool-call.js";
 import { normalizeToolName } from "./tool-policy.js";
 import { jsonResult } from "./tools/common.js";
@@ -109,7 +110,9 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
           if (described.stack && described.stack !== described.message) {
             logDebug(`tools: ${normalizedName} failed stack:\n${described.stack}`);
           }
-          logError(`[tools] ${normalizedName} failed: ${described.message}`);
+          if (isVerbose()) {
+            logError(`[tools] ${normalizedName} failed: ${described.message}`);
+          }
           return jsonResult({
             status: "error",
             tool: normalizedName,
