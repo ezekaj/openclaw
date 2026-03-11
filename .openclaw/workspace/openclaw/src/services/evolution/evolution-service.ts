@@ -3,6 +3,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { exec as execAsync } from 'node:child_process';
 import { promisify } from 'node:util';
+import { Cron } from 'croner';
 import type {
   CodeChange,
   CodePatch,
@@ -13,6 +14,8 @@ import type {
   TestResult,
   BenchmarkResult
 } from './types.js';
+import { getNeuroMemoryBridge } from '../../agents/neuro-memory-bridge.js';
+import type { NeuroMemoryInsights, Recommendation } from '../../types/neuro-memory-insights.js';
 
 const exec = promisify(execAsync);
 
@@ -50,13 +53,27 @@ export class EvolutionService {
     const history = await this.getHistory(1);
     const allHistory = await this.getHistory(1000);
 
+    // Calculate next scheduled run from cron pattern
+    let nextScheduledRun: string | null = null;
+    if (this.config.schedule && this.config.schedule.cron) {
+      try {
+        const job = new Cron(this.config.schedule.cron);
+        const next = job.nextRun();
+        if (next) {
+          nextScheduledRun = next.toISOString();
+        }
+      } catch (err) {
+        // Invalid cron pattern, ignore
+      }
+    }
+
     return {
       enabled: this.config.enabled,
       lastRun: history.length > 0 ? history[0].timestamp : null,
       totalRuns: allHistory.length,
       totalImprovements: allHistory.filter(e => e.applied).length,
       scheduledEnabled: this.config.schedule !== null,
-      nextScheduledRun: null  // TODO: calculate from cron
+      nextScheduledRun
     };
   }
 
@@ -166,8 +183,19 @@ export class EvolutionService {
       }
     }
 
-    // 2. Repeated errors (TODO: implement)
-    // 3. Heavy sessions (TODO: implement)
+    // 2. Repeated errors - generate error handling improvements
+    for (const error of analysis.errors) {
+      if (error.count > 5) {
+        const proposal = await this.generateErrorHandling(error);
+        if (proposal) proposals.push(proposal);
+      }
+    }
+
+    // 3. Heavy sessions - generate compaction improvements
+    if (analysis.session_health.heavy_sessions > 3) {
+      const proposal = await this.generateHeavySessionFix(analysis);
+      if (proposal) proposals.push(proposal);
+    }
 
     return proposals;
   }
@@ -211,6 +239,99 @@ export async function requestExecHostViaSocket(params: {`;
         focus: 'reliability',
         priority: 'high',
         affectedFiles: [execHostFile]
+      };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Generate error handling improvements for repeated errors
+   */
+  private async generateErrorHandling(error: {
+    type: string;
+    count: number;
+    locations?: string[];
+  }): Promise<CodeChange | null> {
+    const errorFile = 'src/gateway/error-handler.ts';
+    const filePath = path.join(this.openclawDir, errorFile);
+
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+
+      // Check if already has error tracking
+      if (content.includes('errorCounter') || content.includes('ErrorTracker')) {
+        return null;
+      }
+
+      const search = `export function handleError(`;
+      const replace = `// Auto-generated: Track repeated errors for pattern detection
+const errorCounter = new Map<string, { count: number; lastSeen: number }>();
+const ERROR_THRESHOLD = 10;
+
+function trackError(errorType: string): void {
+  const entry = errorCounter.get(errorType) || { count: 0, lastSeen: 0 };
+  entry.count++;
+  entry.lastSeen = Date.now();
+  errorCounter.set(errorType, entry);
+}
+
+export function handleError(`;
+
+      return {
+        id: `error-tracking-${randomUUID()}`,
+        description: `Add error tracking to detect repeated ${error.type} errors`,
+        reasoning: `Detected ${error.count} occurrences of ${error.type} errors. Adding tracking for pattern detection.`,
+        patches: [{
+          file: errorFile,
+          search,
+          replace,
+          description: 'Add error counter'
+        }],
+        focus: 'reliability',
+        priority: 'medium',
+        affectedFiles: [errorFile]
+      };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Generate heavy session compaction improvements
+   */
+  private async generateHeavySessionFix(analysis: BehaviorAnalysis): Promise<CodeChange | null> {
+    const compactionFile = 'src/agents/auto-compaction.ts';
+    const filePath = path.join(this.openclawDir, compactionFile);
+
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+
+      // Check if already has aggressive compaction
+      if (content.includes('HEAVY_SESSION_THRESHOLD') || content.includes('aggressiveCompaction')) {
+        return null;
+      }
+
+      const search = `export function shouldCompact(`;
+      const replace = `// Auto-generated: Aggressive compaction for heavy sessions
+const HEAVY_SESSION_THRESHOLD = 50; // messages
+const HEAVY_SESSION_RATIO = 0.5; // compact at 50% instead of 80%
+
+export function shouldCompact(`;
+
+      return {
+        id: `heavy-session-${randomUUID()}`,
+        description: `Add aggressive compaction for heavy sessions (detected ${analysis.session_health.heavy_sessions})`,
+        reasoning: `Found ${analysis.session_health.heavy_sessions} heavy sessions. Adding early compaction trigger.`,
+        patches: [{
+          file: compactionFile,
+          search,
+          replace,
+          description: 'Add heavy session detection'
+        }],
+        focus: 'performance',
+        priority: 'high',
+        affectedFiles: [compactionFile]
       };
     } catch (error) {
       return null;
@@ -340,6 +461,18 @@ export async function requestExecHostViaSocket(params: {`;
 
     await fs.mkdir(path.dirname(this.evolutionLogPath), { recursive: true });
     await fs.appendFile(this.evolutionLogPath, JSON.stringify(entry) + '\n');
+    
+    // Also log to TSV (autoresearch-style)
+    const memoryGB = process.memoryUsage().heapUsed / 1024 / 1024 / 1024;
+    const metric = result.testResult ? result.testResult.passed / Math.max(result.testResult.passed + result.testResult.failed, 1) : 0;
+    
+    await this.logToTSV({
+      commit: commitHash || 'pending',
+      metric,
+      memory: memoryGB,
+      status: applied ? 'keep' : 'discard',
+      description: proposal.description.substring(0, 100)
+    });
   }
 
   /**
@@ -370,5 +503,28 @@ export async function requestExecHostViaSocket(params: {`;
    */
   getConfig(): EvolutionConfig {
     return { ...this.config };
+  }
+
+  /**
+   * Log result to TSV (autoresearch-style)
+   */
+  private async logToTSV(entry: {
+    commit: string;
+    metric: number;
+    memory: number;
+    status: 'keep' | 'discard' | 'crash';
+    description: string;
+  }): Promise<void> {
+    const tsvPath = path.join(this.openclawDir, 'evolution-results.tsv');
+    
+    // Initialize with header if doesn't exist
+    try {
+      await fs.access(tsvPath);
+    } catch {
+      await fs.writeFile(tsvPath, 'commit\tmetric\tmemory_gb\tstatus\tdescription\n');
+    }
+    
+    const line = `${entry.commit}\t${entry.metric.toFixed(6)}\t${entry.memory.toFixed(1)}\t${entry.status}\t${entry.description}\n`;
+    await fs.appendFile(tsvPath, line);
   }
 }
