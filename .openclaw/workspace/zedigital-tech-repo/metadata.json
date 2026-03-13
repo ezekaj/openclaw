@@ -1,8 +1,0 @@
-{
-  "name": "ZeDigital - Premium Digital Transformation Agency",
-  "description": "A sophisticated, high-performance digital agency landing page featuring an AI-driven digital strategy advisor powered by Gemini.",
-  "requestFramePermissions": [
-    "camera",
-    "microphone"
-  ]
-}

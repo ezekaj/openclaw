@@ -1,36 +1,26 @@
+# Ignore everything by default
+/*
+
+# Only track the openclaw workspace
+!/.openclaw/
+/.openclaw/*
+!/.openclaw/workspace/
+/.openclaw/workspace/*
+!/.openclaw/workspace/openclaw/
+!/.gitignore
+
+# Inside workspace: ignore build/runtime artifacts
+.openclaw/workspace/openclaw/node_modules/
+.openclaw/workspace/openclaw/dist/
+.openclaw/workspace/openclaw/.DS_Store
+.openclaw/workspace/openclaw/.git/
+
 # Database files
 *.db
 *.db-shm
 *.db-wal
 
-# Backup files
-*.backup
-*.backup.*
-*.bak
-*.bak.*
-
-# Logs
-logs/
-
-# Credentials
-credentials/
-
 # Temporary files
-.DS_Store
 *.tmp
 *.swp
-
-# Node modules
-node_modules/
-
-# Python
-__pycache__/
-*.pyc
-.venv/
-
-# IDE
-.idea/
-.vscode/
-
-# Nested git repos in workspaces
-workspace-*/.git/
+*.bak

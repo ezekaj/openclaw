@@ -1,3 +1,0 @@
-User-agent: *
-Allow: /
-Sitemap: https://zedigital.tech/sitemap.xml

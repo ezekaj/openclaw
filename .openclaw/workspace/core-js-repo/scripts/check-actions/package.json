@@ -1,6 +1,0 @@
-{
-  "name": "scripts/check-actions",
-  "devDependencies": {
-    "actions-up": "^1.12.0"
-  }
-}
