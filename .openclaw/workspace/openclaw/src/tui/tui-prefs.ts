@@ -80,23 +80,6 @@ export function setVimModePref(enabled: boolean): void {
   saveTuiPrefs({ vimMode: enabled });
 }
 
-/**
- * Get vim mode preference
- */
-export function getVimModePref(): boolean {
-  return loadTuiPrefs().vimMode;
-}
 
-/**
- * Set theme preference
- */
-export function setThemePref(theme: string): void {
-  saveTuiPrefs({ theme });
-}
 
-/**
- * Get theme preference
- */
-export function getThemePref(): string {
-  return loadTuiPrefs().theme;
-}
+

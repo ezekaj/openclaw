@@ -1,5 +1,4 @@
 import crypto from "node:crypto";
-import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -18,23 +17,24 @@ export type MemoryChunk = {
   hash: string;
 };
 
-export function ensureDir(dir: string): string {
-  try {
-    fsSync.mkdirSync(dir, { recursive: true });
-  } catch {}
-  return dir;
-}
-
 export function normalizeRelPath(value: string): string {
+  if (typeof value !== "string") {
+    return "";
+  }
   const trimmed = value.trim().replace(/^[./]+/, "");
-  return trimmed.replace(/\\/g, "/");
+  // Remove null bytes and normalize path separators
+  return trimmed.replace(/\0/g, "").replace(/\\/g, "/");
 }
 
 export function normalizeExtraMemoryPaths(workspaceDir: string, extraPaths?: string[]): string[] {
-  if (!extraPaths?.length) {
+  if (!Array.isArray(extraPaths) || extraPaths.length === 0) {
+    return [];
+  }
+  if (typeof workspaceDir !== "string" || !workspaceDir.trim()) {
     return [];
   }
   const resolved = extraPaths
+    .filter((value): value is string => typeof value === "string")
     .map((value) => value.trim())
     .filter(Boolean)
     .map((value) =>
@@ -44,6 +44,9 @@ export function normalizeExtraMemoryPaths(workspaceDir: string, extraPaths?: str
 }
 
 export function isMemoryPath(relPath: string): boolean {
+  if (typeof relPath !== "string") {
+    return false;
+  }
   const normalized = normalizeRelPath(relPath);
   if (!normalized) {
     return false;
@@ -54,8 +57,14 @@ export function isMemoryPath(relPath: string): boolean {
   return normalized.startsWith("memory/");
 }
 
-async function walkDir(dir: string, files: string[]) {
-  const entries = await fs.readdir(dir, { withFileTypes: true });
+async function walkDir(dir: string, files: string[]): Promise<void> {
+  let entries: Awaited<ReturnType<typeof fs.readdir>>;
+  try {
+    entries = await fs.readdir(dir, { withFileTypes: true });
+  } catch {
+    // Directory may have been removed or is inaccessible
+    return;
+  }
   for (const entry of entries) {
     const full = path.join(dir, entry.name);
     if (entry.isSymbolicLink()) {
@@ -84,7 +93,7 @@ export async function listMemoryFiles(
   const altMemoryFile = path.join(workspaceDir, "memory.md");
   const memoryDir = path.join(workspaceDir, "memory");
 
-  const addMarkdownFile = async (absPath: string) => {
+  const addMarkdownFile = async (absPath: string): Promise<void> => {
     try {
       const stat = await fs.lstat(absPath);
       if (stat.isSymbolicLink() || !stat.isFile()) {
@@ -94,7 +103,9 @@ export async function listMemoryFiles(
         return;
       }
       result.push(absPath);
-    } catch {}
+    } catch {
+      // File may not exist or be inaccessible - this is expected
+    }
   };
 
   await addMarkdownFile(memoryFile);
@@ -104,7 +115,9 @@ export async function listMemoryFiles(
     if (!dirStat.isSymbolicLink() && dirStat.isDirectory()) {
       await walkDir(memoryDir, result);
     }
-  } catch {}
+  } catch {
+    // Memory directory may not exist - this is expected
+  }
 
   const normalizedExtraPaths = normalizeExtraMemoryPaths(workspaceDir, extraPaths);
   if (normalizedExtraPaths.length > 0) {
@@ -121,7 +134,9 @@ export async function listMemoryFiles(
         if (stat.isFile() && inputPath.endsWith(".md")) {
           result.push(inputPath);
         }
-      } catch {}
+      } catch {
+        // Extra path may not exist or be inaccessible - this is expected
+      }
     }
   }
   if (result.length <= 1) {
@@ -133,7 +148,9 @@ export async function listMemoryFiles(
     let key = entry;
     try {
       key = await fs.realpath(entry);
-    } catch {}
+    } catch {
+      // If realpath fails, use the original path as key
+    }
     if (seen.has(key)) {
       continue;
     }
@@ -144,6 +161,10 @@ export async function listMemoryFiles(
 }
 
 export function hashText(value: string): string {
+  if (typeof value !== "string") {
+    // Hash empty string for non-string inputs
+    return crypto.createHash("sha256").update("").digest("hex");
+  }
   return crypto.createHash("sha256").update(value).digest("hex");
 }
 
@@ -151,8 +172,37 @@ export async function buildFileEntry(
   absPath: string,
   workspaceDir: string,
 ): Promise<MemoryFileEntry> {
-  const stat = await fs.stat(absPath);
-  const content = await fs.readFile(absPath, "utf-8");
+  // Validate inputs
+  if (typeof absPath !== "string" || !absPath.trim()) {
+    throw new Error("buildFileEntry: absPath must be a non-empty string");
+  }
+  if (typeof workspaceDir !== "string" || !workspaceDir.trim()) {
+    throw new Error("buildFileEntry: workspaceDir must be a non-empty string");
+  }
+
+  let stat: Awaited<ReturnType<typeof fs.stat>>;
+  let content: string;
+
+  try {
+    stat = await fs.stat(absPath);
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException | undefined)?.code;
+    throw new Error(
+      `buildFileEntry: cannot stat file "${absPath}": ${code ?? "unknown error"}`,
+      { cause: err },
+    );
+  }
+
+  try {
+    content = await fs.readFile(absPath, "utf-8");
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException | undefined)?.code;
+    throw new Error(
+      `buildFileEntry: cannot read file "${absPath}": ${code ?? "unknown error"}`,
+      { cause: err },
+    );
+  }
+
   const hash = hashText(content);
   return {
     path: path.relative(workspaceDir, absPath).replace(/\\/g, "/"),
@@ -167,6 +217,14 @@ export function chunkMarkdown(
   content: string,
   chunking: { tokens: number; overlap: number },
 ): MemoryChunk[] {
+  // Input validation
+  if (typeof content !== "string") {
+    return [];
+  }
+  if (!chunking || typeof chunking.tokens !== "number" || typeof chunking.overlap !== "number") {
+    return [];
+  }
+
   const lines = content.split("\n");
   if (lines.length === 0) {
     return [];
@@ -178,27 +236,23 @@ export function chunkMarkdown(
   let current: Array<{ line: string; lineNo: number }> = [];
   let currentChars = 0;
 
-  const flush = () => {
+  const flush = (): void => {
     if (current.length === 0) {
       return;
     }
     const firstEntry = current[0];
     const lastEntry = current[current.length - 1];
-    if (!firstEntry || !lastEntry) {
-      return;
-    }
+    // These are guaranteed to exist when current.length > 0
     const text = current.map((entry) => entry.line).join("\n");
-    const startLine = firstEntry.lineNo;
-    const endLine = lastEntry.lineNo;
     chunks.push({
-      startLine,
-      endLine,
+      startLine: firstEntry.lineNo,
+      endLine: lastEntry.lineNo,
       text,
       hash: hashText(text),
     });
   };
 
-  const carryOverlap = () => {
+  const carryOverlap = (): void => {
     if (overlapChars <= 0 || current.length === 0) {
       current = [];
       currentChars = 0;
@@ -208,9 +262,7 @@ export function chunkMarkdown(
     const kept: Array<{ line: string; lineNo: number }> = [];
     for (let i = current.length - 1; i >= 0; i -= 1) {
       const entry = current[i];
-      if (!entry) {
-        continue;
-      }
+      // entry is guaranteed to exist when iterating current's valid indices
       acc += entry.line.length + 1;
       kept.unshift(entry);
       if (acc >= overlapChars) {
@@ -247,25 +299,56 @@ export function chunkMarkdown(
 }
 
 export function parseEmbedding(raw: string): number[] {
+  if (typeof raw !== "string" || !raw.trim()) {
+    return [];
+  }
   try {
-    const parsed = JSON.parse(raw) as number[];
-    return Array.isArray(parsed) ? parsed : [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    // Validate all elements are finite numbers
+    const result: number[] = [];
+    for (const item of parsed) {
+      if (typeof item === "number" && Number.isFinite(item)) {
+        result.push(item);
+      } else {
+        // Invalid element found - return empty to indicate corrupt data
+        return [];
+      }
+    }
+    return result;
   } catch {
     return [];
   }
 }
 
 export function cosineSimilarity(a: number[], b: number[]): number {
+  // Input validation
+  if (!Array.isArray(a) || !Array.isArray(b)) {
+    return 0;
+  }
   if (a.length === 0 || b.length === 0) {
     return 0;
   }
-  const len = Math.min(a.length, b.length);
+  // Vectors must have the same length for meaningful cosine similarity
+  if (a.length !== b.length) {
+    return 0;
+  }
+
   let dot = 0;
   let normA = 0;
   let normB = 0;
-  for (let i = 0; i < len; i += 1) {
-    const av = a[i] ?? 0;
-    const bv = b[i] ?? 0;
+  for (let i = 0; i < a.length; i += 1) {
+    const av = a[i];
+    const bv = b[i];
+    // Skip non-finite values (they would corrupt the calculation)
+    if (typeof av !== "number" || !Number.isFinite(av)) {
+      continue;
+    }
+    if (typeof bv !== "number" || !Number.isFinite(bv)) {
+      continue;
+    }
     dot += av * bv;
     normA += av * av;
     normB += bv * bv;
@@ -273,5 +356,7 @@ export function cosineSimilarity(a: number[], b: number[]): number {
   if (normA === 0 || normB === 0) {
     return 0;
   }
-  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+  const similarity = dot / (Math.sqrt(normA) * Math.sqrt(normB));
+  // Clamp to [-1, 1] to handle floating point errors
+  return Math.max(-1, Math.min(1, similarity));
 }

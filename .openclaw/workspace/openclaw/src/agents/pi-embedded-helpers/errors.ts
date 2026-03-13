@@ -11,12 +11,14 @@ export function isContextOverflowError(errorMessage?: string): boolean {
   const hasRequestSizeExceeds = lower.includes("request size exceeds");
   const hasContextWindow =
     lower.includes("context window") ||
+    lower.includes("context_window") ||
     lower.includes("context length") ||
     lower.includes("maximum context length");
   return (
     lower.includes("request_too_large") ||
     lower.includes("request exceeds the maximum size") ||
     lower.includes("context length exceeded") ||
+    lower.includes("context window exceeded") ||
     lower.includes("maximum context length") ||
     lower.includes("prompt is too long") ||
     lower.includes("exceeds model context window") ||
@@ -493,19 +495,25 @@ function matchesErrorPatterns(raw: string, patterns: readonly ErrorPattern[]): b
   );
 }
 
-export function isRateLimitErrorMessage(raw: string): boolean {
+export function isRateLimitErrorMessage(raw?: string): boolean {
+  if (!raw) {
+    return false;
+  }
   return matchesErrorPatterns(raw, ERROR_PATTERNS.rateLimit);
 }
 
-export function isTimeoutErrorMessage(raw: string): boolean {
+export function isTimeoutErrorMessage(raw?: string): boolean {
+  if (!raw) {
+    return false;
+  }
   return matchesErrorPatterns(raw, ERROR_PATTERNS.timeout);
 }
 
-export function isBillingErrorMessage(raw: string): boolean {
-  const value = raw.toLowerCase();
-  if (!value) {
+export function isBillingErrorMessage(raw?: string): boolean {
+  if (!raw) {
     return false;
   }
+  const value = raw.toLowerCase();
   if (matchesErrorPatterns(value, ERROR_PATTERNS.billing)) {
     return true;
   }
@@ -518,7 +526,7 @@ export function isBillingErrorMessage(raw: string): boolean {
   );
 }
 
-export function isMissingToolCallInputError(raw: string): boolean {
+export function isMissingToolCallInputError(raw?: string): boolean {
   if (!raw) {
     return false;
   }
@@ -532,15 +540,21 @@ export function isBillingAssistantError(msg: AssistantMessage | undefined): bool
   return isBillingErrorMessage(msg.errorMessage ?? "");
 }
 
-export function isAuthErrorMessage(raw: string): boolean {
+export function isAuthErrorMessage(raw?: string): boolean {
+  if (!raw) {
+    return false;
+  }
   return matchesErrorPatterns(raw, ERROR_PATTERNS.auth);
 }
 
-export function isOverloadedErrorMessage(raw: string): boolean {
+export function isOverloadedErrorMessage(raw?: string): boolean {
+  if (!raw) {
+    return false;
+  }
   return matchesErrorPatterns(raw, ERROR_PATTERNS.overloaded);
 }
 
-export function parseImageDimensionError(raw: string): {
+export function parseImageDimensionError(raw?: string): {
   maxDimensionPx?: number;
   messageIndex?: number;
   contentIndex?: number;
@@ -567,7 +581,7 @@ export function isImageDimensionErrorMessage(raw: string): boolean {
   return Boolean(parseImageDimensionError(raw));
 }
 
-export function parseImageSizeError(raw: string): {
+export function parseImageSizeError(raw?: string): {
   maxMb?: number;
   raw: string;
 } | null {
@@ -592,7 +606,10 @@ export function isImageSizeError(errorMessage?: string): boolean {
   return Boolean(parseImageSizeError(errorMessage));
 }
 
-export function isCloudCodeAssistFormatError(raw: string): boolean {
+export function isCloudCodeAssistFormatError(raw?: string): boolean {
+  if (!raw) {
+    return false;
+  }
   return !isImageDimensionErrorMessage(raw) && matchesErrorPatterns(raw, ERROR_PATTERNS.format);
 }
 
@@ -603,7 +620,10 @@ export function isAuthAssistantError(msg: AssistantMessage | undefined): boolean
   return isAuthErrorMessage(msg.errorMessage ?? "");
 }
 
-export function classifyFailoverReason(raw: string): FailoverReason | null {
+export function classifyFailoverReason(raw?: string): FailoverReason | null {
+  if (!raw) {
+    return null;
+  }
   if (isImageDimensionErrorMessage(raw)) {
     return null;
   }
@@ -631,7 +651,10 @@ export function classifyFailoverReason(raw: string): FailoverReason | null {
   return null;
 }
 
-export function isFailoverErrorMessage(raw: string): boolean {
+export function isFailoverErrorMessage(raw?: string): boolean {
+  if (!raw) {
+    return false;
+  }
   return classifyFailoverReason(raw) !== null;
 }
 

@@ -97,12 +97,6 @@ export function createOpenClawTools(options?: {
         modelHasVision: options?.modelHasVision,
       })
     : null;
-  // web_search disabled - requires Brave API key
-  // const webSearchTool = createWebSearchTool({
-  //   config: options?.config,
-  //   sandboxed: options?.sandboxed,
-  // });
-  const webSearchTool = null;
   const webFetchTool = createWebFetchTool({
     config: options?.config,
     sandboxed: options?.sandboxed,
@@ -212,7 +206,6 @@ export function createOpenClawTools(options?: {
     createEnterPlanModeTool(),
     createExitPlanModeTool(),
     createUpdatePlanTool(),
-    ...(webSearchTool ? [webSearchTool] : []),
     ...(webFetchTool ? [webFetchTool] : []),
     ...(imageTool ? [imageTool] : []),
     createPredictiveTool({

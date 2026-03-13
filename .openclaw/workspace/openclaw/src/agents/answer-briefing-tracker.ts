@@ -3,9 +3,13 @@
  *
  * Tracks agent answers per session and:
  * 1. Records briefing after EVERY answer
- * 2. Triggers auto-compact after 25 answers
+ * 2. Triggers auto-compact after 25 answers (configurable)
  *
  * Listens for "answer" stream events emitted when assistant messages complete.
+ *
+ * Thread Safety: This module uses module-level state. The handleAgentEvent function
+ * is designed to be called from a single event listener. If concurrent processing
+ * is needed, external synchronization would be required.
  */
 
 import { promises as fs } from "fs";
@@ -19,8 +23,15 @@ import {
   type CompactionEvent,
 } from "./compaction-briefing.js";
 import { extractAgentIdFromSessionKey } from "./session-utils.js";
+import { fastTruncateSession } from "./auto-compaction.js";
 
 const log = createSubsystemLogger("answer-briefing-tracker");
+
+/** Default timeout for LLM API calls (10 seconds) */
+const LLM_API_TIMEOUT_MS = 10_000;
+
+/** Maximum number of cycle summaries to keep (prevents unbounded memory growth) */
+const MAX_CYCLE_SUMMARIES = 100;
 
 /** Configuration for the answer briefing tracker */
 export interface AnswerBriefingConfig extends CompactionBriefingConfig {
@@ -38,36 +49,44 @@ export interface AnswerBriefingConfig extends CompactionBriefingConfig {
   };
 }
 
+/** Internal tracking state for a session */
+interface SessionTracker {
+  count: number;
+  agentId: string;
+  answerTexts: string[];
+  /** Estimated total characters for token calculation */
+  estimatedChars: number;
+}
+
 const DEFAULT_COMPACT_AFTER_ANSWERS = 25;
 const DEFAULT_AGGREGATE_AFTER_CYCLES = 2;
 
 // Track answer counts by sessionKey
-const answerCounts = new Map<
-  string,
-  {
-    count: number;
-    agentId: string;
-    answerTexts: string[]; // Collect all answer texts for cycle summary
-  }
->();
+const answerCounts = new Map<string, SessionTracker>();
 
 // Collect cycle summaries for aggregation (NOT saved to context)
 const cycleSummaries: string[] = [];
 let cycleCount = 0;
 
-// Keep recent summaries for continuity (last 2 cycles)
+// Keep recent summaries for continuity (last 2 cycles) - use fixed-size array for O(1) operations
 let recentSummaries: string[] = [];
 
 /** Get recent summaries for context continuity */
 export function getRecentSummaries(): string[] {
-  return recentSummaries;
+  return [...recentSummaries]; // Return a copy to prevent external mutation
 }
 
 let unsubscribe: (() => void) | null = null;
-let config: AnswerBriefingConfig = {};
+let config: AnswerBriefingConfig | null = null;
+
+/** Check if the tracker is initialized */
+export function isInitialized(): boolean {
+  return unsubscribe !== null;
+}
 
 /**
  * Initialize the answer briefing tracker
+ * @param cfg - Optional configuration (will be merged with defaults)
  */
 export function initAnswerBriefingTracker(cfg?: AnswerBriefingConfig): void {
   if (unsubscribe) {
@@ -75,22 +94,25 @@ export function initAnswerBriefingTracker(cfg?: AnswerBriefingConfig): void {
     return;
   }
 
-  config = cfg || {};
-
+  config = cfg ?? null;
   unsubscribe = onAgentEvent(handleAgentEvent);
   log.info("Answer briefing tracker initialized");
 }
 
 /**
- * Stop the answer briefing tracker
+ * Stop the answer briefing tracker and clear all state
  */
 export function stopAnswerBriefingTracker(): void {
   if (unsubscribe) {
     unsubscribe();
     unsubscribe = null;
-    answerCounts.clear();
-    log.info("Answer briefing tracker stopped");
   }
+  answerCounts.clear();
+  cycleSummaries.length = 0;
+  recentSummaries.length = 0;
+  cycleCount = 0;
+  config = null;
+  log.info("Answer briefing tracker stopped");
 }
 
 /**
@@ -102,9 +124,15 @@ function handleAgentEvent(evt: AgentEventPayload): void {
     return;
   }
 
-  const sessionKey = evt.sessionKey || evt.runId;
-  const answerText = (evt.data?.text as string) || "";
+  // Validate sessionKey - must have either sessionKey or runId
+  const sessionKey = evt.sessionKey ?? evt.runId;
+  if (!sessionKey) {
+    log.debug("Answer event missing sessionKey and runId, skipping");
+    return;
+  }
 
+  // Safely extract answer text
+  const answerText = extractAnswerText(evt.data);
   if (!answerText.trim()) {
     return;
   }
@@ -118,42 +146,100 @@ function handleAgentEvent(evt: AgentEventPayload): void {
       count: 0,
       agentId,
       answerTexts: [],
+      estimatedChars: 0,
     };
     answerCounts.set(sessionKey, tracker);
   }
 
-  // Increment answer count
+  // Increment answer count and track text for cycle summary
+  const truncatedText = answerText.slice(0, 300);
   tracker.count += 1;
-  tracker.answerTexts.push(answerText.slice(0, 300)); // Collect for cycle summary
+  tracker.answerTexts.push(truncatedText);
+  tracker.estimatedChars += truncatedText.length;
 
   log.debug(`Answer #${tracker.count} for session ${sessionKey}`);
+
+  // Fast-Truncate: trim session file if too large (no LLM needed, instant)
+  void fastTruncateSession(sessionKey, agentId).catch((err) => {
+    log.debug(`Fast-truncate skipped: ${err}`);
+  });
 
   // Record briefing for this answer
   void recordAnswerBriefing(sessionKey, agentId, tracker.count, answerText);
 
-  // Check if we need to trigger auto-compact
-  const compactAfter = config.compactAfterAnswers || DEFAULT_COMPACT_AFTER_ANSWERS;
+  // Check if we need to trigger auto-compact (token-based OR answer-count-based)
+  const compactAfter = config?.compactAfterAnswers ?? DEFAULT_COMPACT_AFTER_ANSWERS;
+  const shouldCompact = checkCompactionNeeded(tracker, compactAfter, sessionKey);
+
+  if (shouldCompact) {
+    triggerCompaction(sessionKey, agentId, tracker);
+  }
+}
+
+/**
+ * Safely extract answer text from event data
+ */
+function extractAnswerText(data: Record<string, unknown> | undefined): string {
+  if (!data) return "";
+  const text = data.text;
+  if (typeof text === "string") return text;
+  return "";
+}
+
+/**
+ * Check if compaction is needed based on token estimate or answer count
+ */
+function checkCompactionNeeded(
+  tracker: SessionTracker,
+  compactAfter: number,
+  sessionKey: string,
+): boolean {
+  // Token-based: estimate from accumulated answer text sizes (~4 chars per token)
+  // Use cached estimatedChars for O(1) check
+  const estimatedSessionTokens = tracker.estimatedChars * 3; // rough multiplier (includes tool results, system prompt)
+  const tokenThreshold = 50000; // compact when estimated tokens exceed this
+
+  if (estimatedSessionTokens > tokenThreshold && tracker.count >= 2) {
+    log.info(
+      `Session ${sessionKey} estimated at ${estimatedSessionTokens} tokens (threshold: ${tokenThreshold}), triggering token-based auto-compact`,
+    );
+    return true;
+  }
+
   if (tracker.count >= compactAfter) {
     if (isVerbose()) {
       log.info(`Session ${sessionKey} reached ${tracker.count} answers, triggering auto-compact`);
     }
+    return true;
+  }
 
-    // Generate cycle summary before resetting
-    const cycleTexts = [...tracker.answerTexts];
+  return false;
+}
 
-    // Reset counter
-    tracker.count = 0;
-    tracker.answerTexts = [];
+/**
+ * Trigger compaction for a session
+ */
+function triggerCompaction(
+  sessionKey: string,
+  agentId: string,
+  tracker: SessionTracker,
+): void {
+  // Capture texts before resetting
+  const cycleTexts = [...tracker.answerTexts];
 
-    // Generate cycle summary (collected, not saved to context)
-    void generateAndCollectCycleSummary(cycleTexts, sessionKey);
+  // Reset counter
+  tracker.count = 0;
+  tracker.answerTexts = [];
+  tracker.estimatedChars = 0;
 
-    // Trigger compaction
-    if (config.onCompactNeeded) {
-      void config.onCompactNeeded(sessionKey, agentId).catch((err) => {
-        log.error(`Failed to trigger compaction for ${sessionKey}: ${err}`);
-      });
-    }
+  // Generate cycle summary (collected, not saved to context)
+  void generateAndCollectCycleSummary(cycleTexts, sessionKey);
+
+  // Trigger compaction callback if configured
+  if (config?.onCompactNeeded) {
+    void config.onCompactNeeded(sessionKey, agentId).catch((err) => {
+      log.error(`Failed to trigger compaction for ${sessionKey}: ${err}`);
+    });
   }
 }
 
@@ -191,24 +277,26 @@ async function recordAnswerBriefing(
  * Get the current answer count for a session
  */
 export function getAnswerCount(sessionKey: string): number {
-  return answerCounts.get(sessionKey)?.count || 0;
+  return answerCounts.get(sessionKey)?.count ?? 0;
 }
 
 /**
- * Reset the answer count for a session
+ * Reset the answer count for a session (fully clears tracking state)
  */
 export function resetAnswerCount(sessionKey: string): void {
   const tracker = answerCounts.get(sessionKey);
   if (tracker) {
     tracker.count = 0;
+    tracker.answerTexts = [];
+    tracker.estimatedChars = 0;
   }
 }
 
 /**
- * Update the configuration
+ * Update the configuration (merges with existing config)
  */
 export function updateAnswerBriefingConfig(cfg: AnswerBriefingConfig): void {
-  config = { ...config, ...cfg };
+  config = config ? { ...config, ...cfg } : { ...cfg };
 }
 
 /**
@@ -218,8 +306,13 @@ async function generateAndCollectCycleSummary(
   answerTexts: string[],
   sessionKey: string,
 ): Promise<void> {
-  if (!config.llmConfig?.apiKey) {
+  if (!config?.llmConfig?.apiKey) {
     log.debug("No LLM config for cycle summary, skipping");
+    return;
+  }
+
+  if (answerTexts.length === 0) {
+    log.debug("No answer texts to summarize, skipping");
     return;
   }
 
@@ -234,28 +327,38 @@ ${answerTexts.map((t, i) => `${i + 1}. ${t}`).join("\n")}
 Provide a brief, useful summary (no more than 100 words).`;
 
   try {
-    const response = await fetch(`${baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${config.llmConfig.apiKey}`,
-        "Content-Type": "application/json",
+    const response = await fetchWithTimeout(
+      `${baseUrl}/chat/completions`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${config.llmConfig.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 200,
+        }),
       },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 200,
-      }),
-    });
+      LLM_API_TIMEOUT_MS,
+    );
 
     if (!response.ok) {
       throw new Error(`LLM API error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const summary = data.choices?.[0]?.message?.content || "Cycle summary unavailable.";
+    const data = (await response.json()) as LLMResponse;
+    const summary = extractSummaryFromResponse(data);
 
-    // Collect for aggregation
-    cycleSummaries.push(summary);
+    // Collect for aggregation (with bounds check to prevent unbounded memory growth)
+    if (cycleSummaries.length < MAX_CYCLE_SUMMARIES) {
+      cycleSummaries.push(summary);
+    } else {
+      log.warn(`Cycle summaries limit (${MAX_CYCLE_SUMMARIES}) reached, forcing aggregation`);
+      await aggregateAndSaveBriefing();
+      cycleSummaries.push(summary);
+    }
     cycleCount++;
 
     // Keep recent summaries for context continuity (last 2 cycles)
@@ -272,12 +375,54 @@ Provide a brief, useful summary (no more than 100 words).`;
     );
 
     // Check if we should aggregate and save
-    const aggregateAfter = config.aggregateAfterCycles || DEFAULT_AGGREGATE_AFTER_CYCLES;
+    const aggregateAfter = config.aggregateAfterCycles ?? DEFAULT_AGGREGATE_AFTER_CYCLES;
     if (cycleCount >= aggregateAfter) {
       await aggregateAndSaveBriefing();
     }
   } catch (error) {
     log.error(`Failed to generate cycle summary: ${error}`);
+  }
+}
+
+/** LLM API response structure */
+interface LLMResponse {
+  choices?: Array<{
+    message?: {
+      content?: string;
+    };
+  }>;
+}
+
+/**
+ * Extract summary from LLM response safely
+ */
+function extractSummaryFromResponse(data: LLMResponse): string {
+  const content = data.choices?.[0]?.message?.content;
+  if (typeof content === "string" && content.trim()) {
+    return content.trim();
+  }
+  return "Cycle summary unavailable.";
+}
+
+/**
+ * Fetch with timeout to prevent hanging on external API calls
+ */
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeoutMs: number,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
@@ -290,7 +435,7 @@ async function aggregateAndSaveBriefing(): Promise<void> {
     return;
   }
 
-  if (!config.llmConfig?.apiKey) {
+  if (!config?.llmConfig?.apiKey) {
     log.debug("No LLM config for aggregation, dumping raw summaries");
     await writeBriefingFile(cycleSummaries.join("\n\n"));
     cycleSummaries.length = 0;
@@ -314,25 +459,29 @@ ${cycleSummaries.map((s, i) => `--- Cycle ${i + 1} ---\n${s}`).join("\n")}
 Create a concise master briefing (no more than 150 words). Focus on what matters.`;
 
   try {
-    const response = await fetch(`${baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${config.llmConfig.apiKey}`,
-        "Content-Type": "application/json",
+    const response = await fetchWithTimeout(
+      `${baseUrl}/chat/completions`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${config.llmConfig.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 300,
+        }),
       },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 300,
-      }),
-    });
+      LLM_API_TIMEOUT_MS,
+    );
 
     if (!response.ok) {
       throw new Error(`LLM API error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const masterBriefing = data.choices?.[0]?.message?.content || cycleSummaries.join("\n\n");
+    const data = (await response.json()) as LLMResponse;
+    const masterBriefing = extractSummaryFromResponse(data) || cycleSummaries.join("\n\n");
 
     // Write the aggregated briefing
     await writeBriefingFile(masterBriefing);

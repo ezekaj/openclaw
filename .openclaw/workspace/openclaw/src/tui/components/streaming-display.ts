@@ -4,7 +4,7 @@
  * Handles streaming display in TUI for real-time token-by-token rendering.
  */
 
-import type { SSEStreamEvent, TokenEventData, ToolStreamEventData } from "../../streaming/types.js";
+import type { SSEStreamEvent, TokenEventData, ToolStreamEventData, ErrorEventData } from "../../streaming/types.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 
 const log = createSubsystemLogger("streaming-display");
@@ -36,7 +36,7 @@ export class StreamingDisplay {
         this.handleToolEnd(event.data as ToolStreamEventData);
         break;
       case "error":
-        this.handleError(event.data as { message: string });
+        this.handleError(event.data as ErrorEventData);
         break;
       case "done":
         this.handleDone();
@@ -102,7 +102,7 @@ export class StreamingDisplay {
     if (data.status === "complete") {
       log.debug(`Tool complete: ${data.toolName}`);
     } else if (data.status === "error") {
-      log.error(`Tool error: ${data.toolName} - ${data.error}`);
+      log.error(`Tool error: ${data.toolName}${data.error ? ` - ${data.error}` : ""}`);
     }
     this.currentTool = null;
   }
@@ -110,7 +110,7 @@ export class StreamingDisplay {
   /**
    * Handle error
    */
-  private handleError(data: { message: string }): void {
+  private handleError(data: ErrorEventData): void {
     log.error(`Stream error: ${data.message}`);
   }
 
@@ -122,6 +122,7 @@ export class StreamingDisplay {
     this.buffer = "";
     this.reasoningBuffer = "";
     this.isThinking = false;
+    this.currentTool = null;
   }
 
   /**

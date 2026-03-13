@@ -184,42 +184,36 @@ type MacOSVisionOCRResult = {
   durationMs: number;
 };
 
-async function runMacOSVisionOCR(imagePath: string): Promise<MacOSVisionOCRResult> {
-  const startTime = Date.now();
+const PYTHON_PATH = process.platform === "darwin" ? "/usr/bin/python3" : "python3";
 
-  // Write the Python script to a temp file
-  const scriptPath = join(tmpdir(), `openclaw-ocr-${Date.now()}.py`);
-  writeFileSync(scriptPath, MACOS_VISION_OCR_SCRIPT);
-
+function runPythonScript(script: string, args: string[], timeoutMs = 30000): string {
+  const scriptPath = join(tmpdir(), `openclaw-py-${Date.now()}.py`);
+  writeFileSync(scriptPath, script);
   try {
-    // Use appropriate Python path for the platform
-    // macOS: /usr/bin/python3 (has pyobjc with Quartz/Vision)
-    // Linux/Windows: python3 from PATH
-    const pythonPath = process.platform === 'darwin' 
-      ? '/usr/bin/python3' 
-      : 'python3';
-    
-    const result = execSync(`${pythonPath} "${scriptPath}" "${imagePath}"`, {
+    const quotedArgs = args.map((a) => `"${a}"`).join(" ");
+    return execSync(`${PYTHON_PATH} "${scriptPath}" ${quotedArgs}`, {
       encoding: "utf-8",
-      timeout: 30000,
-    });
-
-    const parsed = JSON.parse(result.trim());
-    if (parsed.error) {
-      throw new Error(parsed.error);
-    }
-
-    return {
-      text: parsed.text || "",
-      lines: parsed.lines || 0,
-      durationMs: Date.now() - startTime,
-    };
+      timeout: timeoutMs,
+    }).trim();
   } finally {
-    // Clean up script file
     if (existsSync(scriptPath)) {
       unlinkSync(scriptPath);
     }
   }
+}
+
+async function runMacOSVisionOCR(imagePath: string): Promise<MacOSVisionOCRResult> {
+  const startTime = Date.now();
+  const raw = runPythonScript(MACOS_VISION_OCR_SCRIPT, [imagePath]);
+  const parsed = JSON.parse(raw);
+  if (parsed.error) {
+    throw new Error(parsed.error);
+  }
+  return {
+    text: parsed.text || "",
+    lines: parsed.lines || 0,
+    durationMs: Date.now() - startTime,
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -279,39 +273,16 @@ async function runGeminiVision(
   apiKey: string,
 ): Promise<GeminiVisionResult> {
   const startTime = Date.now();
-  const scriptPath = join(tmpdir(), `openclaw-gemini-vision-${Date.now()}.py`);
-  writeFileSync(scriptPath, GEMINI_VISION_SCRIPT);
-
-  try {
-    // Escape prompt for shell
-    const escapedPrompt = prompt.replace(/"/g, '\\"').replace(/\$/g, "\\$");
-    // Use appropriate Python path for the platform
-    const pythonPath = process.platform === 'darwin' 
-      ? '/usr/bin/python3' 
-      : 'python3';
-    
-    const result = execSync(
-      `${pythonPath} "${scriptPath}" "${imagePath}" "${escapedPrompt}" "${apiKey}"`,
-      {
-        encoding: "utf-8",
-        timeout: 60000,
-      },
-    );
-
-    const parsed = JSON.parse(result.trim());
-    if (parsed.error) {
-      throw new Error(parsed.error);
-    }
-
-    return {
-      text: parsed.text || "",
-      durationMs: Date.now() - startTime,
-    };
-  } finally {
-    if (existsSync(scriptPath)) {
-      unlinkSync(scriptPath);
-    }
+  const escapedPrompt = prompt.replace(/"/g, '\\"').replace(/\$/g, "\\$");
+  const raw = runPythonScript(GEMINI_VISION_SCRIPT, [imagePath, escapedPrompt, apiKey], 60000);
+  const parsed = JSON.parse(raw);
+  if (parsed.error) {
+    throw new Error(parsed.error);
   }
+  return {
+    text: parsed.text || "",
+    durationMs: Date.now() - startTime,
+  };
 }
 
 // Retry configuration with exponential backoff
@@ -665,8 +636,8 @@ export function createBrowserTool(opts?: {
     name: "browser",
     description: [
       "Control the browser via OpenClaw's browser control server (status/start/stop/profiles/tabs/open/snapshot/screenshot/actions).",
-      'Profiles: use profile="chrome" for Chrome extension relay takeover (your existing Chrome tabs). Use profile="openclaw" for the isolated openclaw-managed browser.',
-      'If the user mentions the Chrome extension / Browser Relay / toolbar button / “attach tab”, ALWAYS use profile="chrome" (do not ask which profile).',
+      'Profiles: use the default browser profile for all tasks. Other profiles: profile=”chrome” (Chrome extension relay for existing tabs).',
+      'Just use the default profile and start working. Never ask which profile to use. If the user mentions Chrome extension / Browser Relay / toolbar button / “attach tab”, use profile=”chrome”.',
       'When a node-hosted browser proxy is available, the tool may auto-route to it. Pin a node with node=<id|name> or target="node".',
       "Chrome extension relay needs an attached tab: user must click the OpenClaw Browser Relay toolbar icon on the tab (badge ON). If no tab is connected, ask them to attach it.",
       "When using refs from snapshot (e.g. e12), keep the same tab: prefer passing targetId from the snapshot response into subsequent actions (act/click/type/etc).",

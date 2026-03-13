@@ -250,6 +250,10 @@ export type AgentCompactionConfig = {
   reserveTokensFloor?: number;
   /** Max share of context window for history during safeguard pruning (0.1–0.9, default 0.5). */
   maxHistoryShare?: number;
+  /** Override model for compaction (format: provider/modelId, e.g. openai/liquid/lfm2-24b-a2b). */
+  compactionModel?: string;
+  /** Max output tokens for compaction summarization. */
+  maxTokens?: number;
   /** Pre-compaction memory flush (agentic turn). Default: enabled. */
   memoryFlush?: AgentCompactionMemoryFlushConfig;
 };

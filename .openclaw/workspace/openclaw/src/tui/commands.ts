@@ -10,11 +10,9 @@ import { VALID_EFFORT_LEVELS } from "../config/env-vars.effort.js";
 import { globalHookExecutor } from "../hooks/executor.js";
 // Plugin update imports
 import { checkForUpdates } from "../plugins/auto-update.js";
-// Streaming imports
-import { streamSSE } from "../streaming/sse-client.js";
+
 // Teleport imports
 import { getTeleportedSessionInfo } from "../teleport/teleport-state.js";
-import { createStreamingDisplay } from "./components/streaming-display.js";
 
 const VERBOSE_LEVELS = ["on", "off"];
 const REASONING_LEVELS = ["on", "off"];

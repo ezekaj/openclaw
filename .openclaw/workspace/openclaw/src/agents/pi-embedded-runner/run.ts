@@ -52,8 +52,6 @@ import { runEmbeddedAttempt } from "./run/attempt.js";
 import { buildEmbeddedRunPayloads } from "./run/payloads.js";
 import { describeUnknownError } from "./utils.js";
 
-type ApiKeyInfo = ResolvedProviderAuth;
-
 // Avoid Anthropic's refusal test token poisoning session transcripts.
 const ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL = "ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL";
 const ANTHROPIC_MAGIC_STRING_REPLACEMENT = "ANTHROPIC MAGIC STRING TRIGGER REFUSAL (redacted)";
@@ -168,7 +166,7 @@ export async function runEmbeddedPiAgent(
       const initialThinkLevel = params.thinkLevel ?? "off";
       let thinkLevel = initialThinkLevel;
       const attemptedThinking = new Set<ThinkLevel>();
-      let apiKeyInfo: ApiKeyInfo | null = null;
+      let apiKeyInfo: ResolvedProviderAuth | null = null;
       let lastProfileId: string | undefined;
 
       const resolveAuthProfileFailoverReason = (params: {
@@ -267,6 +265,10 @@ export async function runEmbeddedPiAgent(
             if (candidate && candidate === lockedProfileId) {
               throw err;
             }
+            // Log the error for debugging but continue to next profile
+            log.debug(
+              `Failed to apply auth profile "${candidate ?? "default"}" during rotation: ${describeUnknownError(err)}`,
+            );
             nextIndex += 1;
           }
         }
@@ -520,6 +522,67 @@ export async function runEmbeddedPiAgent(
               });
             }
             throw promptError;
+          }
+
+          // Check for context overflow in assistant error message (e.g. zhipu returns it as stop reason, not thrown error)
+          if (
+            lastAssistant?.errorMessage &&
+            !aborted &&
+            isContextOverflowError(lastAssistant.errorMessage)
+          ) {
+            if (!overflowCompactionAttempted) {
+              log.warn(
+                `context overflow detected (assistant error); attempting auto-compaction for ${provider}/${modelId}`,
+              );
+              overflowCompactionAttempted = true;
+              const compactResult = await compactEmbeddedPiSessionDirect({
+                sessionId: params.sessionId,
+                sessionKey: params.sessionKey,
+                messageChannel: params.messageChannel,
+                messageProvider: params.messageProvider,
+                agentAccountId: params.agentAccountId,
+                authProfileId: lastProfileId,
+                sessionFile: params.sessionFile,
+                workspaceDir: params.workspaceDir,
+                agentDir,
+                config: params.config,
+                skillsSnapshot: params.skillsSnapshot,
+                provider,
+                model: modelId,
+                thinkLevel,
+                reasoningLevel: params.reasoningLevel,
+                bashElevated: params.bashElevated,
+                extraSystemPrompt: params.extraSystemPrompt,
+                ownerNumbers: params.ownerNumbers,
+              });
+              if (compactResult.compacted) {
+                log.info(`auto-compaction succeeded for ${provider}/${modelId}; retrying prompt`);
+                continue;
+              }
+              log.warn(
+                `auto-compaction failed for ${provider}/${modelId}: ${compactResult.reason ?? "nothing to compact"}`,
+              );
+            }
+            return {
+              payloads: [
+                {
+                  text:
+                    "Context overflow: prompt too large for the model. " +
+                    "Try again with less input or a larger-context model.",
+                  isError: true,
+                },
+              ],
+              meta: {
+                durationMs: Date.now() - started,
+                agentMeta: {
+                  sessionId: sessionIdUsed,
+                  provider,
+                  model: model.id,
+                },
+                systemPromptReport: attempt.systemPromptReport,
+                error: { kind: "context_overflow", message: lastAssistant.errorMessage },
+              },
+            };
           }
 
           const fallbackThinking = pickFallbackThinkingLevel({

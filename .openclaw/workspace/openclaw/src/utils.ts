@@ -4,7 +4,7 @@ import path from "node:path";
 import { resolveOAuthDir } from "./config/paths.js";
 import { logVerbose, shouldLogVerbose } from "./globals.js";
 
-export async function ensureDir(dir: string) {
+export async function ensureDir(dir: string): Promise<void> {
   await fs.promises.mkdir(dir, { recursive: true });
 }
 
@@ -38,10 +38,9 @@ export function withWhatsAppPrefix(number: string): string {
 export function normalizeE164(number: string): string {
   const withoutPrefix = number.replace(/^whatsapp:/, "").trim();
   const digits = withoutPrefix.replace(/[^\d+]/g, "");
-  if (digits.startsWith("+")) {
-    return `+${digits.slice(1)}`;
-  }
-  return `+${digits}`;
+  // Remove all + signs, then add a single + prefix
+  const digitsOnly = digits.replace(/\+/g, "");
+  return `+${digitsOnly}`;
 }
 
 /**
@@ -64,11 +63,7 @@ export function isSelfChatMode(
     if (n === "*") {
       return false;
     }
-    try {
-      return normalizeE164(String(n)) === normalizedSelf;
-    } catch {
-      return false;
-    }
+    return normalizeE164(String(n)) === normalizedSelf;
   });
 }
 
@@ -184,7 +179,7 @@ export async function resolveJidToE164(
   }
 }
 
-export function sleep(ms: number) {
+export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -245,6 +240,8 @@ export function resolveUserPath(input: string): string {
   return path.resolve(trimmed);
 }
 
+const LEGACY_CONFIG_DIRNAMES = [".clawdbot", ".moltbot", ".moldbot"] as const;
+
 export function resolveConfigDir(
   env: NodeJS.ProcessEnv = process.env,
   homedir: () => string = os.homedir,
@@ -261,6 +258,17 @@ export function resolveConfigDir(
     }
   } catch {
     // best-effort
+  }
+  // Check for legacy directories to maintain consistency with resolveStateDir
+  for (const dirname of LEGACY_CONFIG_DIRNAMES) {
+    const legacyDir = path.join(homedir(), dirname);
+    try {
+      if (fs.existsSync(legacyDir)) {
+        return legacyDir;
+      }
+    } catch {
+      // continue checking
+    }
   }
   return newDir;
 }

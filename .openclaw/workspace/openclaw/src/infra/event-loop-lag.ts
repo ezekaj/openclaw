@@ -11,14 +11,27 @@ let peakLagMs = 0;
 let sampleCount = 0;
 let totalLagMs = 0;
 
-/** Sample interval in ms */
-const SAMPLE_INTERVAL_MS = 1000;
+const SAMPLE_INTERVAL_MS = 1000; // Sample interval in ms
+const LAG_WARN_THRESHOLD_MS = 100; // Warn threshold in ms
+const LAG_CRITICAL_THRESHOLD_MS = 500; // Critical threshold in ms
 
-/** Warn threshold in ms */
-const LAG_WARN_THRESHOLD_MS = 100;
+/**
+ * Event loop monitoring statistics
+ */
+export interface EventLoopStats {
+  currentLagMs: number;
+  peakLagMs: number;
+  avgLagMs: number;
+  sampleCount: number;
+  status: "ok" | "warn" | "critical";
+}
 
-/** Critical threshold in ms */
-const LAG_CRITICAL_THRESHOLD_MS = 500;
+/**
+ * Options for event loop monitoring
+ */
+export interface EventLoopMonitorOptions {
+  onWarning?: (lagMs: number) => void;
+}
 
 let sampleTimer: ReturnType<typeof setInterval> | null = null;
 let onLagWarning: ((lagMs: number) => void) | null = null;
@@ -55,21 +68,13 @@ export function getEventLoopLagMs(): number {
 /**
  * Get event loop lag statistics.
  */
-export function getEventLoopStats(): {
-  currentLagMs: number;
-  peakLagMs: number;
-  avgLagMs: number;
-  sampleCount: number;
-  status: "ok" | "warn" | "critical";
-} {
+export function getEventLoopStats(): EventLoopStats {
   const avgLagMs = sampleCount > 0 ? totalLagMs / sampleCount : 0;
 
-  let status: "ok" | "warn" | "critical" = "ok";
-  if (currentLagMs > LAG_CRITICAL_THRESHOLD_MS) {
-    status = "critical";
-  } else if (currentLagMs > LAG_WARN_THRESHOLD_MS) {
-    status = "warn";
-  }
+  const status: "ok" | "warn" | "critical" = 
+    currentLagMs > LAG_CRITICAL_THRESHOLD_MS ? "critical" :
+    currentLagMs > LAG_WARN_THRESHOLD_MS ? "warn" :
+    "ok";
 
   return {
     currentLagMs: Math.round(currentLagMs * 100) / 100,
@@ -83,7 +88,7 @@ export function getEventLoopStats(): {
 /**
  * Start monitoring event loop lag.
  */
-export function startEventLoopMonitor(opts?: { onWarning?: (lagMs: number) => void }): void {
+export function startEventLoopMonitor(opts?: EventLoopMonitorOptions): void {
   if (sampleTimer) return;
 
   onLagWarning = opts?.onWarning ?? null;

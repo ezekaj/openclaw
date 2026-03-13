@@ -73,13 +73,13 @@ export async function startGatewaySidecars(params: {
     params.log.warn(`auto-compaction context failed to initialize: ${String(err)}`);
   }
 
-  // Initialize answer briefing tracker (briefing after every answer + auto-compact after 13 answers)
+  // Initialize answer briefing tracker (briefing after every answer + auto-compact after 3 answers)
   try {
     // Get briefing config from agents.defaults
     const briefingConfig = params.cfg.agents?.defaults?.briefingConfig;
 
     initAnswerBriefingTracker({
-      compactAfterAnswers: 13,
+      compactAfterAnswers: 3,
       // Only provide llmConfig if apiKey is actually set
       llmConfig: briefingConfig?.apiKey
         ? {

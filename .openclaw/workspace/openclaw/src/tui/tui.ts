@@ -44,7 +44,7 @@ import { createOverlayHandlers } from "./tui-overlays.js";
 import { createSessionActions } from "./tui-session-actions.js";
 import { buildWaitingStatusMessage, defaultWaitingPhrases } from "./tui-waiting.js";
 import { isVimModeEnabled, getCurrentVimMode, setVimModeEnabled } from "./vim-mode/vim-state.js";
-import { loadTuiPrefs, setVimModePref, getVimModePref } from "./tui-prefs.js";
+import { loadTuiPrefs, setVimModePref } from "./tui-prefs.js";
 import { getCacheMetricsTracker } from "../agents/cache-metrics-tracker.js";
 import { getSessionTeleportManager } from "../agents/session-teleport-manager.js";
 

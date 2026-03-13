@@ -5,7 +5,7 @@
  */
 
 import type { CustomEditor } from "../components/custom-editor.js";
-import type { VimCursor, VimOperationResult } from "./types.js";
+import type { VimOperationResult } from "./types.js";
 
 /**
  * Vim operations class
@@ -28,7 +28,7 @@ export class VimOperations {
     const pos = this.editor.getCursorPosition();
     if (pos.column > 0) {
       this.editor.setCursorPosition(pos.line, pos.column - 1);
-      return { success: true, cursor: { line: pos.line, column: pos.column - 1 } };
+      return { success: true };
     }
     return { success: false };
   }
@@ -41,7 +41,7 @@ export class VimOperations {
     const line = this.editor.getLine(pos.line);
     if (pos.column < line.length) {
       this.editor.setCursorPosition(pos.line, pos.column + 1);
-      return { success: true, cursor: { line: pos.line, column: pos.column + 1 } };
+      return { success: true };
     }
     return { success: false };
   }
@@ -53,7 +53,7 @@ export class VimOperations {
     const pos = this.editor.getCursorPosition();
     if (pos.line > 0) {
       this.editor.setCursorPosition(pos.line - 1, pos.column);
-      return { success: true, cursor: { line: pos.line - 1, column: pos.column } };
+      return { success: true };
     }
     return { success: false };
   }
@@ -66,7 +66,7 @@ export class VimOperations {
     const totalLines = this.editor.getLineCount();
     if (pos.line < totalLines - 1) {
       this.editor.setCursorPosition(pos.line + 1, pos.column);
-      return { success: true, cursor: { line: pos.line + 1, column: pos.column } };
+      return { success: true };
     }
     return { success: false };
   }
@@ -77,7 +77,7 @@ export class VimOperations {
   moveToLineStart(): VimOperationResult {
     const pos = this.editor.getCursorPosition();
     this.editor.setCursorPosition(pos.line, 0);
-    return { success: true, cursor: { line: pos.line, column: 0 } };
+    return { success: true };
   }
 
   /**
@@ -87,7 +87,7 @@ export class VimOperations {
     const pos = this.editor.getCursorPosition();
     const line = this.editor.getLine(pos.line);
     this.editor.setCursorPosition(pos.line, line.length);
-    return { success: true, cursor: { line: pos.line, column: line.length } };
+    return { success: true };
   }
 
   /**
@@ -96,10 +96,9 @@ export class VimOperations {
   moveToFirstNonBlank(): VimOperationResult {
     const pos = this.editor.getCursorPosition();
     const line = this.editor.getLine(pos.line);
-    const match = line.match(/\S/);
-    const column = match ? match.index! : 0;
+    const column = this.findFirstNonBlank(line);
     this.editor.setCursorPosition(pos.line, column);
-    return { success: true, cursor: { line: pos.line, column } };
+    return { success: true };
   }
 
   /**
@@ -107,7 +106,7 @@ export class VimOperations {
    */
   moveToFirstLine(): VimOperationResult {
     this.editor.setCursorPosition(0, 0);
-    return { success: true, cursor: { line: 0, column: 0 } };
+    return { success: true };
   }
 
   /**
@@ -116,7 +115,7 @@ export class VimOperations {
   moveToLastLine(): VimOperationResult {
     const lastLine = this.editor.getLineCount() - 1;
     this.editor.setCursorPosition(lastLine, 0);
-    return { success: true, cursor: { line: lastLine, column: 0 } };
+    return { success: true };
   }
 
   /**
@@ -124,56 +123,37 @@ export class VimOperations {
    */
   moveToNextWord(): VimOperationResult {
     const pos = this.editor.getCursorPosition();
-    const text = this.editor.getText();
-    const lines = text.split("\n");
-
+    const lineCount = this.editor.getLineCount();
     let currentLine = pos.line;
     let currentCol = pos.column;
 
-    // Find next word boundary
-    const line = lines[currentLine] || "";
-
-    // Skip non-word characters first
-    let foundNonWord = false;
-    for (let i = currentCol; i < line.length; i++) {
-      if (!this.isWordChar(line[i])) {
-        foundNonWord = true;
-        currentCol = i;
-        break;
-      }
+    // Try to find next word on current line
+    const line = this.editor.getLine(currentLine);
+    
+    // Skip current word characters
+    while (currentCol < line.length && this.isWordChar(line[currentCol])) {
+      currentCol++;
+    }
+    
+    // Skip non-word characters (punctuation, whitespace)
+    while (currentCol < line.length && !this.isWordChar(line[currentCol])) {
+      currentCol++;
     }
 
-    // If we didn't find non-word, we're at end of line
-    if (!foundNonWord) {
-      // Move to next line if available
-      if (currentLine < lines.length - 1) {
-        currentLine++;
-        const nextLine = lines[currentLine] || "";
-        const match = nextLine.match(/\S/);
-        if (match) {
-          this.editor.setCursorPosition(currentLine, match.index!);
-          return { success: true, cursor: { line: currentLine, column: match.index! } };
-        }
-      }
-      return { success: false };
+    // If found a word character on current line
+    if (currentCol < line.length) {
+      this.editor.setCursorPosition(currentLine, currentCol);
+      return { success: true };
     }
 
-    // Now skip non-word characters to find next word
-    for (let i = currentCol; i < line.length; i++) {
-      if (this.isWordChar(line[i])) {
-        this.editor.setCursorPosition(currentLine, i);
-        return { success: true, cursor: { line: currentLine, column: i } };
-      }
-    }
-
-    // Move to next line if not found
-    if (currentLine < lines.length - 1) {
+    // Move to next line and find first word
+    while (currentLine < lineCount - 1) {
       currentLine++;
-      const nextLine = lines[currentLine] || "";
-      const match = nextLine.match(/\S/);
-      if (match) {
-        this.editor.setCursorPosition(currentLine, match.index!);
-        return { success: true, cursor: { line: currentLine, column: match.index! } };
+      const nextLine = this.editor.getLine(currentLine);
+      const firstWordCol = this.findFirstNonBlank(nextLine);
+      if (firstWordCol < nextLine.length) {
+        this.editor.setCursorPosition(currentLine, firstWordCol);
+        return { success: true };
       }
     }
 
@@ -185,33 +165,47 @@ export class VimOperations {
    */
   moveToPrevWord(): VimOperationResult {
     const pos = this.editor.getCursorPosition();
-    const text = this.editor.getText();
-    const lines = text.split("\n");
-
     let currentLine = pos.line;
     let currentCol = pos.column;
 
-    const line = lines[currentLine] || "";
-
-    // Move back to start of current word or previous word
-    for (let i = currentCol - 1; i >= 0; i--) {
-      if (this.isWordChar(line[i]) && (i === 0 || !this.isWordChar(line[i - 1]))) {
-        this.editor.setCursorPosition(currentLine, i);
-        return { success: true, cursor: { line: currentLine, column: i } };
+    // Try to find previous word on current line
+    const line = this.editor.getLine(currentLine);
+    
+    // If at start of line, go to previous line
+    if (currentCol === 0) {
+      if (currentLine === 0) {
+        return { success: false };
       }
+      currentLine--;
+      const prevLine = this.editor.getLine(currentLine);
+      const wordStart = this.findLastWordStart(prevLine);
+      this.editor.setCursorPosition(currentLine, wordStart);
+      return { success: true };
     }
 
-    // Move to previous line if not found
+    // Move back past any non-word characters
+    while (currentCol > 0 && !this.isWordChar(line[currentCol - 1])) {
+      currentCol--;
+    }
+
+    // Move back to start of word
+    while (currentCol > 0 && this.isWordChar(line[currentCol - 1])) {
+      currentCol--;
+    }
+
+    // If we found a word start
+    if (currentCol !== pos.column && this.isWordChar(line[currentCol])) {
+      this.editor.setCursorPosition(currentLine, currentCol);
+      return { success: true };
+    }
+
+    // Move to previous line
     if (currentLine > 0) {
       currentLine--;
-      const prevLine = lines[currentLine] || "";
-      const words = prevLine.match(/\S+/g);
-      if (words && words.length > 0) {
-        const lastWord = words[words.length - 1];
-        const lastWordStart = prevLine.lastIndexOf(lastWord);
-        this.editor.setCursorPosition(currentLine, lastWordStart);
-        return { success: true, cursor: { line: currentLine, column: lastWordStart } };
-      }
+      const prevLine = this.editor.getLine(currentLine);
+      const wordStart = this.findLastWordStart(prevLine);
+      this.editor.setCursorPosition(currentLine, wordStart);
+      return { success: true };
     }
 
     return { success: false };
@@ -222,32 +216,44 @@ export class VimOperations {
    */
   moveToEndWord(): VimOperationResult {
     const pos = this.editor.getCursorPosition();
-    const text = this.editor.getText();
-    const lines = text.split("\n");
-
+    const lineCount = this.editor.getLineCount();
     let currentLine = pos.line;
     let currentCol = pos.column;
 
-    const line = lines[currentLine] || "";
+    // Try to find end of word on current line
+    const line = this.editor.getLine(currentLine);
+    
+    // Move past current character if on a word
+    if (currentCol < line.length && this.isWordChar(line[currentCol])) {
+      currentCol++;
+    }
 
-    // Find end of current or next word
-    for (let i = currentCol + 1; i < line.length; i++) {
-      if (!this.isWordChar(line[i]) && i > currentCol + 1) {
-        this.editor.setCursorPosition(currentLine, i - 1);
-        return { success: true, cursor: { line: currentLine, column: i - 1 } };
+    // Skip non-word characters
+    while (currentCol < line.length && !this.isWordChar(line[currentCol])) {
+      currentCol++;
+    }
+
+    // If at end of line, move to next line
+    if (currentCol >= line.length) {
+      while (currentLine < lineCount - 1) {
+        currentLine++;
+        const nextLine = this.editor.getLine(currentLine);
+        const wordEnd = this.findFirstWordEnd(nextLine);
+        if (wordEnd >= 0) {
+          this.editor.setCursorPosition(currentLine, wordEnd);
+          return { success: true };
+        }
       }
+      return { success: false };
     }
 
-    // Find end of last word on line
-    const words = line.match(/\S+/g);
-    if (words && words.length > 0) {
-      const lastWord = words[words.length - 1];
-      const lastWordEnd = line.lastIndexOf(lastWord) + lastWord.length - 1;
-      this.editor.setCursorPosition(currentLine, lastWordEnd);
-      return { success: true, cursor: { line: currentLine, column: lastWordEnd } };
+    // Move to end of word
+    while (currentCol < line.length - 1 && this.isWordChar(line[currentCol + 1])) {
+      currentCol++;
     }
 
-    return { success: false };
+    this.editor.setCursorPosition(currentLine, currentCol);
+    return { success: true };
   }
 
   // ============================================================================
@@ -352,6 +358,54 @@ export class VimOperations {
    */
   private isWordChar(char: string): boolean {
     return /\w/.test(char);
+  }
+
+  /**
+   * Find the column of the first non-blank character in a line
+   */
+  private findFirstNonBlank(line: string): number {
+    const match = line.match(/\S/);
+    return match?.index ?? 0;
+  }
+
+  /**
+   * Find the start column of the last word in a line
+   */
+  private findLastWordStart(line: string): number {
+    // Find last word character
+    let end = line.length - 1;
+    while (end >= 0 && !this.isWordChar(line[end])) {
+      end--;
+    }
+    if (end < 0) {
+      return 0; // No words found
+    }
+    // Find start of that word
+    let start = end;
+    while (start > 0 && this.isWordChar(line[start - 1])) {
+      start--;
+    }
+    return start;
+  }
+
+  /**
+   * Find the end column of the first word in a line
+   * @returns column of word end, or -1 if no word found
+   */
+  private findFirstWordEnd(line: string): number {
+    // Find first word character
+    let col = 0;
+    while (col < line.length && !this.isWordChar(line[col])) {
+      col++;
+    }
+    if (col >= line.length) {
+      return -1; // No word found
+    }
+    // Find end of that word
+    while (col < line.length - 1 && this.isWordChar(line[col + 1])) {
+      col++;
+    }
+    return col;
   }
 }
 

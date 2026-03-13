@@ -1,10 +1,16 @@
-import { Type } from "@sinclair/typebox";
 import { spawn, ChildProcess } from "child_process";
 import { EventEmitter } from "events";
-import { SamplingCapabilityError } from "./errors.js";
 
 // MCP Protocol Constants
 const MCP_PROTOCOL_VERSION = "2024-11-05";
+
+const DEFAULT_CLIENT_CAPABILITIES = {
+  sampling: { tools: true, createMessage: true },
+  elicitation: { url: true, form: true },
+  roots: { list: true },
+} as const;
+
+const CLIENT_INFO = { name: "OpenClaw", version: "1.0.0" } as const;
 
 /**
  * MCP Capabilities - Matches Claude Code capability structure
@@ -73,6 +79,34 @@ export interface McpToolResult {
   isError?: boolean;
 }
 
+// JSON-RPC message types
+interface JsonRpcRequest {
+  jsonrpc: "2.0";
+  id: number;
+  method: string;
+  params?: unknown;
+}
+
+interface JsonRpcResponse {
+  jsonrpc: "2.0";
+  id: number;
+  result?: unknown;
+  error?: { message?: string; code?: number; data?: unknown };
+}
+
+interface JsonRpcNotification {
+  jsonrpc: "2.0";
+  method: string;
+  params?: unknown;
+}
+
+type JsonRpcMessage = JsonRpcRequest | JsonRpcResponse | JsonRpcNotification;
+
+// Tools list response
+interface ToolsListResponse {
+  tools: McpTool[];
+}
+
 // MCP Server Configuration
 export interface McpServerConfig {
   command: string;
@@ -100,7 +134,7 @@ class McpServer extends EventEmitter {
   private capabilities: McpCapabilities = {};
   private tools: McpTool[] = [];
   private connected = false;
-  private connecting = false;
+  private initPromise: Promise<void> | null = null;
 
   constructor(
     public readonly name: string,
@@ -110,11 +144,21 @@ class McpServer extends EventEmitter {
   }
 
   async initialize(): Promise<void> {
-    if (this.connected || this.connecting) {
+    // Already connected
+    if (this.connected) {
       return;
     }
 
-    this.connecting = true;
+    // Wait for ongoing initialization
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+
+    this.initPromise = this.doInitialize();
+    return this.initPromise;
+  }
+
+  private async doInitialize(): Promise<void> {
 
     try {
       this.process = spawn(this.config.command, this.config.args || [], {
@@ -153,11 +197,12 @@ class McpServer extends EventEmitter {
       // Handle process exit
       this.process.on("exit", (code: number | null) => {
         this.connected = false;
-        this.connecting = false;
+        this.initPromise = null;
         this.emit("server:disconnected", { name: this.name, reason: `Exited with code ${code}` });
 
         // Reject all pending requests
-        for (const [id, { reject }] of this.pendingRequests.entries()) {
+        const pendingEntries = Array.from(this.pendingRequests.entries());
+        for (const [id, { reject }] of pendingEntries) {
           reject(new Error(`Server exited with code ${code}`));
           this.pendingRequests.delete(id);
         }
@@ -166,52 +211,42 @@ class McpServer extends EventEmitter {
       // Handle process error
       this.process.on("error", (error: Error) => {
         this.connected = false;
-        this.connecting = false;
+        this.initPromise = null;
         this.emit("error", { serverName: this.name, error });
       });
 
-      // Send initialize request with client capabilities
-      // Matches Claude Code capability declaration (Lines 14670, 14687)
-      await this.sendRequest("initialize", {
+      const initResponse = (await this.sendRequest("initialize", {
         protocolVersion: MCP_PROTOCOL_VERSION,
-        capabilities: {
-          // Client capabilities - what OpenClaw supports
-          sampling: {
-            tools: true, // Can handle tools during sampling
-            createMessage: true, // Supports sampling/createMessage
-          },
-          elicitation: {
-            url: true, // Supports URL elicitation
-            form: true, // Supports form elicitation
-          },
-          roots: {
-            list: true, // Supports roots/list
-          },
-        },
-        clientInfo: {
-          name: "OpenClaw",
-          version: "1.0.0",
-        },
-      });
+        capabilities: DEFAULT_CLIENT_CAPABILITIES,
+        clientInfo: CLIENT_INFO,
+      })) as { capabilities?: McpCapabilities };
+
+      // Store server capabilities
+      if (initResponse?.capabilities) {
+        this.capabilities = initResponse.capabilities;
+      }
 
       // Send initialized notification
       await this.sendNotification("notifications/initialized");
 
       this.connected = true;
-      this.connecting = false;
 
       // Fetch tools
       await this.refreshTools();
 
       this.emit("server:connected", { name: this.name, capabilities: this.capabilities });
     } catch (error) {
-      this.connecting = false;
+      // Clean up on failure
+      if (this.process) {
+        this.process.kill();
+        this.process = null;
+      }
       throw error;
     }
   }
 
-  private handleMessage(message: any): void {
-    if (message.id !== undefined && (message.result !== undefined || message.error !== undefined)) {
+  private handleMessage(message: JsonRpcMessage): void {
+    if ("id" in message && ("result" in message || "error" in message)) {
       // This is a response to a request
       const pending = this.pendingRequests.get(message.id);
       if (pending) {
@@ -222,18 +257,25 @@ class McpServer extends EventEmitter {
           pending.resolve(message.result);
         }
       }
-    } else if (message.method) {
+    } else if ("method" in message) {
       // This is a request or notification from server
       if (message.method === "notifications/tools/list_changed") {
-        this.refreshTools().then(() => {
-          this.emit("tools:changed", { serverName: this.name });
-        });
+        this.refreshTools()
+          .then(() => {
+            this.emit("tools:changed", { serverName: this.name });
+          })
+          .catch((error) => {
+            this.emit("error", {
+              serverName: this.name,
+              error: error instanceof Error ? error : new Error(String(error)),
+            });
+          });
       }
     }
   }
 
   private async sendRequest(method: string, params?: unknown): Promise<unknown> {
-    if (!this.process || !this.connected) {
+    if (!this.process) {
       throw new Error("Server not connected");
     }
 
@@ -246,28 +288,38 @@ class McpServer extends EventEmitter {
     };
 
     return new Promise((resolve, reject) => {
-      this.pendingRequests.set(id, { resolve, reject });
+      // Set up timeout
+      const timeoutId = setTimeout(() => {
+        if (this.pendingRequests.has(id)) {
+          this.pendingRequests.delete(id);
+          reject(new Error(`Request ${method} timed out`));
+        }
+      }, this.config.timeout ?? 30000);
+
+      this.pendingRequests.set(id, {
+        resolve: (value: unknown) => {
+          clearTimeout(timeoutId);
+          resolve(value);
+        },
+        reject: (error: Error) => {
+          clearTimeout(timeoutId);
+          reject(error);
+        },
+      });
 
       const line = JSON.stringify(message) + "\n";
       this.process?.stdin?.write(line, (error) => {
         if (error) {
           this.pendingRequests.delete(id);
+          clearTimeout(timeoutId);
           reject(error);
         }
       });
-
-      // Timeout after 30 seconds
-      setTimeout(() => {
-        if (this.pendingRequests.has(id)) {
-          this.pendingRequests.delete(id);
-          reject(new Error(`Request ${method} timed out`));
-        }
-      }, 30000);
     });
   }
 
   private async sendNotification(method: string, params?: unknown): Promise<void> {
-    if (!this.process || !this.connected) {
+    if (!this.process) {
       throw new Error("Server not connected");
     }
 
@@ -278,8 +330,15 @@ class McpServer extends EventEmitter {
     };
 
     const line = JSON.stringify(message) + "\n";
+    const timeout = this.config.timeout ?? 30000;
+
     return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error(`Notification ${method} timed out`));
+      }, timeout);
+
       this.process?.stdin?.write(line, (error) => {
+        clearTimeout(timeoutId);
         if (error) {
           reject(error);
         } else {
@@ -290,8 +349,8 @@ class McpServer extends EventEmitter {
   }
 
   async refreshTools(): Promise<void> {
-    const response = (await this.sendRequest("tools/list")) as any;
-    this.tools = response.tools || [];
+    const response = (await this.sendRequest("tools/list")) as ToolsListResponse;
+    this.tools = response?.tools ?? [];
   }
 
   async listTools(): Promise<McpTool[]> {
@@ -299,25 +358,34 @@ class McpServer extends EventEmitter {
   }
 
   async callTool(name: string, args: Record<string, unknown>): Promise<McpToolResult> {
-    // Validate sampling tools capability (matches Claude Code Line 27655)
-    // Client must support sampling tools to call tools
-    if (!this.capabilities.sampling?.tools) {
-      throw new SamplingCapabilityError();
+    // Check if server supports tools
+    if (!this.capabilities.tools) {
+      throw new Error("Server does not support tools capability");
     }
 
     const result = (await this.sendRequest("tools/call", {
       name,
       arguments: args,
-    })) as any;
-    return result as McpToolResult;
+    })) as McpToolResult;
+    return result;
   }
 
   async disconnect(): Promise<void> {
     if (this.process) {
+      // Remove all listeners to prevent further callbacks
+      this.process.removeAllListeners();
       this.process.kill();
       this.process = null;
     }
+
+    // Reject any pending requests
+    for (const [id, { reject }] of Array.from(this.pendingRequests.entries())) {
+      reject(new Error("Server disconnected"));
+      this.pendingRequests.delete(id);
+    }
+
     this.connected = false;
+    this.initPromise = null;
   }
 }
 
@@ -326,6 +394,21 @@ export class McpClient extends EventEmitter {
   private servers: Map<string, McpServer> = new Map();
   private tools: Map<string, { server: McpServer; tool: McpTool }> = new Map();
 
+  private removeServerTools(server: McpServer): void {
+    const entries = Array.from(this.tools.entries());
+    for (const [key, value] of entries) {
+      if (value.server === server) {
+        this.tools.delete(key);
+      }
+    }
+  }
+
+  private registerServerTools(name: string, server: McpServer, tools: McpTool[]): void {
+    for (const tool of tools) {
+      this.tools.set(`${name}/${tool.name}`, { server, tool });
+    }
+  }
+
   async connectServer(name: string, config: McpServerConfig): Promise<void> {
     if (this.servers.has(name)) {
       throw new Error(`Server already connected: ${name}`);
@@ -333,49 +416,44 @@ export class McpClient extends EventEmitter {
 
     const server = new McpServer(name, config);
 
-    server.on("server:connected", (event) => {
-      this.emit("server:connected", event);
-    });
+    server.on("server:connected", (event) => this.emit("server:connected", event));
 
     server.on("server:disconnected", (event) => {
       this.emit("server:disconnected", event);
-      // Remove tools from this server
-      for (const [key, value] of this.tools.entries()) {
-        if (value.server === server) {
-          this.tools.delete(key);
-        }
-      }
+      this.removeServerTools(server);
     });
 
     server.on("tools:changed", async (event) => {
-      // Remove old tools from this server
-      for (const [key, value] of this.tools.entries()) {
-        if (value.server === server) {
-          this.tools.delete(key);
-        }
+      try {
+        this.removeServerTools(server);
+        const tools = await server.listTools();
+        this.registerServerTools(name, server, tools);
+        this.emit("tools:changed", event);
+      } catch (error) {
+        this.emit("error", {
+          serverName: name,
+          error: error instanceof Error ? error : new Error(String(error)),
+        });
       }
-
-      // Add new tools
-      const tools = await server.listTools();
-      for (const tool of tools) {
-        this.tools.set(`${name}/${tool.name}`, { server, tool });
-      }
-
-      this.emit("tools:changed", event);
     });
 
-    server.on("error", (event) => {
-      this.emit("error", event);
-    });
+    server.on("error", (event) => this.emit("error", event));
 
     this.servers.set(name, server);
     await server.initialize();
-
-    // Register tools
     const tools = await server.listTools();
-    for (const tool of tools) {
-      this.tools.set(`${name}/${tool.name}`, { server, tool });
-    }
+    this.registerServerTools(name, server, tools);
+  }
+
+  /**
+   * Connect to an HTTP-based MCP server.
+   * @throws Error - HTTP transport is not yet implemented
+   */
+  async connectHttpServer(
+    _name: string,
+    _config: { url: string; headers?: Record<string, string>; timeout?: number },
+  ): Promise<void> {
+    throw new Error("HTTP MCP transport is not yet implemented");
   }
 
   async disconnectServer(name: string): Promise<void> {
@@ -383,22 +461,21 @@ export class McpClient extends EventEmitter {
     if (server) {
       await server.disconnect();
       this.servers.delete(name);
-
-      // Remove tools from this server
-      for (const [key, value] of this.tools.entries()) {
-        if (value.server === server) {
-          this.tools.delete(key);
-        }
-      }
+      this.removeServerTools(server);
     }
   }
 
   async callTool(fullName: string, args: Record<string, unknown>): Promise<McpToolResult> {
-    const [serverName, toolName] = fullName.split("/");
     const entry = this.tools.get(fullName);
 
     if (!entry) {
       throw new Error(`Tool not found: ${fullName}`);
+    }
+
+    // Extract tool name from full name (format: "serverName/toolName")
+    const toolName = fullName.includes("/") ? fullName.split("/")[1] : fullName;
+    if (!toolName) {
+      throw new Error(`Invalid tool name format: ${fullName}`);
     }
 
     return await entry.server.callTool(toolName, args);
@@ -421,110 +498,14 @@ export class McpClient extends EventEmitter {
   }
 
   async disconnectAll(): Promise<void> {
-    for (const server of this.servers.values()) {
-      await server.disconnect();
-    }
+    const disconnectPromises = Array.from(this.servers.values()).map((server) =>
+      server.disconnect().catch((error) => {
+        // Log but don't throw - we want to disconnect all servers
+        console.error(`Error disconnecting server:`, error);
+      }),
+    );
+    await Promise.all(disconnectPromises);
     this.servers.clear();
     this.tools.clear();
   }
-}
-
-// Create MCP tool for OpenClaw
-import type { AnyAgentTool } from "./common.js";
-import { jsonResult, readStringParam } from "./common.js";
-
-export function createMcpTool(client: McpClient, toolName: string): AnyAgentTool | null {
-  const toolInfo = client.getTool(toolName);
-  if (!toolInfo) {
-    return null;
-  }
-
-  // Convert MCP schema to TypeBox schema
-  const schema = Type.Object({
-    ...(toolInfo.inputSchema.properties as any),
-  });
-
-  return {
-    label: `MCP: ${toolInfo.name}`,
-    name: `mcp_${toolName.replace(/\//g, "_")}`,
-    description: toolInfo.description || `Call MCP tool ${toolName}`,
-    parameters: schema,
-    isReadOnly: () => true,
-    isConcurrencySafe: () => true,
-
-    async call(args) {
-      try {
-        const result = await client.callTool(toolName, args as Record<string, unknown>);
-
-        // Format result
-        const content = result.content
-          .map((c) => {
-            if (c.type === "text") {
-              return c.text;
-            } else if (c.type === "image") {
-              return `[Image: ${c.mimeType || "unknown"}]`;
-            } else if (c.type === "resource") {
-              return `[Resource: ${c.resource?.uri}]`;
-            }
-            return "[Unknown content type]";
-          })
-          .join("\n");
-
-        return jsonResult({
-          content,
-          isError: result.isError,
-        });
-      } catch (error) {
-        return jsonResult({
-          error: error instanceof Error ? error.message : "Unknown error",
-          isError: true,
-        });
-      }
-    },
-  };
-}
-
-// Create all MCP tools from client
-export function createMcpTools(client: McpClient): AnyAgentTool[] {
-  const tools: AnyAgentTool[] = [];
-
-  for (const toolName of client.listTools().map((t) => t.name)) {
-    const tool = createMcpTool(client, toolName);
-    if (tool) {
-      tools.push(tool);
-    }
-  }
-
-  return tools;
-}
-
-// Helper to create MCP client from config
-export function createMcpClientFromConfig(config: OpenClawMcpConfig): McpClient {
-  const client = new McpClient();
-
-  for (const [name, serverConfig] of Object.entries(config.servers || {})) {
-    client.connectServer(name, {
-      command: serverConfig.command,
-      args: serverConfig.args,
-      env: serverConfig.env,
-      cwd: serverConfig.cwd,
-      timeout: serverConfig.timeout,
-    });
-  }
-
-  return client;
-}
-
-export interface OpenClawMcpConfig {
-  enabled?: boolean;
-  servers?: Record<
-    string,
-    {
-      command: string;
-      args?: string[];
-      env?: Record<string, string>;
-      cwd?: string;
-      timeout?: number;
-    }
-  >;
 }

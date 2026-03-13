@@ -18,6 +18,12 @@ import { isVerbose } from "../globals.js";
 
 const log = createSubsystemLogger("compaction-briefing");
 
+/** Default timeout for external API calls (10 seconds) */
+const API_TIMEOUT_MS = 10_000;
+
+/** Maximum days allowed for recent briefings query */
+const MAX_DAYS_QUERY = 365;
+
 /** Compaction event data to summarize */
 export interface CompactionEvent {
   sessionKey: string;
@@ -64,6 +70,63 @@ const DEFAULT_BRIEFINGS_DIR = "~/.openclaw/briefings";
 const DEFAULT_MODEL = "google/gemini-2.5-flash";
 const DEFAULT_MAX_TOKENS = 200;
 
+/** 
+ * File locks to prevent race conditions when multiple compactions happen concurrently.
+ * Maps date string to a promise that resolves when the lock is released.
+ */
+const briefingLocks = new Map<string, Promise<void>>();
+
+/**
+ * Acquire a lock for a specific briefing date, execute the operation, then release.
+ * This prevents race conditions when multiple compactions write to the same file.
+ */
+async function withBriefingLock<T>(date: string, operation: () => Promise<T>): Promise<T> {
+  // Wait for any existing lock to be released
+  const existingLock = briefingLocks.get(date);
+  if (existingLock) {
+    await existingLock;
+  }
+
+  // Create a new lock
+  let releaseLock: () => void;
+  const lockPromise = new Promise<void>((resolve) => {
+    releaseLock = resolve;
+  });
+  briefingLocks.set(date, lockPromise);
+
+  try {
+    return await operation();
+  } finally {
+    // Release the lock
+    releaseLock!();
+    // Only delete if our lock is still the current one
+    if (briefingLocks.get(date) === lockPromise) {
+      briefingLocks.delete(date);
+    }
+  }
+}
+
+/** OpenRouter API response structure */
+interface OpenRouterResponse {
+  id?: string;
+  choices?: Array<{
+    message?: {
+      content?: string;
+    };
+    finish_reason?: string;
+  }>;
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+  };
+  error?: {
+    message?: string;
+    type?: string;
+    code?: string;
+  };
+}
+
 /**
  * Get the briefings directory path
  */
@@ -90,11 +153,17 @@ function getDailyBriefingPath(config?: CompactionBriefingConfig, date?: string):
 
 /**
  * Ensure the briefings directory exists
+ * Uses recursive mkdir which is atomic and handles race conditions
  */
 function ensureBriefingsDir(config?: CompactionBriefingConfig): void {
   const dir = getBriefingsDir(config);
-  if (!fs.existsSync(dir)) {
+  try {
     fs.mkdirSync(dir, { recursive: true });
+  } catch (error) {
+    // Ignore EEXIST error (directory already exists from race condition)
+    if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
+      throw error;
+    }
   }
 }
 
@@ -165,27 +234,39 @@ ${compactedContent.slice(0, 2000)}
 Summary:`;
 
   try {
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
+    const response = await fetchWithTimeout(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: maxTokens,
+        }),
       },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: maxTokens,
-      }),
-    });
+      API_TIMEOUT_MS,
+    );
 
     if (!response.ok) {
       throw new Error(`OpenRouter API error: ${response.status}`);
     }
 
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content?.trim() || extractKeyPhrases(compactedContent);
+    const data = (await response.json()) as OpenRouterResponse;
+
+    // Check for API error response
+    if (data.error) {
+      throw new Error(`OpenRouter API error: ${data.error.message || data.error.type || "unknown"}`);
+    }
+
+    const content = data.choices?.[0]?.message?.content?.trim();
+    return content || extractKeyPhrases(compactedContent);
   } catch (error) {
-    log.warn(`LLM summary failed, using fallback: ${error}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    log.warn(`LLM summary failed, using fallback: ${errorMessage}`);
     return extractKeyPhrases(compactedContent);
   }
 }
@@ -202,6 +283,28 @@ function extractKeyPhrases(content: string): string {
     return sample.slice(0, 200) + "...";
   }
   return sample || "Session conversation compacted.";
+}
+
+/**
+ * Fetch with timeout to prevent hanging on external API calls
+ */
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeoutMs: number,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 /**
@@ -236,73 +339,98 @@ export async function recordCompaction(
   compactedContent: string,
   config?: CompactionBriefingConfig,
 ): Promise<void> {
-  const briefing = loadDailyBriefing(config);
+  // Input validation
+  if (!event.sessionKey || !event.agentId) {
+    log.warn("recordCompaction called with missing sessionKey or agentId, skipping");
+    return;
+  }
 
-  // Generate summary for this compaction
+  if (typeof event.timestamp !== "number" || event.timestamp <= 0) {
+    event.timestamp = Date.now();
+  }
+
+  if (event.tokensBefore < 0 || event.tokensAfter < 0) {
+    log.warn(`Invalid token counts: before=${event.tokensBefore}, after=${event.tokensAfter}`);
+    event.tokensBefore = Math.max(0, event.tokensBefore);
+    event.tokensAfter = Math.max(0, event.tokensAfter);
+  }
+
+  // Generate summary for this compaction (can be done outside the lock)
   const summary = event.summary || (await generateCompactionSummary(compactedContent, config));
 
-  // Find or create session entry
-  let sessionEntry = briefing.sessions.find(
-    (s) => s.sessionKey === event.sessionKey && s.agentId === event.agentId,
-  );
+  // Use file lock to prevent race conditions when multiple compactions happen concurrently
+  const dateStr = getTodayDate();
+  await withBriefingLock(dateStr, async () => {
+    const briefing = loadDailyBriefing(config);
 
-  if (!sessionEntry) {
-    sessionEntry = {
-      sessionKey: event.sessionKey,
-      agentId: event.agentId,
-      compactionCount: 0,
-      summary: "",
-    };
-    briefing.sessions.push(sessionEntry);
-  }
-
-  // Update session entry
-  sessionEntry.compactionCount += 1;
-  sessionEntry.summary = summary; // Latest summary replaces previous
-
-  // Update totals
-  briefing.totalCompactions += 1;
-
-  // Only count token savings if we have actual token data
-  // Answer-based compactions (every 13 answers) have tokensBefore=0 and tokensAfter=0
-  // Token-based compactions (overflow) have real token counts
-  if (event.tokensBefore > 0 || event.tokensAfter > 0) {
-    const tokensSaved = event.tokensBefore - event.tokensAfter;
-    briefing.totalTokensSaved += tokensSaved;
-    log.debug(
-      `Added token savings: ${tokensSaved} (before: ${event.tokensBefore}, after: ${event.tokensAfter})`,
+    // Find or create session entry
+    let sessionEntry = briefing.sessions.find(
+      (s) => s.sessionKey === event.sessionKey && s.agentId === event.agentId,
     );
-  } else {
-    log.debug(`Skipping token calculation for compaction without token data`);
-  }
 
-  briefing.generatedAt = Date.now();
+    if (!sessionEntry) {
+      sessionEntry = {
+        sessionKey: event.sessionKey,
+        agentId: event.agentId,
+        compactionCount: 0,
+        summary: "",
+      };
+      briefing.sessions.push(sessionEntry);
+    }
 
-  // Regenerate narrative
-  briefing.narrative = generateDailyNarrative(briefing);
+    // Update session entry
+    sessionEntry.compactionCount += 1;
+    sessionEntry.summary = summary; // Latest summary replaces previous
 
-  // Save
-  saveDailyBriefing(briefing, config);
+    // Update totals
+    briefing.totalCompactions += 1;
 
-  if (isVerbose()) {
-    log.info(`Recorded compaction for ${event.agentId}: ${summary.slice(0, 50)}...`);
-  }
+    // Only count token savings if we have actual token data
+    // Answer-based compactions (every 13 answers) have tokensBefore=0 and tokensAfter=0
+    // Token-based compactions (overflow) have real token counts
+    if (event.tokensBefore > 0 || event.tokensAfter > 0) {
+      const tokensSaved = event.tokensBefore - event.tokensAfter;
+      briefing.totalTokensSaved += tokensSaved;
+      log.debug(
+        `Added token savings: ${tokensSaved} (before: ${event.tokensBefore}, after: ${event.tokensAfter})`,
+      );
+    } else {
+      log.debug(`Skipping token calculation for compaction without token data`);
+    }
+
+    briefing.generatedAt = Date.now();
+
+    // Regenerate narrative
+    briefing.narrative = generateDailyNarrative(briefing);
+
+    // Save
+    saveDailyBriefing(briefing, config);
+
+    if (isVerbose()) {
+      log.info(`Recorded compaction for ${event.agentId}: ${summary.slice(0, 50)}...`);
+    }
+  });
 
   // HYBRID INTEGRATION: Emit event for neuro-memory storage
   // This allows briefing summaries to be stored in ChromaDB for similarity-based retrieval
+  // Note: This is done outside the lock to avoid blocking other compactions
   try {
     const { tryGetEventMesh } = await import("./event-mesh.js");
     const eventMesh = tryGetEventMesh();
 
     if (eventMesh) {
-      await eventMesh.emit("compaction_summary", {
-        sessionKey: event.sessionKey,
-        agentId: event.agentId,
-        summary: summary,
-        topics: event.topics || [],
-        tokensSaved: event.tokensBefore > 0 ? event.tokensBefore - event.tokensAfter : 0,
-        messagesCompacted: event.messagesCompacted,
-        timestamp: Date.now(),
+      eventMesh.emit({
+        type: "compaction_summary",
+        source: "compaction-briefing",
+        data: {
+          sessionKey: event.sessionKey,
+          agentId: event.agentId,
+          summary: summary,
+          topics: event.topics || [],
+          tokensSaved: event.tokensBefore > 0 ? event.tokensBefore - event.tokensAfter : 0,
+          messagesCompacted: event.messagesCompacted,
+          timestamp: Date.now(),
+        },
       });
       log.debug(`Emitted compaction_summary event for neuro-memory`);
     }
@@ -328,10 +456,13 @@ export function getRecentBriefings(
   days: number = 7,
   config?: CompactionBriefingConfig,
 ): DailyBriefing[] {
+  // Validate and clamp days parameter
+  const validatedDays = Math.max(1, Math.min(days, MAX_DAYS_QUERY));
+
   const briefings: DailyBriefing[] = [];
   const today = new Date();
 
-  for (let i = 0; i < days; i++) {
+  for (let i = 0; i < validatedDays; i++) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
     const dateStr = date.toISOString().split("T")[0];
@@ -352,7 +483,9 @@ export function getRecentBriefingsText(
   days: number = 3,
   config?: CompactionBriefingConfig,
 ): string {
-  const briefings = getRecentBriefings(days, config);
+  // Validate and clamp days parameter
+  const validatedDays = Math.max(1, Math.min(days, MAX_DAYS_QUERY));
+  const briefings = getRecentBriefings(validatedDays, config);
 
   if (briefings.length === 0) {
     return "No recent activity to report.";
@@ -371,12 +504,15 @@ export function cleanupOldBriefings(
   daysToKeep: number = 30,
   config?: CompactionBriefingConfig,
 ): number {
+  // Validate daysToKeep - must be positive, max 365 days
+  const validatedDaysToKeep = Math.max(1, Math.min(daysToKeep, MAX_DAYS_QUERY));
+
   const dir = getBriefingsDir(config);
   if (!fs.existsSync(dir)) {
     return 0;
   }
 
-  const cutoff = Date.now() - daysToKeep * 24 * 60 * 60 * 1000;
+  const cutoff = Date.now() - validatedDaysToKeep * 24 * 60 * 60 * 1000;
   let deleted = 0;
 
   try {

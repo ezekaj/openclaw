@@ -5,6 +5,7 @@
  */
 
 import type { CustomEditor } from "../components/custom-editor.js";
+import type { VimOperationResult } from "./types.js";
 import { VimOperations, createVimOperations } from "./vim-operations.js";
 import {
   getCurrentVimMode,
@@ -31,6 +32,22 @@ export class VimKeybindingsHandler {
   private operations: VimOperations;
   private pendingCommand: PendingCommand | null = null;
   private readonly COMMAND_TIMEOUT = 1000; // ms
+
+  /**
+   * Check if there's a pending command
+   */
+  private hasPendingCommand(): boolean {
+    const pending = this.pendingCommand;
+    if (!pending) return false;
+
+    // Check timeout
+    if (Date.now() - pending.startTime > this.COMMAND_TIMEOUT) {
+      this.clearPendingCommand();
+      return false;
+    }
+
+    return true;
+  }
 
   constructor(editor: CustomEditor) {
     this.editor = editor;
@@ -76,7 +93,7 @@ export class VimKeybindingsHandler {
    */
   private handleNormalMode(data: string): boolean {
     // Check for pending operator
-    if (this.pendingCommand) {
+    if (this.hasPendingCommand()) {
       return this.handlePendingOperator(data);
     }
 
@@ -163,6 +180,9 @@ export class VimKeybindingsHandler {
         this.operations.deleteChar();
         this.setLastCommand("x");
         return true;
+      case "X": // Delete character backward
+        // TODO: Implement delete character backward
+        return true;
     }
 
     return false;
@@ -187,10 +207,16 @@ export class VimKeybindingsHandler {
         return this.handleMovement(() => this.operations.moveRight());
       case "d": // Delete selection
         // TODO: Implement visual delete
+        this.operations.deleteLine(); // Placeholder implementation
         setCurrentVimMode("NORMAL");
         return true;
       case "y": // Yank selection
         // TODO: Implement visual yank
+        setCurrentVimMode("NORMAL");
+        return true;
+      case "x": // Also delete in visual mode
+        // TODO: Implement visual delete
+        this.operations.deleteLine(); // Placeholder implementation
         setCurrentVimMode("NORMAL");
         return true;
     }
@@ -203,12 +229,6 @@ export class VimKeybindingsHandler {
   private handlePendingOperator(data: string): boolean {
     const pending = this.pendingCommand;
     if (!pending) return false;
-
-    // Check timeout
-    if (Date.now() - pending.startTime > this.COMMAND_TIMEOUT) {
-      this.pendingCommand = null;
-      return false;
-    }
 
     // Handle operator commands
     switch (pending.operator) {
@@ -244,7 +264,7 @@ export class VimKeybindingsHandler {
   /**
    * Handle movement command
    */
-  private handleMovement(moveFn: () => { success: boolean }): boolean {
+  private handleMovement(moveFn: () => VimOperationResult): boolean {
     const result = moveFn();
     if (result.success) {
       // Check if there's a pending operator to apply

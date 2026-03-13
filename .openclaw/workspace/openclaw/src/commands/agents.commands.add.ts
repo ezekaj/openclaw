@@ -77,13 +77,6 @@ export async function agentsAddCommand(
       runtime.exit(1);
       return;
     }
-    if (!workspaceFlag) {
-      runtime.error(
-        "Non-interactive mode requires --workspace. Re-run without flags to use the wizard.",
-      );
-      runtime.exit(1);
-      return;
-    }
     const agentId = normalizeAgentId(nameInput);
     if (agentId === DEFAULT_AGENT_ID) {
       runtime.error(`"${DEFAULT_AGENT_ID}" is reserved. Choose another name.`);

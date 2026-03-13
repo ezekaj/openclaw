@@ -46,7 +46,6 @@ import { bm25RankToScore, buildFtsQuery, mergeHybridResults } from "./hybrid.js"
 import {
   buildFileEntry,
   chunkMarkdown,
-  ensureDir,
   hashText,
   isMemoryPath,
   listMemoryFiles,
@@ -55,6 +54,7 @@ import {
   type MemoryFileEntry,
   parseEmbedding,
 } from "./internal.js";
+import { ensureDir } from "../infra/async-file-operations.js";
 import { searchKeyword, searchVector } from "./manager-search.js";
 import { ensureMemoryIndexSchema } from "./memory-schema.js";
 import { loadSqliteVecExtension } from "./sqlite-vec.js";

@@ -115,8 +115,31 @@ export async function compactEmbeddedPiSessionDirect(
   const resolvedWorkspace = resolveUserPath(params.workspaceDir);
   const prevCwd = process.cwd();
 
-  const provider = (params.provider ?? DEFAULT_PROVIDER).trim() || DEFAULT_PROVIDER;
-  const modelId = (params.model ?? DEFAULT_MODEL).trim() || DEFAULT_MODEL;
+  // Check for compaction model override (allows using LM Studio for compaction)
+  const compactionModelOverride = params.config?.agents?.defaults?.compaction?.compactionModel;
+  const compactionMaxTokens = params.config?.agents?.defaults?.compaction?.maxTokens ?? 512;
+  const defaultProvider = (params.provider ?? DEFAULT_PROVIDER).trim() || DEFAULT_PROVIDER;
+  const defaultModelId = (params.model ?? DEFAULT_MODEL).trim() || DEFAULT_MODEL;
+
+  let provider: string;
+  let modelId: string;
+
+  if (compactionModelOverride) {
+    // Format: provider/model (model can contain slashes, e.g., openai/liquid/lfm2-24b-a2b)
+    const slashIdx = compactionModelOverride.indexOf('/');
+    if (slashIdx > 0) {
+      provider = compactionModelOverride.slice(0, slashIdx).trim();
+      modelId = compactionModelOverride.slice(slashIdx + 1).trim();
+      log.info(`Using compaction model override: ${provider}/${modelId} (max_tokens: ${compactionMaxTokens})`);
+    } else {
+      provider = defaultProvider;
+      modelId = defaultModelId;
+    }
+  } else {
+    provider = defaultProvider;
+    modelId = defaultModelId;
+  }
+
   const agentDir = params.agentDir ?? resolveOpenClawAgentDir();
   await ensureOpenClawModelsJson(params.config, agentDir);
   const { model, error, authStorage, modelRegistry } = resolveModel(
@@ -390,10 +413,15 @@ export async function compactEmbeddedPiSessionDirect(
         model,
       });
 
-      const { builtInTools, customTools } = splitSdkTools({
-        tools,
-        sandboxEnabled: !!sandbox?.enabled,
-      });
+      // When using a local compaction model, skip tools entirely to save context space
+      // Compaction only summarizes — it doesn't need to call any tools
+      const useEmptyTools = !!compactionModelOverride;
+      const { builtInTools, customTools } = useEmptyTools
+        ? { builtInTools: [], customTools: [] }
+        : splitSdkTools({
+            tools,
+            sandboxEnabled: !!sandbox?.enabled,
+          });
 
       const { session } = await createAgentSession({
         cwd: resolvedWorkspace,
@@ -408,6 +436,14 @@ export async function compactEmbeddedPiSessionDirect(
         settingsManager,
       });
       applySystemPromptOverrideToSession(session, systemPromptOverride());
+
+      // For local compaction models, replace the full system prompt with a minimal one
+      // The full system prompt (tools, SOUL.md, workspace files) can be 15k+ tokens
+      if (compactionModelOverride) {
+        const minimalSystemPrompt = 'You are a summarization assistant. Summarize the conversation concisely, preserving key facts, decisions, and context needed for continuation.';
+        applySystemPromptOverrideToSession(session, minimalSystemPrompt);
+        log.info('Replaced system prompt with minimal compaction prompt for local model');
+      }
 
       try {
         const prior = await sanitizeSessionHistory({
@@ -432,7 +468,79 @@ export async function compactEmbeddedPiSessionDirect(
         if (limited.length > 0) {
           session.agent.replaceMessages(limited);
         }
-        const result = await session.compact(params.customInstructions);
+
+        // When using a local compaction model, aggressively truncate to fit small context
+        if (compactionModelOverride) {
+          const MAX_CONTENT_CHARS = 200; // ~50 tokens per content block
+          const MAX_MESSAGES = 30; // Keep only recent messages
+          let msgs = session.messages;
+          // Keep only last N messages to fit in small context
+          if (msgs.length > MAX_MESSAGES) {
+            msgs = msgs.slice(-MAX_MESSAGES);
+          }
+          const truncated = msgs.map((msg: any) => {
+            if (!msg.content || !Array.isArray(msg.content)) return msg;
+            const newContent = msg.content.map((block: any) => {
+              if (block.type === 'text' && typeof block.text === 'string' && block.text.length > MAX_CONTENT_CHARS) {
+                return { ...block, text: block.text.slice(0, MAX_CONTENT_CHARS) + ' [...]' };
+              }
+              if (block.type === 'tool_result' && typeof block.content === 'string' && block.content.length > MAX_CONTENT_CHARS) {
+                return { ...block, content: block.content.slice(0, MAX_CONTENT_CHARS) + ' [...]' };
+              }
+              // Also truncate nested content arrays (tool results with array content)
+              if (block.content && Array.isArray(block.content)) {
+                const newNestedContent = block.content.map((nested: any) => {
+                  if (nested.type === 'text' && typeof nested.text === 'string' && nested.text.length > MAX_CONTENT_CHARS) {
+                    return { ...nested, text: nested.text.slice(0, MAX_CONTENT_CHARS) + ' [...]' };
+                  }
+                  return nested;
+                });
+                return { ...block, content: newNestedContent };
+              }
+              return block;
+            });
+            return { ...msg, content: newContent };
+          });
+          session.agent.replaceMessages(truncated);
+          log.info(`Pre-truncated to ${truncated.length} messages (max ${MAX_CONTENT_CHARS} chars/block) for local compaction model`);
+        }
+
+        // When using a compaction model override (e.g. LM Studio), prepend brevity instruction
+        // since local models may ignore max_tokens and produce very long output
+        let compactionInstructions = params.customInstructions;
+        if (compactionModelOverride) {
+          const brevityPrefix = `IMPORTANT: Keep your summary under ${compactionMaxTokens} tokens. Be extremely concise. Summarize only the key facts, decisions, and state.`;
+          compactionInstructions = compactionInstructions
+            ? `${brevityPrefix}\n\n${compactionInstructions}`
+            : brevityPrefix;
+        }
+        let result;
+        try {
+          result = await session.compact(compactionInstructions);
+        } catch (compactErr) {
+          // SDK throws "Already compacted" when last entry is a compaction entry.
+          // For manual /compact, force it by injecting a marker message and retrying.
+          const errStr = compactErr instanceof Error ? compactErr.message : String(compactErr);
+          if (errStr.includes('Already compacted')) {
+            log.info('Session already compacted, injecting marker to force re-compaction');
+            // Add a synthetic user message so the last entry is no longer a compaction entry
+            session.agent.replaceMessages([
+              ...session.messages,
+              { role: 'user', content: [{ type: 'text', text: '(session compaction checkpoint)' }] },
+            ]);
+            result = await session.compact(compactionInstructions);
+          } else {
+            throw compactErr;
+          }
+        }
+        // Client-side truncation for local models that ignore max_tokens
+        if (compactionModelOverride && result.summary) {
+          const maxChars = compactionMaxTokens * 4; // ~4 chars per token
+          if (result.summary.length > maxChars) {
+            log.info(`Truncating compaction summary from ${result.summary.length} to ${maxChars} chars`);
+            result.summary = result.summary.slice(0, maxChars) + '\n[truncated]';
+          }
+        }
         // Estimate tokens after compaction by summing token estimates for remaining messages
         let tokensAfter: number | undefined;
         try {

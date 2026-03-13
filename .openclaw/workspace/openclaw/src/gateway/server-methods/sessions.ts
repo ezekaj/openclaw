@@ -42,6 +42,20 @@ import {
 import { applySessionsPatchToStore } from "../sessions-patch.js";
 import { resolveSessionKeyFromResolveParams } from "../sessions-resolve.js";
 
+function migrateStoreKey(
+  store: Record<string, SessionEntry>,
+  storeKeys: string[],
+  fallbackKey: string,
+): string {
+  const primaryKey = storeKeys[0] ?? fallbackKey;
+  const existingKey = storeKeys.find((candidate) => store[candidate]);
+  if (existingKey && existingKey !== primaryKey && !store[primaryKey]) {
+    store[primaryKey] = store[existingKey];
+    delete store[existingKey];
+  }
+  return primaryKey;
+}
+
 export const sessionsHandlers: GatewayRequestHandlers = {
   "sessions.list": ({ params, respond }) => {
     if (!validateSessionsListParams(params)) {
@@ -179,12 +193,7 @@ export const sessionsHandlers: GatewayRequestHandlers = {
     const target = resolveGatewaySessionStoreTarget({ cfg, key });
     const storePath = target.storePath;
     const applied = await updateSessionStore(storePath, async (store) => {
-      const primaryKey = target.storeKeys[0] ?? key;
-      const existingKey = target.storeKeys.find((candidate) => store[candidate]);
-      if (existingKey && existingKey !== primaryKey && !store[primaryKey]) {
-        store[primaryKey] = store[existingKey];
-        delete store[existingKey];
-      }
+      const primaryKey = migrateStoreKey(store, target.storeKeys, key);
       return await applySessionsPatchToStore({
         cfg,
         store,
@@ -235,12 +244,7 @@ export const sessionsHandlers: GatewayRequestHandlers = {
     const target = resolveGatewaySessionStoreTarget({ cfg, key });
     const storePath = target.storePath;
     const next = await updateSessionStore(storePath, (store) => {
-      const primaryKey = target.storeKeys[0] ?? key;
-      const existingKey = target.storeKeys.find((candidate) => store[candidate]);
-      if (existingKey && existingKey !== primaryKey && !store[primaryKey]) {
-        store[primaryKey] = store[existingKey];
-        delete store[existingKey];
-      }
+      const primaryKey = migrateStoreKey(store, target.storeKeys, key);
       const entry = store[primaryKey];
       const now = Date.now();
       const nextEntry: SessionEntry = {
@@ -330,15 +334,8 @@ export const sessionsHandlers: GatewayRequestHandlers = {
       }
     }
     await updateSessionStore(storePath, (store) => {
-      const primaryKey = target.storeKeys[0] ?? key;
-      const existingKey = target.storeKeys.find((candidate) => store[candidate]);
-      if (existingKey && existingKey !== primaryKey && !store[primaryKey]) {
-        store[primaryKey] = store[existingKey];
-        delete store[existingKey];
-      }
-      if (store[primaryKey]) {
-        delete store[primaryKey];
-      }
+      const primaryKey = migrateStoreKey(store, target.storeKeys, key);
+      delete store[primaryKey];
     });
 
     const archived: string[] = [];
@@ -391,12 +388,7 @@ export const sessionsHandlers: GatewayRequestHandlers = {
     const storePath = target.storePath;
     // Lock + read in a short critical section; transcript work happens outside.
     const compactTarget = await updateSessionStore(storePath, (store) => {
-      const primaryKey = target.storeKeys[0] ?? key;
-      const existingKey = target.storeKeys.find((candidate) => store[candidate]);
-      if (existingKey && existingKey !== primaryKey && !store[primaryKey]) {
-        store[primaryKey] = store[existingKey];
-        delete store[existingKey];
-      }
+      const primaryKey = migrateStoreKey(store, target.storeKeys, key);
       return { entry: store[primaryKey], primaryKey };
     });
     const entry = compactTarget.entry;
