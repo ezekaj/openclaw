@@ -293,9 +293,10 @@ async function main() {
   let totalChanges = 0;
   const stats = { success: 0, failed: 0 };
 
-  // Run immediately, then on interval
+  // Run immediately, then on interval (measured from START of each cycle)
   while (true) {
     cycle++;
+    const cycleStart = Date.now();
     const cycleTime = new Date().toLocaleTimeString();
     console.log(`\n${'#'.repeat(50)}`);
     console.log(`# CYCLE ${cycle} — ${cycleTime}`);
@@ -315,10 +316,17 @@ async function main() {
       console.error(`Cycle ${cycle} error:`, err instanceof Error ? err.message : err);
     }
 
-    // Wait for next cycle
-    const nextRun = new Date(Date.now() + intervalMs).toLocaleTimeString();
-    console.log(`\nNext evolution cycle at ${nextRun} (${(intervalMs / 60000).toFixed(0)}m)\n`);
-    await new Promise(resolve => setTimeout(resolve, intervalMs));
+    // Wait remaining time until next cycle (interval from START, not end)
+    const elapsed = Date.now() - cycleStart;
+    const remaining = Math.max(0, intervalMs - elapsed);
+
+    if (remaining > 0) {
+      const nextRun = new Date(Date.now() + remaining).toLocaleTimeString();
+      console.log(`\nNext evolution cycle at ${nextRun} (${(remaining / 1000).toFixed(0)}s remaining)\n`);
+      await new Promise(resolve => setTimeout(resolve, remaining));
+    } else {
+      console.log(`\nCycle took ${(elapsed / 60000).toFixed(1)}m (longer than interval), starting next immediately\n`);
+    }
   }
 }
 
