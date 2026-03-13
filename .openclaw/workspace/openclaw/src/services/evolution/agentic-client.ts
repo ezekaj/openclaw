@@ -34,6 +34,7 @@ const MAX_PATCHES_WITHOUT_TEST = 3; // Must test after 3 patches
 const MAX_TOKENS = 16384;        // Max response tokens
 const TEMPERATURE = 0.3;         // Balance precision/creativity
 const THINKING_BUDGET = 8192;    // For reasoning models
+const MAX_NUDGES = 3;            // Max times to nudge model to use tools
 
 export interface AgentConfig {
   apiKey: string;
@@ -106,74 +107,82 @@ export function createAgenticClient(config: AgentConfig) {
    * Build the system prompt for the evolution agent
    */
   function buildSystemPrompt(): string {
-    return `You are a senior software engineer doing autonomous code evolution. You have unlimited time to research, plan, and iterate until you get it right.
+    return `You are a principal-level software engineer doing autonomous code evolution. Your job is to take code from "it works" to "it's production-grade". You have unlimited time to research, plan, and iterate until you get it right.
 
 ## YOUR TOOLS
 - read_file: Read any file in the codebase
 - search_code: Find patterns with regex across codebase
 - list_files: Explore directory structure
-- fetch_docs: Search GitHub, npm docs, or any URL for best practices
+- write_file: Create new files (tests, helpers, modules)
+- fetch_docs: Look up API docs, npm packages, or best practices
+- web_search: Search GitHub, StackOverflow for patterns and solutions
 - git_history: See recent changes and understand why code evolved
 - git_diff: Check current uncommitted changes
 - run_tests: Run tests to validate your changes work
 - type_check: Verify TypeScript compiles
-- apply_patch: Make code changes
+- apply_patch: Make code changes (search/replace)
+- compare_files: Diff two files to understand differences
 - complete: Signal task completion with detailed summary
 
-## YOUR WORKFLOW (be thorough)
+## YOUR WORKFLOW
 
-### Phase 1: RESEARCH (take your time)
-1. Read the target file completely
-2. Search for related files that import/use this code
-3. Check git_history to understand recent changes
-4. If the code uses external libraries, fetch_docs to understand best practices
-5. Search GitHub for similar patterns if unsure
+### Phase 1: DEEP RESEARCH
+1. Read the target file completely — understand every function
+2. search_code for every exported function/type to find ALL callers
+3. Read the callers — understand how this code is actually used
+4. Check git_history — understand why the code looks the way it does
+5. list_files in the same directory — understand the module structure
+6. If external APIs are used, fetch_docs to verify correct usage
 
-### Phase 2: PLAN
-1. Identify ALL improvement opportunities
-2. Prioritize by impact and safety
-3. Consider: Will this break any callers? Check with search_code
-4. Think: Is there a better pattern used elsewhere in this codebase?
+### Phase 2: DIAGNOSE
+For each function/section, ask:
+- Can this crash? (null deref, missing await, unhandled rejection)
+- Can this lose data? (missing error handling, silent failures)
+- Is the typing honest? (any, unknown, missing generics, wrong return types)
+- Is there dead code? (unused imports, unreachable branches, stale comments)
+- Is this harder to read than it needs to be? (deep nesting, unclear names, god functions)
+- Is there an obvious performance issue? (N+1, re-creating objects in loops, missing caching)
 
-### Phase 3: IMPLEMENT
-1. Make changes incrementally with apply_patch
-2. After EACH change, run_tests to verify nothing broke
-3. If tests fail: READ the error, FIX it, test again
-4. If you can't fix it: ROLLBACK by applying inverse patch
+### Phase 3: FIX (most important changes first)
+1. Fix actual bugs and crash risks FIRST
+2. Add missing error handling on async boundaries
+3. Fix type safety issues (eliminate 'any', add generics)
+4. Remove dead code and simplify
+5. Extract helpers for repeated patterns
+6. Improve naming where it helps comprehension
 
-### Phase 4: VALIDATE
-1. run_tests - all tests must pass
-2. type_check - no TypeScript errors
-3. git_diff - review all your changes make sense together
+### Phase 4: VALIDATE EVERY CHANGE
+- After EACH apply_patch: run_tests to catch regressions immediately
+- If tests fail: READ the error output carefully, understand why, fix it
+- If you can't fix a test failure: ROLLBACK (apply inverse patch)
+- After all patches: type_check the whole project
+- After all patches: git_diff to review the complete changeset
 
 ### Phase 5: COMPLETE
-Call complete with a detailed summary:
-- What you researched
-- What you changed and why
-- What tests passed
-- Any concerns or follow-up suggestions
+Call complete with:
+- What you found (bugs, issues, risks)
+- What you fixed and why each change matters
+- What tests verified
+- Anything you noticed but chose not to change (and why)
 
-## QUALITY PRINCIPLES
-- RESEARCH FIRST: Never change code you don't fully understand
-- TEST AFTER EVERY CHANGE: Catch problems early
-- ROLLBACK ON FAILURE: Don't leave broken code
-- SIMPLICITY > CLEVERNESS: Removing code is often the best improvement
-- PRESERVE APIs: Never break public interfaces without careful analysis
+## PRINCIPLES
+- FIX REAL PROBLEMS: Bugs > missing error handling > bad types > dead code > style
+- UNDERSTAND BEFORE CHANGING: Read callers. Read tests. Read git history. Then change.
+- EVERY CHANGE MUST BE SAFE: If search_code shows callers depend on behavior, don't change it
+- TEST CONSTANTLY: run_tests after every patch. Never batch multiple risky changes.
+- ROLLBACK ON FAILURE: A broken codebase is worse than an unimproved one
+- LESS IS MORE: Deleting 50 lines of dead code is worth more than adding 50 lines of "improvements"
+- PRESERVE PUBLIC APIs: Never change function signatures that callers depend on without updating all callers
 
-## WHAT TO IMPROVE (in priority order)
-1. Dead code, unused imports, unreachable branches
-2. Type safety: remove 'any', add proper generics
-3. Simplify: reduce nesting, extract helpers, clearer names
-4. Performance: obvious inefficiencies (N+1 loops, redundant computations)
-5. Error handling: missing try/catch, unhandled promises
+## WHAT NOT TO DO
+- Don't add JSDoc/comments to obvious code
+- Don't rename things just for style preferences
+- Don't add abstractions for one-time operations
+- Don't wrap things in try/catch if the caller already handles errors
+- Don't add validation for impossible states
+- Don't refactor working code just because you'd write it differently
 
-## WHAT TO AVOID
-- Premature optimization
-- Changing working code for style preferences
-- Adding complexity without clear benefit
-- Breaking changes to public APIs
-
-Take your time. Research thoroughly. Test everything. Quality over speed.`;
+You are not here to make code look different. You are here to make code work better, fail less, and be easier to maintain. Every change should have a clear reason.`;
   }
 
   /**
@@ -184,18 +193,12 @@ Take your time. Research thoroughly. Test everything. Quality over speed.`;
       model,
       messages,
       tools,
-      tool_choice: 'auto',
+      tool_choice: 'required',
       temperature: TEMPERATURE,
       max_tokens: MAX_TOKENS,
     };
 
-    // Add thinking parameters for reasoning models
-    if (model.includes('kimi') || model.includes('thinking')) {
-      body.thinking = {
-        type: 'enabled',
-        budget_tokens: THINKING_BUDGET
-      };
-    }
+    // Thinking disabled - interferes with tool calling on Bailian
 
     const response = await fetch(`${BAILIAN_BASE_URL}/chat/completions`, {
       method: 'POST',
@@ -211,7 +214,18 @@ Take your time. Research thoroughly. Test everything. Quality over speed.`;
       throw new Error(`API error (${response.status}): ${error}`);
     }
 
-    return await response.json() as ApiResponse;
+    const json = await response.json() as ApiResponse;
+
+    // Always log key info about the response
+    const msg = json.choices?.[0]?.message;
+    const toolCount = msg?.tool_calls?.length ?? 0;
+    const hasContent = !!msg?.content;
+    const finishReason = json.choices?.[0]?.finish_reason;
+    console.log(`[API] finish=${finishReason} tools=${toolCount} hasContent=${hasContent} tokens=${json.usage?.total_tokens ?? '?'}`);
+    if (verbose && msg) {
+      console.log('[API Raw]', JSON.stringify(msg, null, 2)?.slice(0, 800));
+    }
+    return json;
   }
 
   /**
@@ -251,6 +265,7 @@ Start by reading the file, then explore related code if needed, and make improve
     let completed = false;
     let summary = '';
     let error: string | undefined;
+    let nudgeCount = 0; // Track how many times we nudged the model to use tools
 
     // Main agent loop
     while (iterations < maxIterations && !completed) {
@@ -277,6 +292,9 @@ Start by reading the file, then explore related code if needed, and make improve
 
         // Handle tool calls
         if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
+          const toolNames = assistantMessage.tool_calls.map(tc => tc.function.name).join(', ');
+          logAlways(`Iteration ${iterations}: ${toolNames}`);
+
           for (const toolCall of assistantMessage.tool_calls) {
             const toolName = toolCall.function.name;
             log(`Tool: ${toolName}`);
@@ -354,14 +372,32 @@ Start by reading the file, then explore related code if needed, and make improve
           }
         }
 
-        // Check for finish_reason
-        if (choice.finish_reason === 'stop' && !assistantMessage.tool_calls) {
-          log('Agent stopped without tool calls');
-          if (!completed) {
-            summary = assistantMessage.content || 'Agent stopped';
+        // Handle model returning text without tool calls
+        if (!assistantMessage.tool_calls || assistantMessage.tool_calls.length === 0) {
+          nudgeCount++;
+          logAlways(`Model returned text without tool calls (nudge ${nudgeCount}/${MAX_NUDGES})`);
+          if (verbose && assistantMessage.content) {
+            logAlways(`Model said: ${assistantMessage.content.substring(0, 300)}`);
           }
-          break;
+
+          if (nudgeCount >= MAX_NUDGES) {
+            logAlways('Max nudges reached, stopping');
+            if (!completed) {
+              summary = assistantMessage.content || 'Agent stopped (model refused to use tools)';
+            }
+            break;
+          }
+
+          // Nudge the model to use tools
+          messages.push({
+            role: 'user',
+            content: `You MUST use your tools to complete this task. Do NOT respond with just text. Start by calling read_file to read the target file: ${task.targetFile}`
+          });
+          continue;
         }
+
+        // Reset nudge counter on successful tool use
+        nudgeCount = 0;
 
       } catch (err) {
         error = err instanceof Error ? err.message : 'Unknown error';
@@ -390,6 +426,9 @@ Start by reading the file, then explore related code if needed, and make improve
     logAlways(`  Files: ${result.filesModified.join(', ') || 'none'}`);
     logAlways(`  Duration: ${(duration / 1000).toFixed(1)}s`);
     logAlways(`  Iterations: ${iterations}`);
+
+    // Log to evolution-log.jsonl
+    await logResult(result);
 
     return result;
   }

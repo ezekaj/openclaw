@@ -12,7 +12,7 @@
 
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { exec as execCallback } from 'node:child_process';
+import { exec as execCallback, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
 import {
   extractReadableContent,
@@ -23,6 +23,26 @@ import {
 type ToolArgs = Record<string, unknown>;
 
 const exec = promisify(execCallback);
+
+/** Run a command with args array (no shell interpolation). Returns stdout. */
+function spawnAsync(cmd: string, args: string[], options: { cwd: string; timeout: number; maxBuffer?: number }): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const proc = spawn(cmd, args, { cwd: options.cwd, stdio: ['ignore', 'pipe', 'pipe'] });
+    let stdout = '';
+    let stderr = '';
+    const maxBuf = options.maxBuffer ?? 5 * 1024 * 1024;
+    proc.stdout.on('data', (d: Buffer) => { if (stdout.length < maxBuf) stdout += d; });
+    proc.stderr.on('data', (d: Buffer) => { if (stderr.length < maxBuf) stderr += d; });
+    const timer = setTimeout(() => { proc.kill('SIGTERM'); reject(new Error('timeout')); }, options.timeout);
+    proc.on('close', (code) => {
+      clearTimeout(timer);
+      if (code === 0) resolve(stdout);
+      else if (code === 1 && cmd === 'rg') resolve(''); // rg exit 1 = no matches
+      else reject(Object.assign(new Error(`${cmd} failed (exit ${code}): ${stderr.slice(0, 200)}`), { code, stderr }));
+    });
+    proc.on('error', (err) => { clearTimeout(timer); reject(err); });
+  });
+}
 
 // Tool definitions for OpenAI-compatible API
 export interface ToolDefinition {
@@ -66,6 +86,8 @@ export interface ToolContext {
   maxFileSize: number;
   maxSearchResults: number;
   timeout: number;
+  /** Cache fetched URLs to avoid re-fetching the same page */
+  urlCache?: Map<string, string>;
 }
 
 /**
@@ -543,26 +565,34 @@ async function executeSearchCode(
   const maxResults = Math.min(getNumberArg(args, 'max_results') ?? 20, context.maxSearchResults);
 
   try {
-    const { stdout } = await exec(
-      `rg -n --json "${pattern.replace(/"/g, '\\"')}" --glob "${fileGlob}" | head -${maxResults * 2}`,
-      { cwd: context.workDir, timeout: context.timeout, maxBuffer: 5 * 1024 * 1024 }
-    );
+    // Use spawnAsync (no shell) to avoid pipe/special char issues in patterns
+    const rgArgs = [
+      '-n', '--max-count', String(maxResults),
+      '--glob', fileGlob,
+      '--glob', '!node_modules',
+      '--glob', '!dist',
+      '--hidden',
+      '--max-columns', '500',
+      '-e', pattern,
+      'src/',
+    ];
+
+    const stdout = await spawnAsync('rg', rgArgs, {
+      cwd: context.workDir,
+      timeout: context.timeout,
+    });
 
     const results: Array<{ file: string; line: number; text: string }> = [];
 
     for (const line of stdout.split('\n')) {
       if (!line) continue;
-      try {
-        const parsed = JSON.parse(line);
-        if (parsed.type === 'match') {
-          results.push({
-            file: parsed.data.path.text,
-            line: parsed.data.line_number,
-            text: parsed.data.lines.text.trim()
-          });
-        }
-      } catch {
-        // Skip invalid JSON lines
+      const match = line.match(/^(.+?):(\d+):(.*)$/);
+      if (match) {
+        results.push({
+          file: match[1],
+          line: parseInt(match[2], 10),
+          text: match[3].trim()
+        });
       }
     }
 
@@ -571,25 +601,11 @@ async function executeSearchCode(
       total: results.length
     });
   } catch (error) {
-    // Fallback to grep if ripgrep not available
-    try {
-      const { stdout } = await exec(
-        `grep -rn "${pattern.replace(/"/g, '\\"')}" --include="${fileGlob}" . | head -${maxResults}`,
-        { cwd: context.workDir, timeout: context.timeout }
-      );
-
-      const results = stdout.split('\n')
-        .filter(l => l)
-        .map(l => {
-          const match = l.match(/^\.\/(.+?):(\d+):(.*)$/);
-          return match ? { file: match[1], line: parseInt(match[2]), text: match[3].trim() } : null;
-        })
-        .filter(Boolean);
-
-      return JSON.stringify({ matches: results, total: results.length });
-    } catch {
-      return JSON.stringify({ matches: [], total: 0, error: 'Search failed' });
-    }
+    return JSON.stringify({
+      matches: [],
+      total: 0,
+      error: error instanceof Error ? error.message : 'Search failed'
+    });
   }
 }
 
@@ -609,7 +625,7 @@ async function executeListFiles(
 
   try {
     const findCmd = recursive
-      ? `find "${directory}" -name "${pattern}" -type f | head -100`
+      ? `find "${directory}" -name "${pattern}" -type f -not -path "*/node_modules/*" -not -path "*/dist/*" | head -100`
       : `ls -la "${directory}" 2>/dev/null | head -50`;
 
     const { stdout } = await exec(findCmd, {
@@ -639,6 +655,17 @@ async function executeFetchDocs(
   }
   let url = urlArg;
   const query = getStringArg(args, 'query');
+
+  // Return cached result if same URL already fetched
+  const cacheKey = url.split('#')[0]; // Ignore fragment
+  if (context.urlCache?.has(cacheKey)) {
+    return JSON.stringify({
+      url,
+      cached: true,
+      content: context.urlCache.get(cacheKey)!.slice(0, 5000),
+      note: 'Already fetched this URL. Use the content you already have instead of re-fetching.'
+    });
+  }
 
   // Handle npm: prefix
   if (url.startsWith('npm:')) {
@@ -698,6 +725,9 @@ async function executeFetchDocs(
       content = content.substring(0, 15000) + '\n... (truncated)';
     }
 
+    // Cache the fetched content
+    context.urlCache?.set(cacheKey, content);
+
     return JSON.stringify({
       url,
       title: title || null,
@@ -719,17 +749,17 @@ async function executeRunTests(
   const pattern = getStringArg(args, 'pattern');
 
   try {
-    let cmd = 'npx vitest run --reporter=json';
+    let cmd = 'npx vitest run --reporter=json --no-coverage';
     if (testFile) {
       cmd += ` "${testFile}"`;
-    }
-    if (pattern) {
-      cmd += ` -t "${pattern}"`;
+    } else if (pattern) {
+      // Use pattern as file filter (not -t which runs ALL files)
+      cmd += ` "${pattern}"`;
     }
 
     const { stdout, stderr } = await exec(cmd, {
       cwd: context.workDir,
-      timeout: 120000, // 2 minutes for tests
+      timeout: 180000, // 3 minutes for tests
       maxBuffer: 10 * 1024 * 1024
     });
 
@@ -1148,6 +1178,7 @@ export function createToolContext(workDir: string): ToolContext {
     workDir: path.resolve(workDir),
     maxFileSize: 100 * 1024, // 100KB
     maxSearchResults: 50,
-    timeout: 30000
+    timeout: 30000,
+    urlCache: new Map(),
   };
 }
