@@ -101,8 +101,13 @@ export class PredictiveService {
       // Create predictive database if not provided
       const db = this.config.db || createPredictiveDb(this.config.agentId);
 
-      // Get event mesh (use singleton from predictive-integration)
-      this.mesh = getEventMesh();
+      // Get event mesh
+      this.mesh = getEventMesh({
+        agentId: this.config.agentId,
+        db: db,
+        enablePersistence: true,
+        neuroMemory: this.config.neuroMemory,
+      });
 
       // Initialize predictive engine
       this.engine = new PredictiveEngine({

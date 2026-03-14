@@ -176,15 +176,19 @@ export class ToolAnalyticsOLAP {
   private lastAggregation: number = 0;
   private aggregationIntervalMs: number = 60 * 1000; // 1 minute
 
+  private dbPath?: string;
+
   constructor(
     db: DatabaseSync,
     options: {
       enabled?: boolean;
       partitionConfig?: PartitionConfig;
       aggregationIntervalMs?: number;
+      dbPath?: string;
     } = {},
   ) {
     this.db = db;
+    this.dbPath = options.dbPath;
     this.enabled = options.enabled ?? true;
     this.partitionConfig = options.partitionConfig ?? { enabled: false, partitionBy: "time" };
     this.aggregationIntervalMs = options.aggregationIntervalMs ?? 60 * 1000;
@@ -420,7 +424,6 @@ export class ToolAnalyticsOLAP {
    */
   private recreateDatabase(): void {
     try {
-      // Drop all tables
       this.db.exec(`
         DROP TABLE IF EXISTS tool_analytics_facts;
         DROP TABLE IF EXISTS tool_analytics_buckets;
@@ -429,13 +432,28 @@ export class ToolAnalyticsOLAP {
         DROP TABLE IF EXISTS mv_hourly_tool_stats;
         DROP TABLE IF EXISTS mv_daily_tool_stats;
       `);
-
-      // Recreate schema
       this.ensureSchema();
-
       log.info("Analytics database recreated successfully");
     } catch (recreateError) {
-      log.error(`Failed to recreate database: ${recreateError instanceof Error ? recreateError.message : String(recreateError)}`);
+      // DB is beyond repair — delete the file and reopen
+      if (this.dbPath) {
+        try {
+          const fs = require("fs");
+          this.db.close();
+          fs.unlinkSync(this.dbPath);
+          fs.unlinkSync(this.dbPath + "-shm").catch?.(() => {});
+          fs.unlinkSync(this.dbPath + "-wal").catch?.(() => {});
+          const { DatabaseSync } = require("node:sqlite");
+          this.db = new DatabaseSync(this.dbPath);
+          this.ensureSchema();
+          log.info("Analytics database deleted and recreated from scratch");
+          return;
+        } catch (deleteErr) {
+          log.error(`Failed to delete and recreate DB: ${deleteErr}`);
+        }
+      }
+      this.enabled = false;
+      log.error(`OLAP analytics disabled due to unrecoverable corruption`);
     }
   }
 

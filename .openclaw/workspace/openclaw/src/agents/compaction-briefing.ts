@@ -58,16 +58,18 @@ export interface DailyBriefing {
 export interface CompactionBriefingConfig {
   /** Base directory for briefings (default: ~/.openclaw/briefings) */
   briefingsDir?: string;
-  /** OpenRouter API key for generating summaries */
+  /** API key for generating summaries */
   apiKey?: string;
-  /** Model to use (default: google/gemini-2.5-flash) */
+  /** Model to use (default: glm-5) */
   model?: string;
+  /** Base URL for the completions API */
+  baseUrl?: string;
   /** Max tokens for summary generation */
   maxTokens?: number;
 }
 
 const DEFAULT_BRIEFINGS_DIR = "~/.openclaw/briefings";
-const DEFAULT_MODEL = "google/gemini-2.5-flash";
+const DEFAULT_MODEL = "glm-5";
 const DEFAULT_MAX_TOKENS = 200;
 
 /** 
@@ -226,6 +228,7 @@ async function generateCompactionSummary(
 
   const model = config?.model || DEFAULT_MODEL;
   const maxTokens = config?.maxTokens || DEFAULT_MAX_TOKENS;
+  const baseUrl = config?.baseUrl || "https://openrouter.ai/api/v1";
 
   const prompt = `Summarize this conversation in 1-2 sentences. Focus on key topics, decisions, and outcomes:
 
@@ -235,7 +238,7 @@ Summary:`;
 
   try {
     const response = await fetchWithTimeout(
-      "https://openrouter.ai/api/v1/chat/completions",
+      `${baseUrl}/chat/completions`,
       {
         method: "POST",
         headers: {
@@ -252,14 +255,14 @@ Summary:`;
     );
 
     if (!response.ok) {
-      throw new Error(`OpenRouter API error: ${response.status}`);
+      throw new Error(`Compaction LLM API error: ${response.status}`);
     }
 
     const data = (await response.json()) as OpenRouterResponse;
 
     // Check for API error response
     if (data.error) {
-      throw new Error(`OpenRouter API error: ${data.error.message || data.error.type || "unknown"}`);
+      throw new Error(`Compaction LLM API error: ${data.error.message || data.error.type || "unknown"}`);
     }
 
     const content = data.choices?.[0]?.message?.content?.trim();

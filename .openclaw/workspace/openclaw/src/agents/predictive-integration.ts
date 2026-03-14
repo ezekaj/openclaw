@@ -199,6 +199,7 @@ export function initPredictiveIntegration(config: PredictiveIntegrationConfig): 
       
       olapAnalytics = new ToolAnalyticsOLAP(olapDb, {
         enabled: true,
+        dbPath: olapDbPath,
       });
       log.info("ToolAnalyticsOLAP initialized with feedback loops and health scores");
     } catch (err) {

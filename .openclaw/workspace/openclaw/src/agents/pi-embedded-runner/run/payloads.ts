@@ -219,7 +219,7 @@ export function buildEmbeddedRunPayloads(params: {
     // 2. Verbose mode is enabled (dev mode)
     // Recoverable errors (validation, missing params) are already in the model's context
     // and shouldn't be surfaced to users since the model should retry.
-    if (isVerbose() && !hasUserFacingReply && !isRecoverableError) {
+    if (!hasUserFacingReply && !isRecoverableError) {
       const toolSummary = formatToolAggregate(
         params.lastToolError.toolName,
         params.lastToolError.meta ? [params.lastToolError.meta] : undefined,

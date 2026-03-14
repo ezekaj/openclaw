@@ -117,7 +117,8 @@ export class BrowserEngineRouter {
       });
     }
 
-    const port = this.config.defaultCdpPort ?? 9222;
+    // Use 9334 to avoid conflict with Chrome eloclaw profile on 9222
+    const port = this.config.defaultCdpPort ?? 9334;
 
     try {
       // Start Lightpanda if not running
