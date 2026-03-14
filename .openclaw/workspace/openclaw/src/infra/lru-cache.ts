@@ -1,14 +1,3 @@
-/**
- * LRU Cache Implementation
- * 
- * Features:
- * - O(1) get/set operations
- * - TTL support (time-to-live)
- * - Max size with automatic eviction
- * - Memory-efficient
- * - Stats tracking
- */
-
 import { createSubsystemLogger } from "../logging/subsystem.js";
 
 const log = createSubsystemLogger("lru-cache");
@@ -59,6 +48,12 @@ export class LRUCache<K = string, V = unknown> {
     };
   }
 
+  private updateStatsSize(): void {
+    if (this.enableStats) {
+      this.stats.size = this.cache.size;
+    }
+  }
+
   /**
    * Get value from cache
    */
@@ -76,7 +71,7 @@ export class LRUCache<K = string, V = unknown> {
       if (this.enableStats) {
         this.stats.misses++;
         this.stats.evictions++;
-        this.stats.size = this.cache.size;
+        this.updateStatsSize();
       }
       return undefined;
     }
@@ -116,9 +111,7 @@ export class LRUCache<K = string, V = unknown> {
       ttl: ttl ?? this.defaultTtl,
     });
 
-    if (this.enableStats) {
-      this.stats.size = this.cache.size;
-    }
+    this.updateStatsSize();
   }
 
   /**
@@ -132,7 +125,7 @@ export class LRUCache<K = string, V = unknown> {
       this.cache.delete(key);
       if (this.enableStats) {
         this.stats.evictions++;
-        this.stats.size = this.cache.size;
+        this.updateStatsSize();
       }
       return false;
     }
@@ -146,7 +139,7 @@ export class LRUCache<K = string, V = unknown> {
   delete(key: K): boolean {
     const deleted = this.cache.delete(key);
     if (deleted && this.enableStats) {
-      this.stats.size = this.cache.size;
+      this.updateStatsSize();
     }
     return deleted;
   }
@@ -159,7 +152,7 @@ export class LRUCache<K = string, V = unknown> {
     this.cache.clear();
     if (this.enableStats) {
       this.stats.evictions += size;
-      this.stats.size = 0;
+      this.updateStatsSize();
     }
   }
 
@@ -199,8 +192,7 @@ export class LRUCache<K = string, V = unknown> {
     }
     if (cleaned > 0 && this.enableStats) {
       this.stats.evictions += cleaned;
-      this.stats.size = this.cache.size;
-      log.debug(`Cleaned ${cleaned} expired entries`);
+      this.updateStatsSize();
     }
     return cleaned;
   }
