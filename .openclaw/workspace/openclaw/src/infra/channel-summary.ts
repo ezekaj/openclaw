@@ -1,16 +1,13 @@
-import type { ChannelAccountSnapshot, ChannelPlugin } from "../channels/plugins/types.js";
-import { listChannelPlugins } from "../channels/plugins/index.js";
-import { type OpenClawConfig, loadConfig } from "../config/config.js";
-
-export type ChannelSummaryOptions = {
-  colorize?: boolean;
-  includeAllowFrom?: boolean;
-};
-
-const DEFAULT_OPTIONS: Required<ChannelSummaryOptions> = {
-  colorize: false,
-  includeAllowFrom: false,
-};
+export function formatAge(ms: number): string {
+  if (ms < 0) return 'unknown';
+  const minutes = Math.round(ms / 60_000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 48) return `${hours}h ago`;
+  const days = Math.round(hours / 24);
+  return `${days}d ago`;
+}
 
 type ChannelAccountEntry = {
   accountId: string;
@@ -241,15 +238,4 @@ export async function buildChannelSummary(
   }
 
   return lines;
-}
-
-export function formatAge(ms: number): string {
-  if (ms < 0) return "unknown";
-  const minutes = Math.round(ms / 60_000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 48) return `${hours}h ago`;
-  const days = Math.round(hours / 24);
-  return `${days}d ago`;
 }
