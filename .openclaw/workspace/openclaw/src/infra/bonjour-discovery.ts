@@ -29,46 +29,6 @@ export type GatewayBonjourDiscoverOpts = {
 const DEFAULT_TIMEOUT_MS = 2000;
 const GATEWAY_SERVICE_TYPE = "_openclaw-gw._tcp";
 
-function decodeDnsSdEscapes(value: string): string {
-  let decoded = false;
-  const bytes: number[] = [];
-  let pending = "";
-
-  const flush = () => {
-    if (!pending) {
-      return;
-    }
-    bytes.push(...Buffer.from(pending, "utf8"));
-    pending = "";
-  };
-
-  for (let i = 0; i < value.length; i += 1) {
-    const ch = value[i] ?? "";
-    if (ch === "\\" && i + 3 < value.length) {
-      const escaped = value.slice(i + 1, i + 4);
-      if (/^[0-9]{3}$/.test(escaped)) {
-        const byte = Number.parseInt(escaped, 10);
-        if (!Number.isFinite(byte) || byte < 0 || byte > 255) {
-          pending += ch;
-          continue;
-        }
-        flush();
-        bytes.push(byte);
-        decoded = true;
-        i += 3;
-        continue;
-      }
-    }
-    pending += ch;
-  }
-
-  if (!decoded) {
-    return value;
-  }
-  flush();
-  return Buffer.from(bytes).toString("utf8");
-}
-
 function isTailnetIPv4(address: string): boolean {
   const parts = address.split(".");
   if (parts.length !== 4) {
@@ -96,9 +56,12 @@ function parseDigTxt(stdout: string): string[] {
     if (!line) {
       continue;
     }
-    const matches = Array.from(line.matchAll(/"([^"]*)"/g), (m) => m[1] ?? "");
+    const matches = Array.from(line.matchAll(/"([^"\\]*(?:\\.[^"\\]*)*)"/g), (m) => m[1] ?? "");
     for (const m of matches) {
-      const unescaped = m.replaceAll("\\\\", "").replaceAll('\\"', '"').replaceAll("\\n", "\n");
+      const unescaped = m
+        .replace(/\\\\/g, "\\")
+        .replace(/\\"/g, '"')
+        .replace(/\\n/g, "\n");
       tokens.push(unescaped);
     }
   }
@@ -172,23 +135,6 @@ function parseIntOrNull(value: string | undefined): number | undefined {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-function parseTxtTokens(tokens: string[]): Record<string, string> {
-  const txt: Record<string, string> = {};
-  for (const token of tokens) {
-    const idx = token.indexOf("=");
-    if (idx <= 0) {
-      continue;
-    }
-    const key = token.slice(0, idx).trim();
-    const value = decodeDnsSdEscapes(token.slice(idx + 1).trim());
-    if (!key) {
-      continue;
-    }
-    txt[key] = value;
-  }
-  return txt;
-}
-
 function parseDnsSdBrowse(stdout: string): string[] {
   const instances = new Set<string>();
   for (const raw of stdout.split("\n")) {
@@ -201,15 +147,14 @@ function parseDnsSdBrowse(stdout: string): string[] {
     }
     const match = line.match(/_openclaw-gw\._tcp\.?\s+(.+)$/);
     if (match?.[1]) {
-      instances.add(decodeDnsSdEscapes(match[1].trim()));
+      instances.add(match[1].trim());
     }
   }
   return Array.from(instances.values());
 }
 
 function parseDnsSdResolve(stdout: string, instanceName: string): GatewayBonjourBeacon | null {
-  const decodedInstanceName = decodeDnsSdEscapes(instanceName);
-  const beacon: GatewayBonjourBeacon = { instanceName: decodedInstanceName };
+  const beacon: GatewayBonjourBeacon = { instanceName };
   let txt: Record<string, string> = {};
   for (const raw of stdout.split("\n")) {
     const line = raw.trim();
@@ -236,7 +181,7 @@ function parseDnsSdResolve(stdout: string, instanceName: string): GatewayBonjour
 
   beacon.txt = Object.keys(txt).length ? txt : undefined;
   if (txt.displayName) {
-    beacon.displayName = decodeDnsSdEscapes(txt.displayName);
+    beacon.displayName = txt.displayName;
   }
   if (txt.lanHost) {
     beacon.lanHost = txt.lanHost;
@@ -264,9 +209,26 @@ function parseDnsSdResolve(stdout: string, instanceName: string): GatewayBonjour
   }
 
   if (!beacon.displayName) {
-    beacon.displayName = decodedInstanceName;
+    beacon.displayName = instanceName;
   }
   return beacon;
+}
+
+function parseTxtTokens(tokens: string[]): Record<string, string> {
+  const txt: Record<string, string> = {};
+  for (const token of tokens) {
+    const idx = token.indexOf("=");
+    if (idx <= 0) {
+      continue;
+    }
+    const key = token.slice(0, idx).trim();
+    const value = token.slice(idx + 1).trim();
+    if (!key) {
+      continue;
+    }
+    txt[key] = value;
+  }
+  return txt;
 }
 
 async function discoverViaDnsSd(
@@ -493,7 +455,7 @@ function parseAvahiBrowse(stdout: string): GatewayBonjourBeacon[] {
     }
 
     if (trimmed.startsWith("txt =")) {
-      const tokens = Array.from(trimmed.matchAll(/"([^"]*)"/g), (m) => m[1]);
+      const tokens = Array.from(trimmed.matchAll(/"([^"\\]*(?:\\.[^"\\]*)*)"/g), (m) => m[1]);
       const txt = parseTxtTokens(tokens);
       current.txt = Object.keys(txt).length ? txt : undefined;
       if (txt.displayName) {
