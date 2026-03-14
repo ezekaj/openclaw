@@ -18,7 +18,6 @@ export type NodePairingPendingRequest = {
   permissions?: Record<string, boolean>;
   remoteIp?: string;
   silent?: boolean;
-  isRepair?: boolean;
   ts: number;
 };
 
@@ -202,7 +201,6 @@ export async function requestNodePairing(
       permissions: req.permissions,
       remoteIp: req.remoteIp,
       silent: req.silent,
-      isRepair,
       ts: Date.now(),
     };
     state.pendingById[request.requestId] = request;
