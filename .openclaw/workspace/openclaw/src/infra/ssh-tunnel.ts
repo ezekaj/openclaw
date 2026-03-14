@@ -1,6 +1,5 @@
 import { spawn } from "node:child_process";
 import net from "node:net";
-import { ensurePortAvailable } from "./ports.js";
 
 export type SshParsedTarget = {
   user?: string;
@@ -16,10 +15,6 @@ export type SshTunnel = {
   stderr: string[];
   stop: () => Promise<void>;
 };
-
-function isErrno(err: unknown): err is NodeJS.ErrnoException {
-  return Boolean(err && typeof err === "object" && "code" in err);
-}
 
 export function parseSshTarget(raw: string): SshParsedTarget | null {
   const trimmed = raw.trim().replace(/^ssh\s+/, "");
@@ -117,9 +112,22 @@ export async function startSshPortForward(opts: {
 
   let localPort = opts.localPortPreferred;
   try {
-    await ensurePortAvailable(localPort);
+    await new Promise<void>((resolve, reject) => {
+      const server = net.createServer();
+      server.listen(localPort, "127.0.0.1", () => {
+        server.close(() => resolve());
+      });
+      server.once("error", (err) => {
+        server.close();
+        if (err && "code" in err && err.code === "EADDRINUSE") {
+          resolve(); // Port in use, will use ephemeral
+        } else {
+          reject(err);
+        }
+      });
+    });
   } catch (err) {
-    if (isErrno(err) && err.code === "EADDRINUSE") {
+    if (err && "code" in err && err.code === "EADDRINUSE") {
       localPort = await pickEphemeralPort();
     } else {
       throw err;
