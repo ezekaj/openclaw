@@ -1,7 +1,5 @@
 import { createSubsystemLogger } from "../logging/subsystem.js";
 
-const log = createSubsystemLogger("lru-cache");
-
 export interface LRUCacheConfig {
   /** Maximum number of items - default: 1000 */
   maxSize?: number;
@@ -48,12 +46,6 @@ export class LRUCache<K = string, V = unknown> {
     };
   }
 
-  private updateStatsSize(): void {
-    if (this.enableStats) {
-      this.stats.size = this.cache.size;
-    }
-  }
-
   /**
    * Get value from cache
    */
@@ -71,7 +63,7 @@ export class LRUCache<K = string, V = unknown> {
       if (this.enableStats) {
         this.stats.misses++;
         this.stats.evictions++;
-        this.updateStatsSize();
+        this.stats.size = this.cache.size;
       }
       return undefined;
     }
@@ -111,7 +103,7 @@ export class LRUCache<K = string, V = unknown> {
       ttl: ttl ?? this.defaultTtl,
     });
 
-    this.updateStatsSize();
+    if (this.enableStats) this.stats.size = this.cache.size;
   }
 
   /**
@@ -125,7 +117,7 @@ export class LRUCache<K = string, V = unknown> {
       this.cache.delete(key);
       if (this.enableStats) {
         this.stats.evictions++;
-        this.updateStatsSize();
+        this.stats.size = this.cache.size;
       }
       return false;
     }
@@ -139,7 +131,7 @@ export class LRUCache<K = string, V = unknown> {
   delete(key: K): boolean {
     const deleted = this.cache.delete(key);
     if (deleted && this.enableStats) {
-      this.updateStatsSize();
+      this.stats.size = this.cache.size;
     }
     return deleted;
   }
@@ -152,7 +144,7 @@ export class LRUCache<K = string, V = unknown> {
     this.cache.clear();
     if (this.enableStats) {
       this.stats.evictions += size;
-      this.updateStatsSize();
+      this.stats.size = this.cache.size;
     }
   }
 
@@ -192,7 +184,7 @@ export class LRUCache<K = string, V = unknown> {
     }
     if (cleaned > 0 && this.enableStats) {
       this.stats.evictions += cleaned;
-      this.updateStatsSize();
+      this.stats.size = this.cache.size;
     }
     return cleaned;
   }
