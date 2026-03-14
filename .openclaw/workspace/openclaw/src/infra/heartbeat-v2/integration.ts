@@ -1,13 +1,20 @@
+// Integration between Heartbeat V2 and existing HeartbeatRunner
+// Provides backward compatibility and gradual migration path
+
 import type { OpenClawConfig } from "../../config/config.js";
+import type { HeartbeatRunResult } from "./types.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { resolveDefaultAgentId } from "../../agents/agent-scope.js";
 import {
   startHeartbeatRunner,
   type HeartbeatRunner,
+  runHeartbeatOnce,
+  setHeartbeatsEnabled,
 } from "../heartbeat-runner.js";
 import {
   requestHeartbeatNow,
   setHeartbeatWakeHandler,
+  type HeartbeatWakeHandler,
 } from "../heartbeat-wake.js";
 import {
   initializeGlobalHeartbeatSystem,
@@ -21,6 +28,10 @@ const log = createSubsystemLogger("heartbeat-v2/integration");
 export interface HeartbeatIntegrationOptions {
   /** Use new V2 system (default: true) */
   useV2?: boolean;
+  /** Fall back to legacy runner on V2 errors */
+  fallbackToLegacy?: boolean;
+  /** Database path for V2 system */
+  dbPath?: string;
 }
 
 /**
@@ -29,11 +40,15 @@ export interface HeartbeatIntegrationOptions {
 export class HybridHeartbeatRunner {
   private legacyRunner: HeartbeatRunner | null = null;
   private useV2: boolean;
+  private fallbackToLegacy: boolean;
   private cfg: OpenClawConfig;
+  private dbPath: string;
 
   constructor(cfg: OpenClawConfig, options?: HeartbeatIntegrationOptions) {
     this.cfg = cfg;
     this.useV2 = options?.useV2 ?? true;
+    this.fallbackToLegacy = options?.fallbackToLegacy ?? true;
+    this.dbPath = options?.dbPath ?? "./data/heartbeat-v2.db";
   }
 
   /**
@@ -47,12 +62,13 @@ export class HybridHeartbeatRunner {
         const v2Config = migrateHeartbeatConfig(this.cfg);
         if (v2Config) {
           await initializeGlobalHeartbeatSystem(this.cfg, {
-            dbPath: "./data/heartbeat-v2.db",
+            dbPath: this.dbPath,
           });
           v2Started = true;
           log.info("Heartbeat V2 system started");
 
           // Set up wake handler to use V2 system
+          // Capture the actual default agent ID from the config at setup time
           const defaultAgentId = resolveDefaultAgentId(this.cfg);
           setHeartbeatWakeHandler(async (params) => {
             const system = getGlobalHeartbeatSystem();
@@ -65,6 +81,9 @@ export class HybridHeartbeatRunner {
         }
       } catch (err) {
         log.error("Failed to start Heartbeat V2", { error: String(err) });
+        if (!this.fallbackToLegacy) {
+          throw err;
+        }
       }
     }
 
@@ -123,7 +142,7 @@ export class HybridHeartbeatRunner {
   /**
    * Trigger immediate heartbeat
    */
-  triggerNow(agentId: string, reason?: string): { status: "ran" | "skipped"; durationMs?: number; reason?: string } {
+  triggerNow(agentId: string, reason?: string): HeartbeatRunResult | Promise<HeartbeatRunResult> {
     // Try V2 first
     const system = getGlobalHeartbeatSystem();
     if (system) {
@@ -132,11 +151,40 @@ export class HybridHeartbeatRunner {
         return { status: "ran", durationMs: 0 };
       } catch (err) {
         log.error("V2 triggerNow failed", { error: String(err) });
+        if (!this.fallbackToLegacy) {
+          return { status: "failed", reason: String(err) };
+        }
       }
     }
 
     // Fall back to legacy
     return requestHeartbeatNow({ reason: reason ?? "manual" });
+  }
+
+  /**
+   * Pause heartbeats for an agent
+   */
+  pause(agentId: string, reason?: string): void {
+    const system = getGlobalHeartbeatSystem();
+    if (system) {
+      system.pause(agentId, reason);
+    }
+
+    // Also disable legacy
+    setHeartbeatsEnabled(false);
+  }
+
+  /**
+   * Resume heartbeats for an agent
+   */
+  resume(agentId: string): void {
+    const system = getGlobalHeartbeatSystem();
+    if (system) {
+      system.resume(agentId);
+    }
+
+    // Re-enable legacy
+    setHeartbeatsEnabled(true);
   }
 
   /**

@@ -1,4 +1,5 @@
 import { runCommandWithTimeout } from "../process/exec.js";
+import { resolveWideAreaDiscoveryDomain } from "./widearea-dns.js";
 
 export type GatewayBonjourBeacon = {
   instanceName: string;
@@ -29,6 +30,46 @@ export type GatewayBonjourDiscoverOpts = {
 const DEFAULT_TIMEOUT_MS = 2000;
 const GATEWAY_SERVICE_TYPE = "_openclaw-gw._tcp";
 
+function decodeDnsSdEscapes(value: string): string {
+  let decoded = false;
+  const bytes: number[] = [];
+  let pending = "";
+
+  const flush = () => {
+    if (!pending) {
+      return;
+    }
+    bytes.push(...Buffer.from(pending, "utf8"));
+    pending = "";
+  };
+
+  for (let i = 0; i < value.length; i += 1) {
+    const ch = value[i] ?? "";
+    if (ch === "\\" && i + 3 < value.length) {
+      const escaped = value.slice(i + 1, i + 4);
+      if (/^[0-9]{3}$/.test(escaped)) {
+        const byte = Number.parseInt(escaped, 10);
+        if (!Number.isFinite(byte) || byte < 0 || byte > 255) {
+          pending += ch;
+          continue;
+        }
+        flush();
+        bytes.push(byte);
+        decoded = true;
+        i += 3;
+        continue;
+      }
+    }
+    pending += ch;
+  }
+
+  if (!decoded) {
+    return value;
+  }
+  flush();
+  return Buffer.from(bytes).toString("utf8");
+}
+
 function isTailnetIPv4(address: string): boolean {
   const parts = address.split(".");
   if (parts.length !== 4) {
@@ -38,6 +79,7 @@ function isTailnetIPv4(address: string): boolean {
   if (octets.some((n) => !Number.isFinite(n) || n < 0 || n > 255)) {
     return false;
   }
+  // Tailscale IPv4 range: 100.64.0.0/10
   const [a, b] = octets;
   return a === 100 && b >= 64 && b <= 127;
 }
@@ -50,18 +92,17 @@ function parseDigShortLines(stdout: string): string[] {
 }
 
 function parseDigTxt(stdout: string): string[] {
+  // dig +short TXT prints one or more lines of quoted strings:
+  // "k=v" "k2=v2"
   const tokens: string[] = [];
   for (const raw of stdout.split("\n")) {
     const line = raw.trim();
     if (!line) {
       continue;
     }
-    const matches = Array.from(line.matchAll(/"([^"\\]*(?:\\.[^"\\]*)*)"/g), (m) => m[1] ?? "");
+    const matches = Array.from(line.matchAll(/"([^"]*)"/g), (m) => m[1] ?? "");
     for (const m of matches) {
-      const unescaped = m
-        .replace(/\\\\/g, "\\")
-        .replace(/\\"/g, '"')
-        .replace(/\\n/g, "\n");
+      const unescaped = m.replaceAll("\\\\", "\\").replaceAll('\\"', '"').replaceAll("\\n", "\n");
       tokens.push(unescaped);
     }
   }
@@ -69,6 +110,7 @@ function parseDigTxt(stdout: string): string[] {
 }
 
 function parseDigSrv(stdout: string): { host: string; port: number } | null {
+  // dig +short SRV: "0 0 18790 host.domain."
   const line = stdout
     .split("\n")
     .map((l) => l.trim())
@@ -135,6 +177,23 @@ function parseIntOrNull(value: string | undefined): number | undefined {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
+function parseTxtTokens(tokens: string[]): Record<string, string> {
+  const txt: Record<string, string> = {};
+  for (const token of tokens) {
+    const idx = token.indexOf("=");
+    if (idx <= 0) {
+      continue;
+    }
+    const key = token.slice(0, idx).trim();
+    const value = decodeDnsSdEscapes(token.slice(idx + 1).trim());
+    if (!key) {
+      continue;
+    }
+    txt[key] = value;
+  }
+  return txt;
+}
+
 function parseDnsSdBrowse(stdout: string): string[] {
   const instances = new Set<string>();
   for (const raw of stdout.split("\n")) {
@@ -147,14 +206,15 @@ function parseDnsSdBrowse(stdout: string): string[] {
     }
     const match = line.match(/_openclaw-gw\._tcp\.?\s+(.+)$/);
     if (match?.[1]) {
-      instances.add(match[1].trim());
+      instances.add(decodeDnsSdEscapes(match[1].trim()));
     }
   }
   return Array.from(instances.values());
 }
 
 function parseDnsSdResolve(stdout: string, instanceName: string): GatewayBonjourBeacon | null {
-  const beacon: GatewayBonjourBeacon = { instanceName };
+  const decodedInstanceName = decodeDnsSdEscapes(instanceName);
+  const beacon: GatewayBonjourBeacon = { instanceName: decodedInstanceName };
   let txt: Record<string, string> = {};
   for (const raw of stdout.split("\n")) {
     const line = raw.trim();
@@ -181,7 +241,7 @@ function parseDnsSdResolve(stdout: string, instanceName: string): GatewayBonjour
 
   beacon.txt = Object.keys(txt).length ? txt : undefined;
   if (txt.displayName) {
-    beacon.displayName = txt.displayName;
+    beacon.displayName = decodeDnsSdEscapes(txt.displayName);
   }
   if (txt.lanHost) {
     beacon.lanHost = txt.lanHost;
@@ -209,26 +269,9 @@ function parseDnsSdResolve(stdout: string, instanceName: string): GatewayBonjour
   }
 
   if (!beacon.displayName) {
-    beacon.displayName = instanceName;
+    beacon.displayName = decodedInstanceName;
   }
   return beacon;
-}
-
-function parseTxtTokens(tokens: string[]): Record<string, string> {
-  const txt: Record<string, string> = {};
-  for (const token of tokens) {
-    const idx = token.indexOf("=");
-    if (idx <= 0) {
-      continue;
-    }
-    const key = token.slice(0, idx).trim();
-    const value = token.slice(idx + 1).trim();
-    if (!key) {
-      continue;
-    }
-    txt[key] = value;
-  }
-  return txt;
 }
 
 async function discoverViaDnsSd(
@@ -286,6 +329,7 @@ async function discoverWideAreaViaTailnetDns(
     return [];
   }
 
+  // Keep scans bounded: this is a fallback and should not block long.
   ips = ips.slice(0, 40);
 
   const probeName = `${GATEWAY_SERVICE_TYPE}.${domain.replace(/\.$/, "")}`;
@@ -455,7 +499,7 @@ function parseAvahiBrowse(stdout: string): GatewayBonjourBeacon[] {
     }
 
     if (trimmed.startsWith("txt =")) {
-      const tokens = Array.from(trimmed.matchAll(/"([^"\\]*(?:\\.[^"\\]*)*)"/g), (m) => m[1]);
+      const tokens = Array.from(trimmed.matchAll(/"([^"]*)"/g), (m) => m[1]);
       const txt = parseTxtTokens(tokens);
       current.txt = Object.keys(txt).length ? txt : undefined;
       if (txt.displayName) {
@@ -501,6 +545,7 @@ async function discoverViaAvahi(
 ): Promise<GatewayBonjourBeacon[]> {
   const args = ["avahi-browse", "-rt", GATEWAY_SERVICE_TYPE];
   if (domain && domain !== "local.") {
+    // avahi-browse wants a plain domain (no trailing dot)
     args.push("-d", domain.replace(/\.$/, ""));
   }
   const browse = await run(args, { timeoutMs });
@@ -516,7 +561,7 @@ export async function discoverGatewayBeacons(
   const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const platform = opts.platform ?? process.platform;
   const run = opts.run ?? runCommandWithTimeout;
-  const wideAreaDomain = opts.wideAreaDomain ?? null;
+  const wideAreaDomain = resolveWideAreaDiscoveryDomain({ configDomain: opts.wideAreaDomain });
   const domainsRaw = Array.isArray(opts.domains) ? opts.domains : [];
   const defaultDomains = ["local.", ...(wideAreaDomain ? [wideAreaDomain] : [])];
   const domains = (domainsRaw.length > 0 ? domainsRaw : defaultDomains)
@@ -531,7 +576,12 @@ export async function discoverGatewayBeacons(
       );
       const discovered = perDomain.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
 
-      if (wideAreaDomain && !discovered.some((b) => b.domain === wideAreaDomain)) {
+      const wantsWideArea = wideAreaDomain ? domains.includes(wideAreaDomain) : false;
+      const hasWideArea = wideAreaDomain
+        ? discovered.some((b) => b.domain === wideAreaDomain)
+        : false;
+
+      if (wantsWideArea && !hasWideArea && wideAreaDomain) {
         const fallback = await discoverWideAreaViaTailnetDns(wideAreaDomain, timeoutMs, run).catch(
           () => [],
         );

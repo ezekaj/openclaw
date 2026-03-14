@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import path from "node:path";
 import { runCommandWithTimeout } from "../process/exec.js";
 import { parseSemver } from "./runtime-guard.js";
 import { channelToNpmTag, type UpdateChannel } from "./update-channels.js";
@@ -46,6 +47,15 @@ export type UpdateCheckResult = {
   registry?: RegistryStatus;
 };
 
+async function exists(p: string): Promise<boolean> {
+  try {
+    await fs.access(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function detectPackageManager(root: string): Promise<PackageManager> {
   try {
     const raw = await fs.readFile(path.join(root, "package.json"), "utf-8");
@@ -88,7 +98,7 @@ export async function checkGitUpdateStatus(params: {
   fetch?: boolean;
 }): Promise<GitUpdateStatus> {
   const timeoutMs = params.timeoutMs ?? 6000;
-  const root = params.root;
+  const root = path.resolve(params.root);
 
   const base: GitUpdateStatus = {
     root,
@@ -184,23 +194,41 @@ async function statMtimeMs(p: string): Promise<number | null> {
   }
 }
 
+function resolveDepsMarker(params: { root: string; manager: PackageManager }): {
+  lockfilePath: string | null;
+  markerPath: string | null;
+} {
+  const root = params.root;
+  if (params.manager === "pnpm") {
+    return {
+      lockfilePath: path.join(root, "pnpm-lock.yaml"),
+      markerPath: path.join(root, "node_modules", ".modules.yaml"),
+    };
+  }
+  if (params.manager === "bun") {
+    return {
+      lockfilePath: path.join(root, "bun.lockb"),
+      markerPath: path.join(root, "node_modules"),
+    };
+  }
+  if (params.manager === "npm") {
+    return {
+      lockfilePath: path.join(root, "package-lock.json"),
+      markerPath: path.join(root, "node_modules"),
+    };
+  }
+  return { lockfilePath: null, markerPath: null };
+}
+
 export async function checkDepsStatus(params: {
   root: string;
   manager: PackageManager;
 }): Promise<DepsStatus> {
-  const root = params.root;
-  const { lockfilePath, markerPath } = (() => {
-    if (params.manager === "pnpm") {
-      return { lockfilePath: "pnpm-lock.yaml", markerPath: "node_modules/.modules.yaml" };
-    }
-    if (params.manager === "bun") {
-      return { lockfilePath: "bun.lockb", markerPath: "node_modules" };
-    }
-    if (params.manager === "npm") {
-      return { lockfilePath: "package-lock.json", markerPath: "node_modules" };
-    }
-    return { lockfilePath: null, markerPath: null };
-  })();
+  const root = path.resolve(params.root);
+  const { lockfilePath, markerPath } = resolveDepsMarker({
+    root,
+    manager: params.manager,
+  });
 
   if (!lockfilePath || !markerPath) {
     return {
@@ -212,18 +240,8 @@ export async function checkDepsStatus(params: {
     };
   }
 
-  let lockExists = false;
-  try {
-    await fs.access(path.join(root, lockfilePath));
-    lockExists = true;
-  } catch {}
-
-  let markerExists = false;
-  try {
-    await fs.access(path.join(root, markerPath));
-    markerExists = true;
-  } catch {}
-
+  const lockExists = await exists(lockfilePath);
+  const markerExists = await exists(markerPath);
   if (!lockExists) {
     return {
       manager: params.manager,
@@ -243,8 +261,8 @@ export async function checkDepsStatus(params: {
     };
   }
 
-  const lockMtime = await statMtimeMs(path.join(root, lockfilePath));
-  const markerMtime = await statMtimeMs(path.join(root, markerPath));
+  const lockMtime = await statMtimeMs(lockfilePath);
+  const markerMtime = await statMtimeMs(markerPath);
   if (!lockMtime || !markerMtime) {
     return {
       manager: params.manager,
@@ -361,7 +379,7 @@ export async function checkUpdateStatus(params: {
   includeRegistry?: boolean;
 }): Promise<UpdateCheckResult> {
   const timeoutMs = params.timeoutMs ?? 6000;
-  const root = params.root;
+  const root = params.root ? path.resolve(params.root) : null;
   if (!root) {
     return {
       root: null,
@@ -373,7 +391,7 @@ export async function checkUpdateStatus(params: {
 
   const pm = await detectPackageManager(root);
   const gitRoot = await detectGitRoot(root);
-  const isGit = gitRoot && gitRoot === root;
+  const isGit = gitRoot && path.resolve(gitRoot) === root;
 
   const installKind: UpdateCheckResult["installKind"] = isGit ? "git" : "package";
   const git = isGit

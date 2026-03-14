@@ -18,6 +18,7 @@ export type NodePairingPendingRequest = {
   permissions?: Record<string, boolean>;
   remoteIp?: string;
   silent?: boolean;
+  isRepair?: boolean;
   ts: number;
 };
 
@@ -33,11 +34,22 @@ export type NodePairingPairedNode = {
   modelIdentifier?: string;
   caps?: string[];
   commands?: string[];
+  bins?: string[];
   permissions?: Record<string, boolean>;
   remoteIp?: string;
   createdAtMs: number;
   approvedAtMs: number;
   lastConnectedAtMs?: number;
+};
+
+export type NodePairingList = {
+  pending: NodePairingPendingRequest[];
+  paired: NodePairingPairedNode[];
+};
+
+type NodePairingStateFile = {
+  pendingById: Record<string, NodePairingPendingRequest>;
+  pairedByNodeId: Record<string, NodePairingPairedNode>;
 };
 
 const PENDING_TTL_MS = 5 * 60 * 1000;
@@ -64,7 +76,7 @@ async function readJSON<T>(filePath: string): Promise<T | null> {
 async function writeJSONAtomic(filePath: string, value: unknown) {
   const dir = path.dirname(filePath);
   await fs.mkdir(dir, { recursive: true });
-  const tmp = `${filePath}.${randomUUID()}.tmp";
+  const tmp = `${filePath}.${randomUUID()}.tmp`;
   await fs.writeFile(tmp, JSON.stringify(value, null, 2), "utf8");
   try {
     await fs.chmod(tmp, 0o600);
@@ -105,16 +117,13 @@ async function withLock<T>(fn: () => Promise<T>): Promise<T> {
   }
 }
 
-async function loadState(baseDir?: string): Promise<{
-  pendingById: Record<string, NodePairingPendingRequest>;
-  pairedByNodeId: Record<string, NodePairingPairedNode>;
-}> {
+async function loadState(baseDir?: string): Promise<NodePairingStateFile> {
   const { pendingPath, pairedPath } = resolvePaths(baseDir);
   const [pending, paired] = await Promise.all([
     readJSON<Record<string, NodePairingPendingRequest>>(pendingPath),
     readJSON<Record<string, NodePairingPairedNode>>(pairedPath),
   ]);
-  const state = {
+  const state: NodePairingStateFile = {
     pendingById: pending ?? {},
     pairedByNodeId: paired ?? {},
   };
@@ -122,13 +131,7 @@ async function loadState(baseDir?: string): Promise<{
   return state;
 }
 
-async function persistState(
-  state: {
-    pendingById: Record<string, NodePairingPendingRequest>;
-    pairedByNodeId: Record<string, NodePairingPairedNode>;
-  },
-  baseDir?: string,
-) {
+async function persistState(state: NodePairingStateFile, baseDir?: string) {
   const { pendingPath, pairedPath } = resolvePaths(baseDir);
   await Promise.all([
     writeJSONAtomic(pendingPath, state.pendingById),
@@ -144,10 +147,7 @@ function newToken() {
   return randomUUID().replaceAll("-", "");
 }
 
-export async function listNodePairing(baseDir?: string): Promise<{
-  pending: NodePairingPendingRequest[];
-  paired: NodePairingPairedNode[];
-}> {
+export async function listNodePairing(baseDir?: string): Promise<NodePairingList> {
   const state = await loadState(baseDir);
   const pending = Object.values(state.pendingById).toSorted((a, b) => b.ts - a.ts);
   const paired = Object.values(state.pairedByNodeId).toSorted(
@@ -165,7 +165,7 @@ export async function getPairedNode(
 }
 
 export async function requestNodePairing(
-  req: Omit<NodePairingPendingRequest, "requestId" | "ts">,
+  req: Omit<NodePairingPendingRequest, "requestId" | "ts" | "isRepair">,
   baseDir?: string,
 ): Promise<{
   status: "pending";
@@ -184,6 +184,7 @@ export async function requestNodePairing(
       return { status: "pending", request: existing, created: false };
     }
 
+    const isRepair = Boolean(state.pairedByNodeId[nodeId]);
     const request: NodePairingPendingRequest = {
       requestId: randomUUID(),
       nodeId,
@@ -199,6 +200,7 @@ export async function requestNodePairing(
       permissions: req.permissions,
       remoteIp: req.remoteIp,
       silent: req.silent,
+      isRepair,
       ts: Date.now(),
     };
     state.pendingById[request.requestId] = request;
@@ -300,6 +302,7 @@ export async function updatePairedNodeMetadata(
       remoteIp: patch.remoteIp ?? existing.remoteIp,
       caps: patch.caps ?? existing.caps,
       commands: patch.commands ?? existing.commands,
+      bins: patch.bins ?? existing.bins,
       permissions: patch.permissions ?? existing.permissions,
       lastConnectedAtMs: patch.lastConnectedAtMs ?? existing.lastConnectedAtMs,
     };

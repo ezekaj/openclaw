@@ -1,5 +1,4 @@
 import { spawnSync } from "node:child_process";
-import os from "node:os";
 
 export type SystemPresence = {
   host?: string;
@@ -36,7 +35,7 @@ function normalizePresenceKey(key: string | undefined): string | undefined {
 }
 
 function resolvePrimaryIPv4(): string | undefined {
-  const nets = os.networkInterfaces();
+  const nets = require("node:os").networkInterfaces();
   const prefer = ["en0", "eth0"];
   for (const name of prefer) {
     const list = nets[name];
@@ -51,6 +50,7 @@ function resolvePrimaryIPv4(): string | undefined {
 }
 
 function initSelfPresence() {
+  const os = require("node:os");
   const host = os.hostname();
   const ip = resolvePrimaryIPv4();
   const version = process.env.OPENCLAW_VERSION ?? process.env.npm_package_version ?? "unknown";
@@ -98,6 +98,7 @@ function initSelfPresence() {
 }
 
 function touchSelfPresence() {
+  const os = require("node:os");
   const host = os.hostname();
   const key = host.toLowerCase();
   const existing = entries.get(key);
@@ -172,7 +173,7 @@ export function updateSystemPresence(payload: SystemPresencePayload): SystemPres
     normalizePresenceKey(parsed.host) ||
     parsed.ip ||
     parsed.text.slice(0, 64) ||
-    os.hostname().toLowerCase();
+    require("node:os").hostname().toLowerCase();
   const hadExisting = entries.has(key);
   const existing = entries.get(key) ?? {};
   const merged: SystemPresence = {
@@ -218,7 +219,7 @@ export function updateSystemPresence(payload: SystemPresencePayload): SystemPres
 }
 
 export function upsertPresence(key: string, presence: Partial<SystemPresence>) {
-  const normalizedKey = normalizePresenceKey(key) ?? os.hostname().toLowerCase();
+  const normalizedKey = normalizePresenceKey(key) ?? require("node:os").hostname().toLowerCase();
   const existing = entries.get(normalizedKey) ?? {};
   const roles = mergeStringList(existing.roles, presence.roles);
   const scopes = mergeStringList(existing.scopes, presence.scopes);

@@ -53,15 +53,6 @@ function fingerprintPublicKey(publicKeyPem: string): string {
   return crypto.createHash("sha256").update(raw).digest("hex");
 }
 
-function writeSecureJson(filePath: string, data: unknown): void {
-  fs.writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`, { mode: 0o600 });
-  try {
-    fs.chmodSync(filePath, 0o600);
-  } catch {
-    // best-effort
-  }
-}
-
 function generateIdentity(): DeviceIdentity {
   const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
   const publicKeyPem = publicKey.export({ type: "spki", format: "pem" }).toString();
@@ -83,10 +74,27 @@ export function loadOrCreateDeviceIdentity(filePath: string = DEFAULT_FILE): Dev
       ) {
         const derivedId = fingerprintPublicKey(parsed.publicKeyPem);
         if (derivedId && derivedId !== parsed.deviceId) {
-          writeSecureJson(filePath, { ...parsed, deviceId: derivedId });
+          const updated: StoredIdentity = {
+            ...parsed,
+            deviceId: derivedId,
+          };
+          fs.writeFileSync(filePath, `${JSON.stringify(updated, null, 2)}\n`, { mode: 0o600 });
+          try {
+            fs.chmodSync(filePath, 0o600);
+          } catch {
+            // best-effort
+          }
+          return {
+            deviceId: derivedId,
+            publicKeyPem: parsed.publicKeyPem,
+            privateKeyPem: parsed.privateKeyPem,
+          };
         }
-        const deviceId = derivedId || parsed.deviceId;
-        return { deviceId, publicKeyPem: parsed.publicKeyPem, privateKeyPem: parsed.privateKeyPem };
+        return {
+          deviceId: parsed.deviceId,
+          publicKeyPem: parsed.publicKeyPem,
+          privateKeyPem: parsed.privateKeyPem,
+        };
       }
     }
   } catch {
@@ -95,11 +103,19 @@ export function loadOrCreateDeviceIdentity(filePath: string = DEFAULT_FILE): Dev
 
   const identity = generateIdentity();
   ensureDir(filePath);
-  writeSecureJson(filePath, {
+  const stored: StoredIdentity = {
     version: 1,
-    ...identity,
+    deviceId: identity.deviceId,
+    publicKeyPem: identity.publicKeyPem,
+    privateKeyPem: identity.privateKeyPem,
     createdAtMs: Date.now(),
-  } satisfies StoredIdentity);
+  };
+  fs.writeFileSync(filePath, `${JSON.stringify(stored, null, 2)}\n`, { mode: 0o600 });
+  try {
+    fs.chmodSync(filePath, 0o600);
+  } catch {
+    // best-effort
+  }
   return identity;
 }
 

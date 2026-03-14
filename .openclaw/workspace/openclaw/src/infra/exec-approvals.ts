@@ -377,7 +377,20 @@ export function readExecApprovalsSnapshot(): ExecApprovalsSnapshot {
 }
 
 export function loadExecApprovals(): ExecApprovalsFile {
-  return readExecApprovalsSnapshot().file;
+  const filePath = resolveExecApprovalsPath();
+  try {
+    if (!fs.existsSync(filePath)) {
+      return normalizeExecApprovals({ version: 1, agents: {} });
+    }
+    const raw = fs.readFileSync(filePath, "utf8");
+    const parsed = JSON.parse(raw) as ExecApprovalsFile;
+    if (parsed?.version !== 1) {
+      return normalizeExecApprovals({ version: 1, agents: {} });
+    }
+    return normalizeExecApprovals(parsed);
+  } catch {
+    return normalizeExecApprovals({ version: 1, agents: {} });
+  }
 }
 
 export function saveExecApprovals(file: ExecApprovalsFile) {

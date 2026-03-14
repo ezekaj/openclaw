@@ -14,7 +14,7 @@ export type CrossContextDecoration = {
   embeds?: unknown[];
 };
 
-const CROSS_CONTEXT_GUARDED_ACTIONS = new Set<ChannelMessageActionName>([
+const CONTEXT_GUARDED_ACTIONS = new Set<ChannelMessageActionName>([
   "send",
   "poll",
   "reply",
@@ -25,11 +25,21 @@ const CROSS_CONTEXT_GUARDED_ACTIONS = new Set<ChannelMessageActionName>([
   "sticker",
 ]);
 
+const CONTEXT_MARKER_ACTIONS = new Set<ChannelMessageActionName>([
+  "send",
+  "poll",
+  "reply",
+  "sendWithEffect",
+  "sendAttachment",
+  "thread-reply",
+  "sticker",
+]);
+
 function resolveContextGuardTarget(
   action: ChannelMessageActionName,
   params: Record<string, unknown>,
 ): string | undefined {
-  if (!CROSS_CONTEXT_GUARDED_ACTIONS.has(action)) {
+  if (!CONTEXT_GUARDED_ACTIONS.has(action)) {
     return undefined;
   }
 
@@ -84,7 +94,7 @@ export function enforceCrossContextPolicy(params: {
   if (!currentTarget) {
     return;
   }
-  if (!CROSS_CONTEXT_GUARDED_ACTIONS.has(params.action)) {
+  if (!CONTEXT_GUARDED_ACTIONS.has(params.action)) {
     return;
   }
 
@@ -175,7 +185,7 @@ export async function buildCrossContextDecoration(params: {
 }
 
 export function shouldApplyCrossContextMarker(action: ChannelMessageActionName): boolean {
-  return action !== "thread-create" && CROSS_CONTEXT_GUARDED_ACTIONS.has(action);
+  return CONTEXT_MARKER_ACTIONS.has(action);
 }
 
 export function applyCrossContextDecoration(params: {

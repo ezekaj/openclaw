@@ -1,8 +1,12 @@
+// Persistent State Manager for Heartbeat System
+// Uses SQLite for single-node, PostgreSQL for distributed deployments
+
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { DatabaseSync } from "node:sqlite";
-import type { HeartbeatState, HeartbeatAnalytics } from "./types.js";
+import { DatabaseSync, type StatementSync } from "node:sqlite";
+import type { HeartbeatState, HeartbeatAnalytics, SchedulerConfig } from "./types.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
+import { optimizeDatabase } from "../sqlite-utils.js";
 
 const log = createSubsystemLogger("heartbeat-v2/state");
 
@@ -72,20 +76,22 @@ export class HeartbeatStateManager {
   private initialized = false;
 
   // Prepared statements
-  private stmtGetState!: DatabaseSync.Statement;
-  private stmtUpdateState!: DatabaseSync.Statement;
-  private stmtCreateSchedule!: DatabaseSync.Statement;
-  private stmtGetSchedule!: DatabaseSync.Statement;
-  private stmtUpdateScheduleNextRun!: DatabaseSync.Statement;
-  private stmtSetScheduleState!: DatabaseSync.Statement;
-  private stmtGetDueSchedules!: DatabaseSync.Statement;
-  private stmtRecordRun!: DatabaseSync.Statement;
-  private stmtAddSignal!: DatabaseSync.Statement;
-  private stmtGetPendingSignals!: DatabaseSync.Statement;
-  private stmtMarkSignalsProcessed!: DatabaseSync.Statement;
+  private stmtGetState!: StatementSync;
+  private stmtUpdateState!: StatementSync;
+  private stmtCreateSchedule!: StatementSync;
+  private stmtGetSchedule!: StatementSync;
+  private stmtUpdateScheduleNextRun!: StatementSync;
+  private stmtSetScheduleState!: StatementSync;
+  private stmtGetDueSchedules!: StatementSync;
+  private stmtRecordRun!: StatementSync;
+  private stmtAddSignal!: StatementSync;
+  private stmtGetPendingSignals!: StatementSync;
+  private stmtMarkSignalsProcessed!: StatementSync;
 
   // In-memory cache for fast access
   private stateCache = new Map<string, HeartbeatState>();
+  private cacheExpiry = new Map<string, number>();
+  private readonly CACHE_TTL_MS = 60000; // 1 minute
 
   constructor(dbPath: string, config: SchedulerConfig) {
     this.dbPath = dbPath;
@@ -101,6 +107,10 @@ export class HeartbeatStateManager {
 
     // Open database
     this.db = new DatabaseSync(this.dbPath);
+
+    // Apply performance optimizations
+    optimizeDatabase(this.db);
+    log.debug("Heartbeat database optimized");
 
     // Run migrations
     this.db.exec(SCHEMA_SQL);
@@ -171,13 +181,26 @@ export class HeartbeatStateManager {
   getState(agentId: string): HeartbeatState | null {
     // Check cache first
     const cached = this.stateCache.get(agentId);
-    if (cached) {
+    const expiry = this.cacheExpiry.get(agentId);
+    if (cached && expiry && Date.now() < expiry) {
       return cached;
     }
 
     if (!this.db) throw new Error("Database not initialized");
 
-    const row = this.stmtGetState.get(agentId);
+    const row = this.stmtGetState.get(agentId) as
+      | {
+          agent_id: string;
+          last_run_at: number | null;
+          next_run_at: number | null;
+          last_result: string | null;
+          last_message: string | null;
+          consecutive_failures: number;
+          total_runs: number;
+          total_alerts: number;
+          last_heartbeat_text: string | null;
+        }
+      | undefined;
 
     if (!row) return null;
 
@@ -195,6 +218,7 @@ export class HeartbeatStateManager {
 
     // Update cache
     this.stateCache.set(agentId, state);
+    this.cacheExpiry.set(agentId, Date.now() + this.CACHE_TTL_MS);
 
     return state;
   }
@@ -217,6 +241,7 @@ export class HeartbeatStateManager {
 
     // Update cache
     this.stateCache.set(state.agentId, state);
+    this.cacheExpiry.set(state.agentId, Date.now() + this.CACHE_TTL_MS);
   }
 
   recordRun(params: {
@@ -310,7 +335,17 @@ export class HeartbeatStateManager {
   } | null {
     if (!this.db) throw new Error("Database not initialized");
 
-    const row = this.stmtGetSchedule.get(agentId);
+    const row = this.stmtGetSchedule.get(agentId) as
+      | {
+          id: string;
+          agent_id: string;
+          interval_ms: number;
+          active_hours_json: string | null;
+          visibility_json: string;
+          state: string;
+          next_run_at: number | null;
+        }
+      | undefined;
 
     if (!row) return null;
 
@@ -347,7 +382,11 @@ export class HeartbeatStateManager {
 
     const cutoff = Date.now() + withinMs;
 
-    const rows = this.stmtGetDueSchedules.all(cutoff);
+    const rows = this.stmtGetDueSchedules.all(cutoff) as Array<{
+      id: string;
+      agent_id: string;
+      interval_ms: number;
+    }>;
 
     return rows.map((row) => ({
       id: row.id,
@@ -382,7 +421,17 @@ export class HeartbeatStateManager {
        WHERE agent_id = ? AND started_at > ?`,
     );
 
-    const row = stmt.get(agentId, cutoff);
+    const row = stmt.get(agentId, cutoff) as
+      | {
+          total_runs: number;
+          alert_count: number;
+          ok_count: number;
+          skipped_count: number;
+          error_count: number;
+          avg_duration: number;
+          p95_duration: number;
+        }
+      | undefined;
 
     const state = this.getState(agentId);
 
@@ -415,7 +464,11 @@ export class HeartbeatStateManager {
   }> {
     if (!this.db) throw new Error("Database not initialized");
 
-    const rows = this.stmtGetPendingSignals.all(scheduleId);
+    const rows = this.stmtGetPendingSignals.all(scheduleId) as Array<{
+      signal: string;
+      reason: string | null;
+      timestamp: number;
+    }>;
 
     return rows.map((row) => ({
       signal: row.signal,
@@ -443,8 +496,10 @@ export class HeartbeatStateManager {
   clearCache(agentId?: string): void {
     if (agentId) {
       this.stateCache.delete(agentId);
+      this.cacheExpiry.delete(agentId);
     } else {
       this.stateCache.clear();
+      this.cacheExpiry.clear();
     }
   }
 }

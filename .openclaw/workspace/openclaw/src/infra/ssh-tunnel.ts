@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
-import { createServer } from "node:net";
+import net from "node:net";
+import { ensurePortAvailable } from "./ports.js";
 
 export type SshParsedTarget = {
   user?: string;
@@ -15,6 +16,10 @@ export type SshTunnel = {
   stderr: string[];
   stop: () => Promise<void>;
 };
+
+function isErrno(err: unknown): err is NodeJS.ErrnoException {
+  return Boolean(err && typeof err === "object" && "code" in err);
+}
 
 export function parseSshTarget(raw: string): SshParsedTarget | null {
   const trimmed = raw.trim().replace(/^ssh\s+/, "");
@@ -58,7 +63,7 @@ export function parseSshTarget(raw: string): SshParsedTarget | null {
 
 async function pickEphemeralPort(): Promise<number> {
   return await new Promise<number>((resolve, reject) => {
-    const server = createServer();
+    const server = net.createServer();
     server.once("error", reject);
     server.listen(0, "127.0.0.1", () => {
       const addr = server.address();
@@ -73,22 +78,29 @@ async function pickEphemeralPort(): Promise<number> {
   });
 }
 
-async function checkPortListening(port: number): Promise<boolean> {
-  return new Promise((resolve) => {
-    const socket = require("node:net").createConnection({ host: "127.0.0.1", port });
-    socket.once("connect", () => {
+async function canConnectLocal(port: number): Promise<boolean> {
+  return await new Promise<boolean>((resolve) => {
+    const socket = net.connect({ host: "127.0.0.1", port });
+    const done = (ok: boolean) => {
+      socket.removeAllListeners();
       socket.destroy();
-      resolve(true);
-    });
-    socket.once("error", () => {
-      socket.destroy();
-      resolve(false);
-    });
-    socket.setTimeout(250, () => {
-      socket.destroy();
-      resolve(false);
-    });
+      resolve(ok);
+    };
+    socket.once("connect", () => done(true));
+    socket.once("error", () => done(false));
+    socket.setTimeout(250, () => done(false));
   });
+}
+
+async function waitForLocalListener(port: number, timeoutMs: number): Promise<void> {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    if (await canConnectLocal(port)) {
+      return;
+    }
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  throw new Error(`ssh tunnel did not start listening on localhost:${port}`);
 }
 
 export async function startSshPortForward(opts: {
@@ -105,19 +117,9 @@ export async function startSshPortForward(opts: {
 
   let localPort = opts.localPortPreferred;
   try {
-    const server = createServer();
-    server.listen(localPort, "127.0.0.1", () => {
-      server.close();
-    });
-    server.on("error", (err) => {
-      if (err && "code" in err && err.code === "EADDRINUSE") {
-        localPort = await pickEphemeralPort();
-      } else {
-        throw err;
-      }
-    });
+    await ensurePortAvailable(localPort);
   } catch (err) {
-    if (err && "code" in err && err.code === "EADDRINUSE") {
+    if (isErrno(err) && err.code === "EADDRINUSE") {
       localPort = await pickEphemeralPort();
     } else {
       throw err;
@@ -185,28 +187,19 @@ export async function startSshPortForward(opts: {
     });
   };
 
-  // Wait for port to be listening with timeout
-  const checkInterval = 50;
-  const maxAttempts = Math.ceil(Math.max(250, opts.timeoutMs) / checkInterval);
-  let portReady = false;
-  for (let i = 0; i < maxAttempts; i++) {
-    if (await checkPortListening(localPort)) {
-      portReady = true;
-      break;
-    }
-    await new Promise((resolve) => setTimeout(resolve, checkInterval));
-  }
-
-  if (!portReady) {
+  try {
+    await Promise.race([
+      waitForLocalListener(localPort, Math.max(250, opts.timeoutMs)),
+      new Promise<void>((_, reject) => {
+        child.once("exit", (code, signal) => {
+          reject(new Error(`ssh exited (${code ?? "null"}${signal ? `/${signal}` : ""})`));
+        });
+      }),
+    ]);
+  } catch (err) {
     await stop();
     const suffix = stderr.length > 0 ? `\n${stderr.join("\n")}` : "";
-    throw new Error(`ssh tunnel did not start listening on localhost:${localPort}${suffix}`);
-  }
-
-  // Check for SSH process exit
-  if (child.killed) {
-    const suffix = stderr.length > 0 ? `\n${stderr.join("\n")}` : "";
-    throw new Error(`ssh process exited prematurely${suffix}`);
+    throw new Error(`${err instanceof Error ? err.message : String(err)}${suffix}`, { cause: err });
   }
 
   return {
