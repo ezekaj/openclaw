@@ -1,4 +1,5 @@
 import type { OpenClawConfig } from "../../config/config.js";
+import type { HeartbeatRunResult } from "./types.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { resolveDefaultAgentId } from "../../agents/agent-scope.js";
 import {
@@ -22,8 +23,6 @@ const log = createSubsystemLogger("heartbeat-v2/integration");
 export interface HeartbeatIntegrationOptions {
   /** Use new V2 system (default: true) */
   useV2?: boolean;
-  /** Database path for V2 system */
-  dbPath?: string;
 }
 
 /**
@@ -33,12 +32,10 @@ export class HybridHeartbeatRunner {
   private legacyRunner: HeartbeatRunner | null = null;
   private useV2: boolean;
   private cfg: OpenClawConfig;
-  private dbPath: string;
 
   constructor(cfg: OpenClawConfig, options?: HeartbeatIntegrationOptions) {
     this.cfg = cfg;
     this.useV2 = options?.useV2 ?? true;
-    this.dbPath = options?.dbPath ?? "./data/heartbeat-v2.db";
   }
 
   /**
@@ -52,13 +49,12 @@ export class HybridHeartbeatRunner {
         const v2Config = migrateHeartbeatConfig(this.cfg);
         if (v2Config) {
           await initializeGlobalHeartbeatSystem(this.cfg, {
-            dbPath: this.dbPath,
+            dbPath: "./data/heartbeat-v2.db",
           });
           v2Started = true;
           log.info("Heartbeat V2 system started");
 
           // Set up wake handler to use V2 system
-          // Capture the actual default agent ID from the config at setup time
           const defaultAgentId = resolveDefaultAgentId(this.cfg);
           setHeartbeatWakeHandler(async (params) => {
             const system = getGlobalHeartbeatSystem();
@@ -143,26 +139,6 @@ export class HybridHeartbeatRunner {
 
     // Fall back to legacy
     return requestHeartbeatNow({ reason: reason ?? "manual" });
-  }
-
-  /**
-   * Pause heartbeats for an agent
-   */
-  pause(agentId: string, reason?: string): void {
-    const system = getGlobalHeartbeatSystem();
-    if (system) {
-      system.pause(agentId, reason);
-    }
-  }
-
-  /**
-   * Resume heartbeats for an agent
-   */
-  resume(agentId: string): void {
-    const system = getGlobalHeartbeatSystem();
-    if (system) {
-      system.resume(agentId);
-    }
   }
 
   /**
