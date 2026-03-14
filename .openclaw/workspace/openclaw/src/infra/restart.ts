@@ -1,7 +1,4 @@
 import { spawnSync } from "node:child_process";
-import {
-  resolveGatewaySystemdServiceName,
-} from "../daemon/constants.js";
 
 export type RestartAttempt = {
   ok: boolean;
@@ -92,7 +89,14 @@ function formatSpawnDetail(result: {
 }
 
 function normalizeSystemdUnit(raw?: string, profile?: string): string {
-  return (raw?.trim() || `${resolveGatewaySystemdServiceName(profile)}.service`).replace(/\.service$/, ".service");
+  const unit = raw?.trim();
+  if (unit && unit.endsWith(".service")) {
+    return unit;
+  }
+  if (unit) {
+    return `${unit}.service`;
+  }
+  return `${resolveGatewaySystemdServiceName(profile)}.service`;
 }
 
 export function triggerOpenClawRestart(): RestartAttempt {
