@@ -384,10 +384,10 @@ export class ToolAnalyticsOLAP {
       this.updateHealthScores();
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      
-      // Check if it's a database corruption error
-      if (errorMsg.includes("database disk image is malformed")) {
-        log.error(`Aggregation failed: Database corruption detected. Attempting recovery...`);
+
+      // Check if it's a database corruption or missing-table error
+      if (errorMsg.includes("database disk image is malformed") || errorMsg.includes("no such table")) {
+        log.error(`Aggregation failed: ${errorMsg}. Attempting recovery...`);
         this.attemptDatabaseRecovery();
       } else {
         log.error(`Aggregation failed: ${errorMsg}`);

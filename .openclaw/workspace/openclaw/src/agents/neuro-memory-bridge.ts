@@ -76,9 +76,49 @@ export class NeuroMemoryBridge {
   }
 
   /**
+   * Kill any orphaned MCP server from a previous gateway run.
+   * The Python server writes its PID to /tmp/neuro-memory-mcp.pid and refuses
+   * to start if another instance is alive.  When the gateway restarts, the old
+   * Python process may still be running — kill it so the new bridge can spawn
+   * a fresh one.
+   */
+  private cleanupOrphanedServer(): void {
+    const pidFile = "/tmp/neuro-memory-mcp.pid";
+    try {
+      const fs = require("node:fs");
+      if (!fs.existsSync(pidFile)) return;
+      const oldPid = parseInt(fs.readFileSync(pidFile, "utf-8").trim(), 10);
+      if (isNaN(oldPid)) {
+        fs.unlinkSync(pidFile);
+        return;
+      }
+      try {
+        process.kill(oldPid, 0); // check if alive
+        log.info(`Killing orphaned neuro-memory-agent (PID ${oldPid})`);
+        process.kill(oldPid, "SIGTERM");
+        // Give it a moment to die
+        const deadline = Date.now() + 2000;
+        while (Date.now() < deadline) {
+          try { process.kill(oldPid, 0); } catch { break; }
+          const { execSync } = require("node:child_process");
+          execSync("sleep 0.1");
+        }
+      } catch {
+        // Process already dead — stale PID file
+      }
+      if (fs.existsSync(pidFile)) fs.unlinkSync(pidFile);
+    } catch (err) {
+      log.debug(`Orphan cleanup failed (non-critical): ${err}`);
+    }
+  }
+
+  /**
    * Start the neuro-memory-agent MCP server
    */
   async start(): Promise<void> {
+    // Kill any orphaned server from a previous gateway lifecycle
+    this.cleanupOrphanedServer();
+
     return new Promise((resolve, reject) => {
       log.info(`Starting neuro-memory-agent from ${this.config.agentPath}`);
 
