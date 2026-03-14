@@ -166,7 +166,7 @@ export async function getPairedNode(
 }
 
 export async function requestNodePairing(
-  req: Omit<NodePairingPendingRequest, "requestId" | "ts" | "isRepair">,
+  req: Omit<NodePairingPendingRequest, "requestId" | "ts">,
   baseDir?: string,
 ): Promise<{
   status: "pending";
