@@ -297,7 +297,8 @@ export function createGatewayHttpServer(opts: {
       }
 
       // Streaming tool invocation
-      if (url.pathname === "/api/tools/invoke-stream" && req.method === "POST") {
+      const parsedUrl = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
+      if (parsedUrl.pathname === "/api/tools/invoke-stream" && req.method === "POST") {
         await handleToolsInvokeStreaming(req, res);
         return;
       }
