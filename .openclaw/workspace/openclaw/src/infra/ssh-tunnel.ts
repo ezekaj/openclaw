@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { createServer } from "node:net";
 
 export type SshParsedTarget = {
   user?: string;
@@ -57,7 +58,7 @@ export function parseSshTarget(raw: string): SshParsedTarget | null {
 
 async function pickEphemeralPort(): Promise<number> {
   return await new Promise<number>((resolve, reject) => {
-    const server = require("node:net").createServer();
+    const server = createServer();
     server.once("error", reject);
     server.listen(0, "127.0.0.1", () => {
       const addr = server.address();
@@ -74,7 +75,7 @@ async function pickEphemeralPort(): Promise<number> {
 
 async function canConnectLocal(port: number): Promise<boolean> {
   return await new Promise<boolean>((resolve) => {
-    const socket = require("node:net").connect({ host: "127.0.0.1", port });
+    const socket = createServer().connect({ host: "127.0.0.1", port });
     const done = (ok: boolean) => {
       socket.removeAllListeners();
       socket.destroy();
@@ -112,7 +113,7 @@ export async function startSshPortForward(opts: {
   let localPort = opts.localPortPreferred;
   try {
     await new Promise<void>((resolve, reject) => {
-      const server = require("node:net").createServer();
+      const server = createServer();
       server.listen(localPort, "127.0.0.1", () => {
         server.close(() => resolve());
       });
