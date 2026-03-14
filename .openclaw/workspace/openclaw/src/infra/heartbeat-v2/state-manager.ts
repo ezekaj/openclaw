@@ -1,12 +1,8 @@
-// Persistent State Manager for Heartbeat System
-// Uses SQLite for single-node, PostgreSQL for distributed deployments
-
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { DatabaseSync, type StatementSync } from "node:sqlite";
 import type { HeartbeatState, HeartbeatAnalytics, SchedulerConfig } from "./types.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
-import { optimizeDatabase } from "../sqlite-utils.js";
 
 const log = createSubsystemLogger("heartbeat-v2/state");
 
@@ -90,7 +86,6 @@ export class HeartbeatStateManager {
 
   // In-memory cache for fast access
   private stateCache = new Map<string, HeartbeatState>();
-  private cacheExpiry = new Map<string, number>();
   private readonly CACHE_TTL_MS = 60000; // 1 minute
 
   constructor(dbPath: string, config: SchedulerConfig) {
@@ -107,10 +102,6 @@ export class HeartbeatStateManager {
 
     // Open database
     this.db = new DatabaseSync(this.dbPath);
-
-    // Apply performance optimizations
-    optimizeDatabase(this.db);
-    log.debug("Heartbeat database optimized");
 
     // Run migrations
     this.db.exec(SCHEMA_SQL);
@@ -181,8 +172,7 @@ export class HeartbeatStateManager {
   getState(agentId: string): HeartbeatState | null {
     // Check cache first
     const cached = this.stateCache.get(agentId);
-    const expiry = this.cacheExpiry.get(agentId);
-    if (cached && expiry && Date.now() < expiry) {
+    if (cached) {
       return cached;
     }
 
@@ -218,7 +208,6 @@ export class HeartbeatStateManager {
 
     // Update cache
     this.stateCache.set(agentId, state);
-    this.cacheExpiry.set(agentId, Date.now() + this.CACHE_TTL_MS);
 
     return state;
   }
@@ -241,7 +230,6 @@ export class HeartbeatStateManager {
 
     // Update cache
     this.stateCache.set(state.agentId, state);
-    this.cacheExpiry.set(state.agentId, Date.now() + this.CACHE_TTL_MS);
   }
 
   recordRun(params: {
@@ -496,10 +484,8 @@ export class HeartbeatStateManager {
   clearCache(agentId?: string): void {
     if (agentId) {
       this.stateCache.delete(agentId);
-      this.cacheExpiry.delete(agentId);
     } else {
       this.stateCache.clear();
-      this.cacheExpiry.clear();
     }
   }
 }
