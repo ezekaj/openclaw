@@ -98,7 +98,7 @@ function parseDigTxt(stdout: string): string[] {
     }
     const matches = Array.from(line.matchAll(/"([^"]*)"/g), (m) => m[1] ?? "");
     for (const m of matches) {
-      const unescaped = m.replaceAll("\\\\", "\").replaceAll('\\"', '"').replaceAll("\\n", "\n");
+      const unescaped = m.replaceAll("\\\\", "").replaceAll('\\"', '"').replaceAll("\\n", "\n");
       tokens.push(unescaped);
     }
   }
@@ -548,18 +548,13 @@ async function discoverViaAvahi(
   }));
 }
 
-function resolveWideAreaDiscoveryDomain({ configDomain }: { configDomain?: string | null }): string | null {
-  // Placeholder implementation - actual implementation would go here
-  return configDomain ?? null;
-}
-
 export async function discoverGatewayBeacons(
   opts: GatewayBonjourDiscoverOpts = {},
 ): Promise<GatewayBonjourBeacon[]> {
   const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const platform = opts.platform ?? process.platform;
   const run = opts.run ?? runCommandWithTimeout;
-  const wideAreaDomain = resolveWideAreaDiscoveryDomain({ configDomain: opts.wideAreaDomain });
+  const wideAreaDomain = opts.wideAreaDomain ?? null;
   const domainsRaw = Array.isArray(opts.domains) ? opts.domains : [];
   const defaultDomains = ["local.", ...(wideAreaDomain ? [wideAreaDomain] : [])];
   const domains = (domainsRaw.length > 0 ? domainsRaw : defaultDomains)
