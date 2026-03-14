@@ -32,82 +32,56 @@ const TTL_MS = 5 * 60 * 1000; // 5 minutes
 const MAX_ENTRIES = 200;
 
 function normalizePresenceKey(key: string | undefined): string | undefined {
-  if (!key) {
-    return undefined;
-  }
+  if (!key) return undefined;
   const trimmed = key.trim();
-  if (!trimmed) {
-    return undefined;
-  }
-  return trimmed.toLowerCase();
+  return trimmed ? trimmed.toLowerCase() : undefined;
 }
 
 function resolvePrimaryIPv4(): string | undefined {
   const nets = os.networkInterfaces();
   const prefer = ["en0", "eth0"];
-  const pick = (names: string[]) => {
-    for (const name of names) {
-      const list = nets[name];
-      const entry = list?.find((n) => n.family === "IPv4" && !n.internal);
-      if (entry?.address) {
-        return entry.address;
-      }
-    }
-    for (const list of Object.values(nets)) {
-      const entry = list?.find((n) => n.family === "IPv4" && !n.internal);
-      if (entry?.address) {
-        return entry.address;
-      }
-    }
-    return undefined;
-  };
-  return pick(prefer) ?? os.hostname();
+  for (const name of prefer) {
+    const list = nets[name];
+    const entry = list?.find((n) => n.family === "IPv4" && !n.internal);
+    if (entry?.address) return entry.address;
+  }
+  for (const list of Object.values(nets)) {
+    const entry = list?.find((n) => n.family === "IPv4" && !n.internal);
+    if (entry?.address) return entry.address;
+  }
+  return undefined;
 }
 
 function initSelfPresence() {
   const host = os.hostname();
-  const ip = resolvePrimaryIPv4() ?? undefined;
+  const ip = resolvePrimaryIPv4();
   const version = process.env.OPENCLAW_VERSION ?? process.env.npm_package_version ?? "unknown";
   const modelIdentifier = (() => {
     const p = os.platform();
     if (p === "darwin") {
-      const res = spawnSync("sysctl", ["-n", "hw.model"], {
-        encoding: "utf-8",
-      });
+      const res = spawnSync("sysctl", ["-n", "hw.model"], { encoding: "utf-8" });
       const out = typeof res.stdout === "string" ? res.stdout.trim() : "";
       return out.length > 0 ? out : undefined;
     }
     return os.arch();
   })();
   const macOSVersion = () => {
-    const res = spawnSync("sw_vers", ["-productVersion"], {
-      encoding: "utf-8",
-    });
+    const res = spawnSync("sw_vers", ["-productVersion"], { encoding: "utf-8" });
     const out = typeof res.stdout === "string" ? res.stdout.trim() : "";
     return out.length > 0 ? out : os.release();
   };
   const platform = (() => {
     const p = os.platform();
     const rel = os.release();
-    if (p === "darwin") {
-      return `macos ${macOSVersion()}`;
-    }
-    if (p === "win32") {
-      return `windows ${rel}`;
-    }
+    if (p === "darwin") return `macos ${macOSVersion()}`;
+    if (p === "win32") return `windows ${rel}`;
     return `${p} ${rel}`;
   })();
   const deviceFamily = (() => {
     const p = os.platform();
-    if (p === "darwin") {
-      return "Mac";
-    }
-    if (p === "win32") {
-      return "Windows";
-    }
-    if (p === "linux") {
-      return "Linux";
-    }
+    if (p === "darwin") return "Mac";
+    if (p === "win32") return "Windows";
+    if (p === "linux") return "Linux";
     return p;
   })();
   const text = `Gateway: ${host}${ip ? ` (${ip})` : ""} · app ${version} · mode gateway · reason self`;
@@ -123,17 +97,7 @@ function initSelfPresence() {
     text,
     ts: Date.now(),
   };
-  const key = host.toLowerCase();
-  entries.set(key, selfEntry);
-}
-
-function ensureSelfPresence() {
-  // If the map was somehow cleared (e.g., hot reload or a new worker spawn that
-  // skipped module evaluation), re-seed with a local entry so UIs always show
-  // at least the current gateway.
-  if (entries.size === 0) {
-    initSelfPresence();
-  }
+  entries.set(host.toLowerCase(), selfEntry);
 }
 
 function touchSelfPresence() {
@@ -193,21 +157,16 @@ type SystemPresencePayload = {
 function mergeStringList(...values: Array<string[] | undefined>): string[] | undefined {
   const out = new Set<string>();
   for (const list of values) {
-    if (!Array.isArray(list)) {
-      continue;
-    }
+    if (!Array.isArray(list)) continue;
     for (const item of list) {
       const trimmed = String(item).trim();
-      if (trimmed) {
-        out.add(trimmed);
-      }
+      if (trimmed) out.add(trimmed);
     }
   }
   return out.size > 0 ? [...out] : undefined;
 }
 
 export function updateSystemPresence(payload: SystemPresencePayload): SystemPresenceUpdate {
-  ensureSelfPresence();
   const parsed = parsePresence(payload.text);
   const key =
     normalizePresenceKey(payload.deviceId) ||
@@ -262,7 +221,6 @@ export function updateSystemPresence(payload: SystemPresencePayload): SystemPres
 }
 
 export function upsertPresence(key: string, presence: Partial<SystemPresence>) {
-  ensureSelfPresence();
   const normalizedKey = normalizePresenceKey(key) ?? os.hostname().toLowerCase();
   const existing = entries.get(normalizedKey) ?? ({} as SystemPresence);
   const roles = mergeStringList(existing.roles, presence.roles);
@@ -284,21 +242,14 @@ export function upsertPresence(key: string, presence: Partial<SystemPresence>) {
 }
 
 export function listSystemPresence(): SystemPresence[] {
-  ensureSelfPresence();
-  // prune expired
   const now = Date.now();
   for (const [k, v] of entries) {
-    if (now - v.ts > TTL_MS) {
-      entries.delete(k);
-    }
+    if (now - v.ts > TTL_MS) entries.delete(k);
   }
-  // enforce max size (LRU by ts)
   if (entries.size > MAX_ENTRIES) {
     const sorted = [...entries.entries()].toSorted((a, b) => a[1].ts - b[1].ts);
     const toDrop = entries.size - MAX_ENTRIES;
-    for (let i = 0; i < toDrop; i++) {
-      entries.delete(sorted[i][0]);
-    }
+    for (let i = 0; i < toDrop; i++) entries.delete(sorted[i][0]);
   }
   touchSelfPresence();
   return [...entries.values()].toSorted((a, b) => b.ts - a.ts);
