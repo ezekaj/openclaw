@@ -176,7 +176,7 @@ export function updateSystemPresence(payload: SystemPresencePayload): SystemPres
     parsed.text.slice(0, 64) ||
     os.hostname().toLowerCase();
   const hadExisting = entries.has(key);
-  const existing = entries.get(key) ?? ({} as SystemPresence);
+  const existing = entries.get(key) ?? {};
   const merged: SystemPresence = {
     ...existing,
     ...parsed,
@@ -221,7 +221,7 @@ export function updateSystemPresence(payload: SystemPresencePayload): SystemPres
 
 export function upsertPresence(key: string, presence: Partial<SystemPresence>) {
   const normalizedKey = normalizePresenceKey(key) ?? os.hostname().toLowerCase();
-  const existing = entries.get(normalizedKey) ?? ({} as SystemPresence);
+  const existing = entries.get(normalizedKey) ?? {};
   const roles = mergeStringList(existing.roles, presence.roles);
   const scopes = mergeStringList(existing.scopes, presence.scopes);
   const merged: SystemPresence = {
