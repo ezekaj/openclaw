@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import { resolveStateDir } from "../config/paths.js";
+import path from "node:path";
 
 export type DevicePairingPendingRequest = {
   requestId: string;
@@ -88,7 +89,7 @@ async function readJSON<T>(filePath: string): Promise<T | null> {
 async function writeJSONAtomic(filePath: string, value: unknown) {
   const dir = path.dirname(filePath);
   await fs.mkdir(dir, { recursive: true });
-  const tmp = `${filePath}.${randomUUID()}.tmp";
+  const tmp = `${filePath}.${randomUUID()}.tmp`;
   await fs.writeFile(tmp, JSON.stringify(value, null, 2), "utf8");
   try {
     await fs.chmod(tmp, 0o600);
@@ -209,7 +210,7 @@ function normalizeScopes(scopes: string[] | undefined): string[] {
   if (!Array.isArray(scopes)) {
     return [];
   }
-  return [...new Set(scopes.map(s => s.trim()).filter(s => s.length > 0))];
+  return [...new Set(scopes.map(s => s.trim()).filter(Boolean))];
 }
 
 function scopesAllow(requested: string[], allowed: string[]): boolean {
@@ -304,7 +305,6 @@ export async function approveDevicePairing(
     if (roleForToken) {
       const nextScopes = normalizeScopes(pending.scopes);
       const existingToken = tokens[roleForToken];
-      const now = Date.now();
       tokens[roleForToken] = {
         token: newToken(),
         role: roleForToken,
