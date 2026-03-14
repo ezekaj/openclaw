@@ -56,34 +56,33 @@ function initSelfPresence() {
   const host = os.hostname();
   const ip = resolvePrimaryIPv4();
   const version = process.env.OPENCLAW_VERSION ?? process.env.npm_package_version ?? "unknown";
-  const modelIdentifier = (() => {
-    const p = os.platform();
-    if (p === "darwin") {
-      const res = spawnSync("sysctl", ["-n", "hw.model"], { encoding: "utf-8" });
-      const out = typeof res.stdout === "string" ? res.stdout.trim() : "";
-      return out.length > 0 ? out : undefined;
-    }
-    return os.arch();
-  })();
-  const macOSVersion = () => {
-    const res = spawnSync("sw_vers", ["-productVersion"], { encoding: "utf-8" });
-    const out = typeof res.stdout === "string" ? res.stdout.trim() : "";
-    return out.length > 0 ? out : os.release();
-  };
-  const platform = (() => {
-    const p = os.platform();
-    const rel = os.release();
-    if (p === "darwin") return `macos ${macOSVersion()}`;
-    if (p === "win32") return `windows ${rel}`;
-    return `${p} ${rel}`;
-  })();
-  const deviceFamily = (() => {
-    const p = os.platform();
-    if (p === "darwin") return "Mac";
-    if (p === "win32") return "Windows";
-    if (p === "linux") return "Linux";
-    return p;
-  })();
+  
+  const p = os.platform();
+  const rel = os.release();
+  
+  let modelIdentifier: string | undefined;
+  let platform: string;
+  let deviceFamily: string;
+
+  if (p === "darwin") {
+    const res = spawnSync("sysctl", ["-n", "hw.model"], { encoding: "utf-8" });
+    const modelOut = typeof res.stdout === "string" ? res.stdout.trim() : "";
+    modelIdentifier = modelOut.length > 0 ? modelOut : undefined;
+    
+    const verRes = spawnSync("sw_vers", ["-productVersion"], { encoding: "utf-8" });
+    const verOut = typeof verRes.stdout === "string" ? verRes.stdout.trim() : "";
+    const macOSVer = verOut.length > 0 ? verOut : rel;
+    
+    platform = `macos ${macOSVer}`;
+    deviceFamily = "Mac";
+  } else if (p === "win32") {
+    platform = `windows ${rel}`;
+    deviceFamily = "Windows";
+  } else {
+    platform = `${p} ${rel}`;
+    deviceFamily = p;
+  }
+
   const text = `Gateway: ${host}${ip ? ` (${ip})` : ""} · app ${version} · mode gateway · reason self`;
   const selfEntry: SystemPresence = {
     host,
