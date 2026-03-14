@@ -136,9 +136,9 @@ const buildAccountDetails = (params: {
       cfg: params.cfg,
       accountId: snapshot.accountId,
       allowFrom: snapshot.allowFrom,
-    }).slice(0, 2);
+    });
     if (formatted.length > 0) {
-      details.push(`allow:${formatted.join(",")}`);
+      details.push(`allow:${formatted.slice(0, 2).join(",")}`);
     }
   }
   return details;
@@ -183,8 +183,7 @@ export async function buildChannelSummary(
           account: fallbackEntry?.account ?? {},
           cfg: effective,
           defaultAccountId,
-          snapshot:
-            fallbackEntry?.snapshot ?? ({ accountId: defaultAccountId } as ChannelAccountSnapshot),
+          snapshot: fallbackEntry?.snapshot ?? { accountId: defaultAccountId },
         })
       : undefined;
 
@@ -203,10 +202,10 @@ export async function buildChannelSummary(
 
     const statusColor =
       status === "linked" || status === "configured"
-        ? theme.success
+        ? "success"
         : status === "not linked"
-          ? theme.error
-          : theme.muted;
+          ? "error"
+          : "muted";
     const baseLabel = plugin.meta.label ?? plugin.id;
     let line = `${baseLabel}: ${status}`;
 
