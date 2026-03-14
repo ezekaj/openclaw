@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { DatabaseSync, type StatementSync } from "node:sqlite";
-import type { HeartbeatState, HeartbeatAnalytics, SchedulerConfig } from "./types.js";
+import type { HeartbeatState, HeartbeatAnalytics } from "./types.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 
 const log = createSubsystemLogger("heartbeat-v2/state");
@@ -86,7 +86,6 @@ export class HeartbeatStateManager {
 
   // In-memory cache for fast access
   private stateCache = new Map<string, HeartbeatState>();
-  private readonly CACHE_TTL_MS = 60000; // 1 minute
 
   constructor(dbPath: string, config: SchedulerConfig) {
     this.dbPath = dbPath;
