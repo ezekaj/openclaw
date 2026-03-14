@@ -112,22 +112,6 @@ const REMAINING_KEYS = [
 
 const PLAN_KEYS = ["plan", "plan_name", "planName", "product", "tier"] as const;
 
-const WINDOW_HOUR_KEYS = [
-  "window_hours",
-  "windowHours",
-  "duration_hours",
-  "durationHours",
-  "hours",
-] as const;
-
-const WINDOW_MINUTE_KEYS = [
-  "window_minutes",
-  "windowMinutes",
-  "duration_minutes",
-  "durationMinutes",
-  "minutes",
-] as const;
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
@@ -246,15 +230,7 @@ function collectUsageCandidates(root: Record<string, unknown>): Record<string, u
   return candidates.map((candidate) => candidate.record);
 }
 
-function deriveWindowLabel(payload: Record<string, unknown>): string {
-  const hours = pickNumber(payload, WINDOW_HOUR_KEYS);
-  if (hours !== undefined && Number.isFinite(hours)) {
-    return `${hours}h`;
-  }
-  const minutes = pickNumber(payload, WINDOW_MINUTE_KEYS);
-  if (minutes !== undefined && Number.isFinite(minutes)) {
-    return `${minutes}m`;
-  }
+function deriveWindowLabel(_payload: Record<string, unknown>): string {
   return "5h";
 }
 
