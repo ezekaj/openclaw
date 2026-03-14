@@ -1,0 +1,42 @@
+{
+  "name": "@openclaw/evolution-daemon",
+  "version": "1.0.0",
+  "description": "Autonomous code evolution daemon - runs 24/7 improving your codebase using AI",
+  "type": "module",
+  "main": "evolution-standalone.js",
+  "bin": {
+    "evolution-daemon": "./evolution-standalone.js"
+  },
+  "scripts": {
+    "start": "node evolution-standalone.js",
+    "test": "node -e \"console.log('Evolution daemon ready')\""
+  },
+  "keywords": [
+    "evolution",
+    "autonomous",
+    "ai",
+    "code-improvement",
+    "self-improving",
+    "daemon",
+    "bailian",
+    "qwen",
+    "kimi",
+    "autoresearch"
+  ],
+  "author": "OpenClaw",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openclaw/openclaw"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "evolution-standalone.js",
+    "README.md",
+    "config.example.json"
+  ],
+  "dependencies": {},
+  "devDependencies": {}
+}

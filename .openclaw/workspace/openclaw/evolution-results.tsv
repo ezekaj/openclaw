@@ -1,0 +1,65 @@
+commit	metric	memory_gb	status	description
+60476c3	0.000000	0.0	discard	Remove unused imports and simplify complex type definitions
+716e5df	0.000000	0.0	discard	Simplify evolution service by removing redundant TSV logging, consolidating proposal generation, and reducing duplicate file reads
+4b6163c	0.000000	0.0	discard	Fix type safety issues, remove dead code, and improve error handling and resource management
+error	0.000000	0.0	crash	Error: BAILIAN_API_KEY environment variable not set
+2eddc38	0.000000	0.0	discard	Remove unused MigrationResult type and simplify partition validation logic
+1a3d7a8	0.000000	0.0	discard	Remove unused imports and simplify evolution service
+b1fbc63	0.000000	0.0	discard	Remove unused imports and simplify evolution service
+9e970ee	0.000000	0.0	discard	Remove redundant code, simplify proposal generators, and improve error handling
+e1f131f	0.000000	0.0	discard	Remove redundant validation, simplify result construction, deduplicate error handling, and remove unnecessary lazy-loaded exports
+a233321	0.000000	0.0	discard	Remove unused types and simplify partition validation logic
+8b5c235	0.000000	0.0	discard	Simplify command authorization logic and reduce nested conditionals
+skip	0.000000	0.0	discard	No changes proposed
+d9e5b52	0.000000	0.0	discard	Remove redundant code, simplify control flow, and eliminate dead code paths
+c2d0ecd	0.000000	0.0	discard	Remove unused configuration options and simplify constructor initialization
+b006174	0.000000	0.0	discard	Remove redundant factory, inline parseInterval, simplify initialization, reduce duplication
+8c0c6a4	0.000000	0.0	discard	Remove unused configuration options and simplify constructor initialization
+5cd0cfc	0.000000	0.0	discard	Simplify PredictiveEngine by removing redundant persistence logic, consolidating similar operations, and reducing code duplication
+857e907	0.000000	0.0	discard	Extract common schema definitions to eliminate duplication between WhatsAppAccountSchema and WhatsAppConfigSchema
+61d5504	0.000000	0.0	discard	Remove unused MigrationResult type that's not referenced elsewhere in the codebase
+260c165	0.000000	0.0	discard	Remove unused configuration options and simplify constructor logic
+1d128d7	0.000000	0.0	discard	Simplify evolution service by removing redundant TSV logging, consolidating patch generation, and reducing code duplication
+0ede7b0	0.000000	0.0	discard	Simplify and deduplicate target resolution logic
+6fa68f6	0.000000	0.0	discard	Remove unused imports and simplify evolution service
+8688623	0.000000	0.0	discard	Remove redundant factory function, simplify state management, fix render logic bug, remove unused field
+cae2cfa	0.000000	0.0	discard	Remove unused configuration options and simplify constructor initialization
+d36cb22	0.000000	0.0	discard	Simplify PredictiveEngine by removing redundant persistence logic, consolidating similar operations, and reducing code duplication
+skip	0.000000	0.0	discard	No changes proposed
+ad5465d	0.000000	0.0	discard	Simplify path resolution by removing redundant functions and consolidating logic
+c0722a7	0.000000	0.0	discard	Critical bug fixes: initialization state machine, timestamp conversion, and query parameter binding
+f535f91	0.000000	0.0	discard	Remove redundant code and simplify atomic write
+17384aa	1.000000	0.0	keep	Remove redundant type definitions, simplify color logic with lookup tables, eliminate unnecessary wrapper function, and consolidate repeated threshold logic
+65437f8	0.000000	0.0	discard	Simplify withTimeout using AbortSignal.timeout, remove redundant checks in resolvePackedRootDir, inline single-use extractZip, use tar's built-in strip/safety
+79fe833	0.000000	0.0	discard	Remove redundant caching and simplify module initialization
+f1fa52b	1.000000	0.0	keep	Simplify domain normalization by removing redundant regex operations and consolidating logic
+ceb111a	0.000000	0.0	discard	Simplify timing wheel by removing redundant data structures and cascading logic
+30f8b0c	1.000000	0.0	keep	Simplify code by extracting helpers, reducing duplication, and flattening conditionals
+f7412b3	1.000000	0.0	keep	Simplify and optimize legacy config utilities
+bd1ebfe	1.000000	0.0	keep	Remove redundant module declaration wrapper
+c0ce74e	1.000000	0.0	keep	Remove redundant getter/setter functions, simplify validation with Object.assign pattern, cache loaded prefs to avoid repeated disk reads
+7ad4970	0.000000	0.0	discard	Simplify code by removing redundant validation, consolidating duplicate interval resolution logic, and streamlining path/name handling
+3489754	1.000000	0.0	keep	Simplify and deduplicate formatting logic, remove unused pickPrimaryWindow function, inline helper where used once
+d7bcf98	1.000000	0.0	keep	Remove unnecessary intermediate variable and simplify constructor
+af29d05	1.000000	0.0	keep	Simplify EchoTracker by removing redundant options and unused features
+9339dbf	0.000000	0.0	discard	Remove redundant code, simplify error handling, and consolidate duplicate logic
+7530c7f	1.000000	0.0	keep	Remove unnecessary config change tracking complexity
+42b02a0	0.000000	0.0	discard	Simplify retry logic by removing redundant code paths and reducing complexity
+702c63b	1.000000	0.0	keep	Remove deprecated re-export file
+951f884	1.000000	0.0	keep	Extract common validation logic into shared helper, reducing duplication
+3e22932	0.000000	0.0	discard	Remove unnecessary wrapper functions and simplify closeOverlay logic
+19bf66e	1.000000	0.0	keep	Replace switch statement with provider-to-fetcher map and simplify filtering logic
+7d24dbd	1.000000	0.0	keep	Extract common patterns, reduce duplication, and simplify word movement logic
+971c5f1	0.000000	0.0	discard	Extract nested functions and reduce duplication in message processing
+7c43530	0.000000	0.0	discard	Replace manual string parsing with regex-based substitution for clarity and performance
+99c6d7f	0.000000	0.0	discard	Critical bug fixes: initialization state machine, timestamp conversion, and query parameter binding
+c3f7893	0.000000	0.0	discard	Simplify mergeMediaUrls, reduce redundant operations, and streamline normalization logic
+a400c50	0.000000	0.0	discard	Simplify IPv4 validation using regex, inline single-use helper, deduplicate loop logic
+422d801	1.000000	0.0	keep	Extract nested types and inline redundant documentation
+f5f1a49	0.000000	0.0	discard	Consolidate exports using index pattern
+9509201	0.000000	0.0	discard	Simplify code by removing redundant status variable, deduplicating error handling, and reducing nesting
+361db94	1.000000	0.0	keep	Remove redundant type-only re-exports and consolidate barrel file
+2026-03-10T22:28:36.652Z	132e48dc	src/infra/provider-usage.fetch.minimax.ts	skipped	-	Parse error
+2026-03-10T22:29:45.113Z	e1a4be92	src/infra/ssh-tunnel.ts	skipped	-	Code improvement
+2026-03-10T22:29:51.106Z	baabf6a5		failed	-	No suitable files found
+2026-03-10T22:31:31.519Z	a3290762	src/infra/heartbeat-v2/scheduler.ts	skipped	-	Remove unused normalizeAgentId function and simplify scheduleId construction

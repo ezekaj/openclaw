@@ -1,15 +1,7 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import { describe, expect, it } from "vitest";
 import { sanitizeSessionMessagesImages } from "./pi-embedded-helpers.js";
-import { DEFAULT_AGENTS_FILENAME } from "./workspace.js";
 
-const _makeFile = (overrides: Partial<WorkspaceBootstrapFile>): WorkspaceBootstrapFile => ({
-  name: DEFAULT_AGENTS_FILENAME,
-  path: "/tmp/AGENTS.md",
-  content: "",
-  missing: false,
-  ...overrides,
-});
 describe("sanitizeSessionMessagesImages - thought_signature stripping", () => {
   it("strips msg_-prefixed thought_signature from assistant message content blocks", async () => {
     const input = [

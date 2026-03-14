@@ -4,32 +4,46 @@
  * Displays cache metrics in the TUI interface.
  */
 
+import { Box, Text } from "@mariozechner/pi-tui";
 import { createText, createBox } from "./component-helpers.js";
+import { getCacheMetricsTracker } from "../../agents/cache-metrics-tracker.js";
+import type { CacheMetrics } from "../../config/types.cache.js";
 
 // ============================================================================
-// TYPES
+// HELPERS
 // ============================================================================
 
-interface CacheMetrics {
-  hitRate: number;
-  cacheReadTokens: number;
-  cacheCreationTokens: number;
-  inputTokens: number;
-  estimatedSavings: number;
+/**
+ * Get color for hit rate display
+ * @param hitRate - Hit rate (0.0 - 1.0)
+ * @returns ANSI color name
+ */
+function getHitRateColor(hitRate: number): "green" | "yellow" | "red" {
+  if (hitRate > 0.8) return "green";
+  if (hitRate > 0.5) return "yellow";
+  return "red";
 }
 
-// ============================================================================
-// STUB TRACKER (until cache-metrics-tracker is available)
-// ============================================================================
+/**
+ * Get status symbol for hit rate
+ * @param hitRate - Hit rate (0.0 - 1.0)
+ * @returns Status symbol
+ */
+function getHitRateSymbol(hitRate: number): string {
+  if (hitRate > 0.8) return "✓";
+  if (hitRate > 0.5) return "~";
+  return "✗";
+}
 
-function getCacheMetrics(): CacheMetrics {
-  return {
-    hitRate: 0,
-    cacheReadTokens: 0,
-    cacheCreationTokens: 0,
-    inputTokens: 0,
-    estimatedSavings: 0,
-  };
+/**
+ * Format hit rate as percentage string
+ * @param hitRate - Hit rate (0.0 - 1.0)
+ * @param decimals - Number of decimal places
+ * @returns Formatted percentage string
+ */
+function formatHitRate(hitRate: number, decimals = 0): string {
+  const clampedRate = Math.max(0, Math.min(1, hitRate));
+  return (clampedRate * 100).toFixed(decimals);
 }
 
 // ============================================================================
@@ -38,17 +52,15 @@ function getCacheMetrics(): CacheMetrics {
 
 /**
  * Render cache status display
+ *
+ * Creates a boxed display showing cache performance metrics including
+ * hit rate, token counts, and estimated cost savings.
  */
-export function renderCacheStatus(): any {
-  const metrics = getCacheMetrics();
+export function renderCacheStatus(): Box {
+  const tracker = getCacheMetricsTracker();
+  const metrics: CacheMetrics = tracker.getMetrics();
 
-  // Determine color based on hit rate
-  let hitRateColor = "red";
-  if (metrics.hitRate > 0.8) {
-    hitRateColor = "green";
-  } else if (metrics.hitRate > 0.5) {
-    hitRateColor = "yellow";
-  }
+  const hitRateColor = getHitRateColor(metrics.hitRate);
 
   return createBox({
     children: [
@@ -57,7 +69,7 @@ export function renderCacheStatus(): any {
         color: "cyan",
       }),
       createText("\n"),
-      createText(`Hit Rate: ${(metrics.hitRate * 100).toFixed(1)}%`, {
+      createText(`Hit Rate: ${formatHitRate(metrics.hitRate, 1)}%`, {
         color: hitRateColor,
       }),
       createText("\n"),
@@ -88,29 +100,34 @@ export function renderCacheStatus(): any {
 
 /**
  * Render compact cache status (single line)
+ *
+ * Creates a single-line display showing cache hit rate and savings.
  */
-export function renderCompactCacheStatus(): any {
-  const metrics = getCacheMetrics();
+export function renderCompactCacheStatus(): Text {
+  const tracker = getCacheMetricsTracker();
+  const metrics: CacheMetrics = tracker.getMetrics();
 
-  const hitRateColor = metrics.hitRate > 0.8 ? "green" : metrics.hitRate > 0.5 ? "yellow" : "red";
+  const hitRateColor = getHitRateColor(metrics.hitRate);
 
   return createText(
-    `Cache: ${(metrics.hitRate * 100).toFixed(0)}% | $${metrics.estimatedSavings.toFixed(3)}`,
+    `Cache: ${formatHitRate(metrics.hitRate)}% | $${metrics.estimatedSavings.toFixed(3)}`,
     { color: hitRateColor },
   );
 }
 
 /**
  * Render cache summary for status bar
+ *
+ * Creates a compact status indicator with symbol and percentage.
  */
-export function renderCacheStatusBar(): any {
-  const metrics = getCacheMetrics();
-  const hitRate = metrics.hitRate;
+export function renderCacheStatusBar(): Text {
+  const tracker = getCacheMetricsTracker();
+  const metrics: CacheMetrics = tracker.getMetrics();
 
-  const status = hitRate > 0.8 ? "✓" : hitRate > 0.5 ? "~" : "✗";
-  const color = hitRate > 0.8 ? "green" : hitRate > 0.5 ? "yellow" : "red";
+  const status = getHitRateSymbol(metrics.hitRate);
+  const color = getHitRateColor(metrics.hitRate);
 
-  return createText(`${status} Cache ${(hitRate * 100).toFixed(0)}%`, {
+  return createText(`${status} Cache ${formatHitRate(metrics.hitRate)}%`, {
     color,
   });
 }

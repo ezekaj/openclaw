@@ -577,7 +577,10 @@ export function parseImageDimensionError(raw?: string): {
   };
 }
 
-export function isImageDimensionErrorMessage(raw: string): boolean {
+export function isImageDimensionErrorMessage(raw?: string): boolean {
+  if (!raw) {
+    return false;
+  }
   return Boolean(parseImageDimensionError(raw));
 }
 

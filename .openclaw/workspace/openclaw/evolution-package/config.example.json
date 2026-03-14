@@ -1,0 +1,18 @@
+{
+  "apiKey": "your_bailian_api_key_here",
+  "model": "kimi-k2.5",
+  "intervalMs": 3600000,
+  "targets": [
+    "src/services/evolution/evolution-service.ts",
+    "src/agents/neuro-memory-bridge.ts",
+    "src/agents/predictive-engine.ts",
+    "src/infra/event-partition-manager.ts"
+  ],
+  "options": {
+    "maxRetries": 3,
+    "testTimeout": 120000,
+    "autoRollback": true,
+    "logToConsole": true,
+    "logToFile": true
+  }
+}

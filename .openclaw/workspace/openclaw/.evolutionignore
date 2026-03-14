@@ -1,0 +1,51 @@
+# Evolution Ignore File
+# Patterns matching these paths will never be auto-modified
+# The evolution engine reads this file to protect critical code
+
+# ==== CRITICAL INFRASTRUCTURE ====
+# Core agent systems - manual review only
+src/agents/neuro-memory-bridge.ts
+src/agents/event-mesh.ts
+src/agents/event-mesh-production/*.ts
+src/agents/predictive-integration.ts
+src/agents/predictive-engine.ts
+
+# Evolution system - don't let it modify itself
+src/services/evolution/*.ts
+
+# Memory and state management
+src/memory/manager.ts
+src/memory/embeddings.ts
+src/infra/sqlite-utils.ts
+
+# ==== SECURITY ====
+src/security/*.ts
+src/gateway/auth/*.ts
+src/gateway/server-startup.ts
+
+# ==== EXTERNAL INTEGRATIONS ====
+# MCP servers - delicate Python code
+mcp_server.py
+mcp_*.py
+
+# Provider APIs
+src/agents/model-auth.ts
+src/infra/provider-usage*.ts
+
+# ==== BUILD & CONFIG ====
+*.config.js
+*.config.ts
+*.config.mjs
+tsconfig.json
+package.json
+pnpm-lock.yaml
+
+# ==== TESTS ====
+**/*.test.ts
+**/*.spec.ts
+**/*.e2e.test.ts
+
+# ==== GENERATED/SPECIAL ====
+src/types/*.d.ts
+dist/**
+node_modules/**
