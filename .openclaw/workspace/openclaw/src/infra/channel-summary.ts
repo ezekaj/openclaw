@@ -9,13 +9,6 @@ export function formatAge(ms: number): string {
   return `${days}d ago`;
 }
 
-type ChannelAccountEntry = {
-  accountId: string;
-  enabled: boolean;
-  configured: boolean;
-  snapshot: ChannelAccountSnapshot;
-};
-
 const formatAccountLabel = (params: { accountId: string; name?: string }) => {
   const base = params.accountId;
   if (params.name?.trim()) {
@@ -35,7 +28,7 @@ const resolveAccountEnabled = (
   if (plugin.config.isEnabled) {
     return plugin.config.isEnabled(account, cfg);
   }
-  if (!account || typeof account !== "object") {
+  if (typeof account !== "object" || account === null) {
     return true;
   }
   const enabled = (account as { enabled?: boolean }).enabled;
@@ -153,7 +146,7 @@ export async function buildChannelSummary(
     const defaultAccountId =
       plugin.config.defaultAccountId?.(effective) ?? accountIds[0] ?? "default";
     const resolvedAccountIds = accountIds.length > 0 ? accountIds : [defaultAccountId];
-    const entries: ChannelAccountEntry[] = [];
+    const entries: Array<{ accountId: string; enabled: boolean; configured: boolean; snapshot: ChannelAccountSnapshot }> = [];
 
     for (const accountId of resolvedAccountIds) {
       const account = plugin.config.resolveAccount(effective, accountId);
