@@ -1,21 +1,10 @@
 import type { SkillEligibilityContext, SkillEntry } from "../agents/skills.js";
-import type { OpenClawConfig } from "../config/config.js";
 import type { NodeRegistry } from "../gateway/node-registry.js";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { loadWorkspaceSkillEntries } from "../agents/skills.js";
 import { bumpSkillsSnapshotVersion } from "../agents/skills/refresh.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { listNodePairing, updatePairedNodeMetadata } from "./node-pairing.js";
-
-type RemoteNodeRecord = {
-  nodeId: string;
-  displayName?: string;
-  platform?: string;
-  deviceFamily?: string;
-  commands?: string[];
-  bins: Set<string>;
-  remoteIp?: string;
-};
 
 const log = createSubsystemLogger("gateway/skills-remote");
 const remoteNodes = new Map<string, RemoteNodeRecord>();
@@ -30,32 +19,17 @@ function describeNode(nodeId: string): string {
 }
 
 function extractErrorMessage(err: unknown): string | undefined {
-  if (!err) {
+  if (!err) return undefined;
+  if (typeof err === "string") return err;
+  if (err instanceof Error) return err.message;
+  if (typeof err === "object" && err !== null && typeof err.message === "string") return err.message;
+  if (typeof err === "number" || typeof err === "boolean" || typeof err === "bigint") return String(err);
+  if (typeof err === "symbol") return err.toString();
+  try {
+    return JSON.stringify(err);
+  } catch {
     return undefined;
   }
-  if (typeof err === "string") {
-    return err;
-  }
-  if (err instanceof Error) {
-    return err.message;
-  }
-  if (typeof err === "object" && "message" in err && typeof err.message === "string") {
-    return err.message;
-  }
-  if (typeof err === "number" || typeof err === "boolean" || typeof err === "bigint") {
-    return String(err);
-  }
-  if (typeof err === "symbol") {
-    return err.toString();
-  }
-  if (typeof err === "object") {
-    try {
-      return JSON.stringify(err);
-    } catch {
-      return undefined;
-    }
-  }
-  return undefined;
 }
 
 function logRemoteBinProbeFailure(nodeId: string, err: unknown) {
@@ -206,7 +180,7 @@ function collectRequiredBins(entries: SkillEntry[], targetPlatform: string): str
 }
 
 function buildBinProbeScript(bins: string[]): string {
-  const escaped = bins.map((bin) => `'${bin.replace(/'/g, `'\\''`)}'`).join(" ");
+  const escaped = bins.map((bin) => `'${bin.replace(/'/g, `'\\\'''`)}'`).join(" ");
   return `for b in ${escaped}; do if command -v "$b" >/dev/null 2>&1; then echo "$b"; fi; done`;
 }
 
