@@ -65,7 +65,7 @@ async function readJSON<T>(filePath: string): Promise<T | null> {
 async function writeJSONAtomic(filePath: string, value: unknown) {
   const dir = path.dirname(filePath);
   await fs.mkdir(dir, { recursive: true });
-  const tmp = `${filePath}.${randomUUID()}.tmp`;
+  const tmp = `${filePath}.${randomUUID()}.tmp";
   await fs.writeFile(tmp, JSON.stringify(value, null, 2), "utf8");
   try {
     await fs.chmod(tmp, 0o600);
@@ -185,7 +185,6 @@ export async function requestNodePairing(
       return { status: "pending", request: existing, created: false };
     }
 
-    const isRepair = Boolean(state.pairedByNodeId[nodeId]);
     const request: NodePairingPendingRequest = {
       requestId: randomUUID(),
       nodeId,
