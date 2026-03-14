@@ -2,14 +2,9 @@ import type { ProviderUsageSnapshot, UsageWindow } from "./provider-usage.types.
 import { fetchJson } from "./provider-usage.fetch.shared.js";
 import { clampPercent, PROVIDER_LABELS } from "./provider-usage.shared.js";
 
-type MinimaxBaseResp = {
+type MinimaxUsageResponse = {
   status_code?: number;
   status_msg?: string;
-};
-
-type MinimaxUsageResponse = {
-  base_resp?: MinimaxBaseResp;
-  data?: Record<string, unknown>;
   [key: string]: unknown;
 };
 
@@ -345,17 +340,16 @@ export async function fetchMinimaxUsage(
     };
   }
 
-  const baseResp = isRecord(data.base_resp) ? data.base_resp : undefined;
-  if (baseResp && typeof baseResp.status_code === "number" && baseResp.status_code !== 0) {
+  if (typeof data.status_code === "number" && data.status_code !== 0) {
     return {
       provider: "minimax",
       displayName: PROVIDER_LABELS.minimax,
       windows: [],
-      error: baseResp.status_msg?.trim() || "API error",
+      error: data.status_msg?.trim() || "API error",
     };
   }
 
-  const payload = isRecord(data.data) ? data.data : data;
+  const payload = data;
   const candidates = collectUsageCandidates(payload);
   let usageRecord: Record<string, unknown> = payload;
   let usedPercent: number | null = null;
