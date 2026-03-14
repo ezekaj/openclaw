@@ -1,11 +1,9 @@
 import type { OpenClawConfig } from "../../config/config.js";
-import type { HeartbeatRunResult } from "./types.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { resolveDefaultAgentId } from "../../agents/agent-scope.js";
 import {
   startHeartbeatRunner,
   type HeartbeatRunner,
-  setHeartbeatsEnabled,
 } from "../heartbeat-runner.js";
 import {
   requestHeartbeatNow,
@@ -125,7 +123,7 @@ export class HybridHeartbeatRunner {
   /**
    * Trigger immediate heartbeat
    */
-  triggerNow(agentId: string, reason?: string): HeartbeatRunResult | Promise<HeartbeatRunResult> {
+  triggerNow(agentId: string, reason?: string): { status: "ran" | "skipped"; durationMs?: number; reason?: string } {
     // Try V2 first
     const system = getGlobalHeartbeatSystem();
     if (system) {
