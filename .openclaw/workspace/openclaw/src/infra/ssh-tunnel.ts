@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { createServer, Socket } from "node:net";
+import { createServer } from "node:net";
 
 export type SshParsedTarget = {
   user?: string;
@@ -75,8 +75,7 @@ async function pickEphemeralPort(): Promise<number> {
 
 async function checkPortListening(port: number): Promise<boolean> {
   return new Promise((resolve) => {
-    const socket = new Socket();
-    socket.connect({ host: "127.0.0.1", port });
+    const socket = require("node:net").createConnection({ host: "127.0.0.1", port });
     socket.once("connect", () => {
       socket.destroy();
       resolve(true);
@@ -106,19 +105,16 @@ export async function startSshPortForward(opts: {
 
   let localPort = opts.localPortPreferred;
   try {
-    await new Promise<void>((resolve, reject) => {
-      const server = createServer();
-      server.listen(localPort, "127.0.0.1", () => {
-        server.close(() => resolve());
-      });
-      server.once("error", (err) => {
-        server.close();
-        if (err && "code" in err && err.code === "EADDRINUSE") {
-          resolve(); // Port in use, will use ephemeral
-        } else {
-          reject(err);
-        }
-      });
+    const server = createServer();
+    server.listen(localPort, "127.0.0.1", () => {
+      server.close();
+    });
+    server.on("error", (err) => {
+      if (err && "code" in err && err.code === "EADDRINUSE") {
+        localPort = await pickEphemeralPort();
+      } else {
+        throw err;
+      }
     });
   } catch (err) {
     if (err && "code" in err && err.code === "EADDRINUSE") {
