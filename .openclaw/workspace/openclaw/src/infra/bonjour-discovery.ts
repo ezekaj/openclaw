@@ -1,5 +1,4 @@
 import { runCommandWithTimeout } from "../process/exec.js";
-import { resolveWideAreaDiscoveryDomain } from "./widearea-dns.js";
 
 export type GatewayBonjourBeacon = {
   instanceName: string;
@@ -79,7 +78,6 @@ function isTailnetIPv4(address: string): boolean {
   if (octets.some((n) => !Number.isFinite(n) || n < 0 || n > 255)) {
     return false;
   }
-  // Tailscale IPv4 range: 100.64.0.0/10
   const [a, b] = octets;
   return a === 100 && b >= 64 && b <= 127;
 }
@@ -92,8 +90,6 @@ function parseDigShortLines(stdout: string): string[] {
 }
 
 function parseDigTxt(stdout: string): string[] {
-  // dig +short TXT prints one or more lines of quoted strings:
-  // "k=v" "k2=v2"
   const tokens: string[] = [];
   for (const raw of stdout.split("\n")) {
     const line = raw.trim();
@@ -102,7 +98,7 @@ function parseDigTxt(stdout: string): string[] {
     }
     const matches = Array.from(line.matchAll(/"([^"]*)"/g), (m) => m[1] ?? "");
     for (const m of matches) {
-      const unescaped = m.replaceAll("\\\\", "\\").replaceAll('\\"', '"').replaceAll("\\n", "\n");
+      const unescaped = m.replaceAll("\\\\", "\").replaceAll('\\"', '"').replaceAll("\\n", "\n");
       tokens.push(unescaped);
     }
   }
@@ -110,7 +106,6 @@ function parseDigTxt(stdout: string): string[] {
 }
 
 function parseDigSrv(stdout: string): { host: string; port: number } | null {
-  // dig +short SRV: "0 0 18790 host.domain."
   const line = stdout
     .split("\n")
     .map((l) => l.trim())
@@ -329,7 +324,6 @@ async function discoverWideAreaViaTailnetDns(
     return [];
   }
 
-  // Keep scans bounded: this is a fallback and should not block long.
   ips = ips.slice(0, 40);
 
   const probeName = `${GATEWAY_SERVICE_TYPE}.${domain.replace(/\.$/, "")}`;
@@ -545,7 +539,6 @@ async function discoverViaAvahi(
 ): Promise<GatewayBonjourBeacon[]> {
   const args = ["avahi-browse", "-rt", GATEWAY_SERVICE_TYPE];
   if (domain && domain !== "local.") {
-    // avahi-browse wants a plain domain (no trailing dot)
     args.push("-d", domain.replace(/\.$/, ""));
   }
   const browse = await run(args, { timeoutMs });
@@ -553,6 +546,11 @@ async function discoverViaAvahi(
     ...beacon,
     domain,
   }));
+}
+
+function resolveWideAreaDiscoveryDomain({ configDomain }: { configDomain?: string | null }): string | null {
+  // Placeholder implementation - actual implementation would go here
+  return configDomain ?? null;
 }
 
 export async function discoverGatewayBeacons(
@@ -576,12 +574,7 @@ export async function discoverGatewayBeacons(
       );
       const discovered = perDomain.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
 
-      const wantsWideArea = wideAreaDomain ? domains.includes(wideAreaDomain) : false;
-      const hasWideArea = wideAreaDomain
-        ? discovered.some((b) => b.domain === wideAreaDomain)
-        : false;
-
-      if (wantsWideArea && !hasWideArea && wideAreaDomain) {
+      if (wideAreaDomain && !discovered.some((b) => b.domain === wideAreaDomain)) {
         const fallback = await discoverWideAreaViaTailnetDns(wideAreaDomain, timeoutMs, run).catch(
           () => [],
         );
