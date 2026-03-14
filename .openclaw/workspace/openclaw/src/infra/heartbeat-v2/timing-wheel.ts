@@ -15,7 +15,7 @@ interface WheelSlot {
 interface WheelLevel {
   slots: WheelSlot[];
   currentIndex: number;
-  slotDuration: number; // ms per slot
+  slotDuration: number;
   numSlots: number;
 }
 
@@ -30,12 +30,11 @@ export class HierarchicalTimingWheel {
     this.tickIntervalMs = tickIntervalMs;
     this.lastTickMs = Date.now();
 
-    // Initialize wheel levels
     this.levels = [
-      this.createLevel(20, 50), // 0 - 1 second
-      this.createLevel(60, 1000), // 1 second - 1 minute
-      this.createLevel(60, 60000), // 1 minute - 1 hour
-      this.createLevel(24, 3600000), // 1 hour - 24 hours
+      this.createLevel(20, 50),
+      this.createLevel(60, 1000),
+      this.createLevel(60, 60000),
+      this.createLevel(24, 3600000),
     ];
   }
 
@@ -64,9 +63,7 @@ export class HierarchicalTimingWheel {
       deadline,
     };
 
-    // Remove existing timer with same id
     this.cancelTimer(id);
-
     this.insertIntoWheel(entry, delayMs);
   }
 
@@ -87,7 +84,6 @@ export class HierarchicalTimingWheel {
       remainingMs = remainingMs % wheelDuration;
     }
 
-    // For delays longer than 24 hours, put in the last slot of last level
     const lastLevel = this.levels[this.levels.length - 1];
     const lastSlot = (lastLevel.currentIndex + lastLevel.numSlots - 1) % lastLevel.numSlots;
     lastLevel.slots[lastSlot].timers.set(entry.id, entry);
@@ -153,8 +149,7 @@ export class HierarchicalTimingWheel {
       if (entry.deadline <= now) {
         timersToFire.push(entry);
       } else {
-        const remainingMs = entry.deadline - now;
-        this.insertIntoWheel(entry, remainingMs);
+        this.insertIntoWheel(entry, entry.deadline - now);
       }
     }
 
@@ -189,11 +184,10 @@ export class HierarchicalTimingWheel {
     const slot = level.slots[level.currentIndex];
 
     for (const entry of slot.timers.values()) {
-      const remainingMs = entry.deadline - now;
-      if (remainingMs <= 0) {
+      if (entry.deadline <= now) {
         this.executeTimer(entry);
       } else {
-        this.insertIntoWheel(entry, remainingMs);
+        this.insertIntoWheel(entry, entry.deadline - now);
       }
     }
 
