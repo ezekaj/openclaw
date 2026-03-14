@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { createServer } from "node:net";
+import { createServer, Socket } from "node:net";
 
 export type SshParsedTarget = {
   user?: string;
@@ -73,22 +73,23 @@ async function pickEphemeralPort(): Promise<number> {
   });
 }
 
-async function waitForLocalListener(port: number, timeoutMs: number): Promise<void> {
-  const startedAt = Date.now();
-  while (Date.now() - startedAt < timeoutMs) {
-    const socket = new (require("node:net")).Socket();
-    const done = (ok: boolean) => {
-      socket.removeAllListeners();
-      socket.destroy();
-      resolve(ok);
-    };
+async function checkPortListening(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = new Socket();
     socket.connect({ host: "127.0.0.1", port });
-    socket.once("connect", () => done(true));
-    socket.once("error", () => done(false));
-    socket.setTimeout(250, () => done(false));
-    await new Promise((r) => setTimeout(r, 50));
-  }
-  throw new Error(`ssh tunnel did not start listening on localhost:${port}`);
+    socket.once("connect", () => {
+      socket.destroy();
+      resolve(true);
+    });
+    socket.once("error", () => {
+      socket.destroy();
+      resolve(false);
+    });
+    socket.setTimeout(250, () => {
+      socket.destroy();
+      resolve(false);
+    });
+  });
 }
 
 export async function startSshPortForward(opts: {
@@ -188,19 +189,28 @@ export async function startSshPortForward(opts: {
     });
   };
 
-  try {
-    await Promise.race([
-      waitForLocalListener(localPort, Math.max(250, opts.timeoutMs)),
-      new Promise<void>((_, reject) => {
-        child.once("exit", (code, signal) => {
-          reject(new Error(`ssh exited (${code ?? "null"}${signal ? `/${signal}` : ""})`));
-        });
-      }),
-    ]);
-  } catch (err) {
+  // Wait for port to be listening with timeout
+  const checkInterval = 50;
+  const maxAttempts = Math.ceil(Math.max(250, opts.timeoutMs) / checkInterval);
+  let portReady = false;
+  for (let i = 0; i < maxAttempts; i++) {
+    if (await checkPortListening(localPort)) {
+      portReady = true;
+      break;
+    }
+    await new Promise((resolve) => setTimeout(resolve, checkInterval));
+  }
+
+  if (!portReady) {
     await stop();
     const suffix = stderr.length > 0 ? `\n${stderr.join("\n")}` : "";
-    throw new Error(`${err instanceof Error ? err.message : String(err)}${suffix}`, { cause: err });
+    throw new Error(`ssh tunnel did not start listening on localhost:${localPort}${suffix}`);
+  }
+
+  // Check for SSH process exit
+  if (child.killed) {
+    const suffix = stderr.length > 0 ? `\n${stderr.join("\n")}` : "";
+    throw new Error(`ssh process exited prematurely${suffix}`);
   }
 
   return {
