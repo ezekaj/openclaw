@@ -1,6 +1,6 @@
 import type { ProviderUsageSnapshot, UsageWindow } from "./provider-usage.types.js";
 import { fetchJson } from "./provider-usage.fetch.shared.js";
-import { clampPercent, PROVIDER_LABELS } from "./provider-usage.shared.js";
+import { PROVIDER_LABELS } from "./provider-usage.shared.js";
 
 type MinimaxUsageResponse = {
   status_code?: number;
@@ -263,11 +263,11 @@ function collectUsageCandidates(root: Record<string, unknown>): Record<string, u
 
 function deriveWindowLabel(payload: Record<string, unknown>): string {
   const hours = pickNumber(payload, WINDOW_HOUR_KEYS);
-  if (hours && Number.isFinite(hours)) {
+  if (hours !== undefined && Number.isFinite(hours)) {
     return `${hours}h`;
   }
   const minutes = pickNumber(payload, WINDOW_MINUTE_KEYS);
-  if (minutes && Number.isFinite(minutes)) {
+  if (minutes !== undefined && Number.isFinite(minutes)) {
     return `${minutes}m`;
   }
   return "5h";
@@ -283,20 +283,13 @@ function deriveUsedPercent(payload: Record<string, unknown>): number | null {
 
   const fromCounts =
     total && total > 0 && used !== undefined && Number.isFinite(used)
-      ? clampPercent((used / total) * 100)
+      ? Math.min(Math.max((used / total) * 100, 0), 100)
       : null;
 
   const percentRaw = pickNumber(payload, PERCENT_KEYS);
   if (percentRaw !== undefined) {
-    const normalized = clampPercent(percentRaw <= 1 ? percentRaw * 100 : percentRaw);
-    if (fromCounts !== null) {
-      const inverted = clampPercent(100 - normalized);
-      if (Math.abs(normalized - fromCounts) <= 1 || Math.abs(inverted - fromCounts) <= 1) {
-        return fromCounts;
-      }
-      return fromCounts;
-    }
-    return normalized;
+    const normalized = Math.min(Math.max(percentRaw <= 1 ? percentRaw * 100 : percentRaw, 0), 100);
+    return fromCounts !== null ? fromCounts : normalized;
   }
 
   return fromCounts;
