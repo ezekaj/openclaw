@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { DatabaseSync, type StatementSync } from "node:sqlite";
+import { DatabaseSync } from "node:sqlite";
 import type { HeartbeatState, HeartbeatAnalytics } from "./types.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 
@@ -72,17 +72,17 @@ export class HeartbeatStateManager {
   private initialized = false;
 
   // Prepared statements
-  private stmtGetState!: StatementSync;
-  private stmtUpdateState!: StatementSync;
-  private stmtCreateSchedule!: StatementSync;
-  private stmtGetSchedule!: StatementSync;
-  private stmtUpdateScheduleNextRun!: StatementSync;
-  private stmtSetScheduleState!: StatementSync;
-  private stmtGetDueSchedules!: StatementSync;
-  private stmtRecordRun!: StatementSync;
-  private stmtAddSignal!: StatementSync;
-  private stmtGetPendingSignals!: StatementSync;
-  private stmtMarkSignalsProcessed!: StatementSync;
+  private stmtGetState!: DatabaseSync.Statement;
+  private stmtUpdateState!: DatabaseSync.Statement;
+  private stmtCreateSchedule!: DatabaseSync.Statement;
+  private stmtGetSchedule!: DatabaseSync.Statement;
+  private stmtUpdateScheduleNextRun!: DatabaseSync.Statement;
+  private stmtSetScheduleState!: DatabaseSync.Statement;
+  private stmtGetDueSchedules!: DatabaseSync.Statement;
+  private stmtRecordRun!: DatabaseSync.Statement;
+  private stmtAddSignal!: DatabaseSync.Statement;
+  private stmtGetPendingSignals!: DatabaseSync.Statement;
+  private stmtMarkSignalsProcessed!: DatabaseSync.Statement;
 
   // In-memory cache for fast access
   private stateCache = new Map<string, HeartbeatState>();
@@ -177,19 +177,7 @@ export class HeartbeatStateManager {
 
     if (!this.db) throw new Error("Database not initialized");
 
-    const row = this.stmtGetState.get(agentId) as
-      | {
-          agent_id: string;
-          last_run_at: number | null;
-          next_run_at: number | null;
-          last_result: string | null;
-          last_message: string | null;
-          consecutive_failures: number;
-          total_runs: number;
-          total_alerts: number;
-          last_heartbeat_text: string | null;
-        }
-      | undefined;
+    const row = this.stmtGetState.get(agentId);
 
     if (!row) return null;
 
@@ -322,17 +310,7 @@ export class HeartbeatStateManager {
   } | null {
     if (!this.db) throw new Error("Database not initialized");
 
-    const row = this.stmtGetSchedule.get(agentId) as
-      | {
-          id: string;
-          agent_id: string;
-          interval_ms: number;
-          active_hours_json: string | null;
-          visibility_json: string;
-          state: string;
-          next_run_at: number | null;
-        }
-      | undefined;
+    const row = this.stmtGetSchedule.get(agentId);
 
     if (!row) return null;
 
@@ -369,11 +347,7 @@ export class HeartbeatStateManager {
 
     const cutoff = Date.now() + withinMs;
 
-    const rows = this.stmtGetDueSchedules.all(cutoff) as Array<{
-      id: string;
-      agent_id: string;
-      interval_ms: number;
-    }>;
+    const rows = this.stmtGetDueSchedules.all(cutoff);
 
     return rows.map((row) => ({
       id: row.id,
@@ -408,17 +382,7 @@ export class HeartbeatStateManager {
        WHERE agent_id = ? AND started_at > ?`,
     );
 
-    const row = stmt.get(agentId, cutoff) as
-      | {
-          total_runs: number;
-          alert_count: number;
-          ok_count: number;
-          skipped_count: number;
-          error_count: number;
-          avg_duration: number;
-          p95_duration: number;
-        }
-      | undefined;
+    const row = stmt.get(agentId, cutoff);
 
     const state = this.getState(agentId);
 
@@ -451,11 +415,7 @@ export class HeartbeatStateManager {
   }> {
     if (!this.db) throw new Error("Database not initialized");
 
-    const rows = this.stmtGetPendingSignals.all(scheduleId) as Array<{
-      signal: string;
-      reason: string | null;
-      timestamp: number;
-    }>;
+    const rows = this.stmtGetPendingSignals.all(scheduleId);
 
     return rows.map((row) => ({
       signal: row.signal,
