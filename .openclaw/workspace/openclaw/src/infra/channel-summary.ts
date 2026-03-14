@@ -1,7 +1,6 @@
 import type { ChannelAccountSnapshot, ChannelPlugin } from "../channels/plugins/types.js";
 import { listChannelPlugins } from "../channels/plugins/index.js";
 import { type OpenClawConfig, loadConfig } from "../config/config.js";
-import { DEFAULT_ACCOUNT_ID } from "../routing/session-key.js";
 
 export type ChannelSummaryOptions = {
   colorize?: boolean;
@@ -21,7 +20,7 @@ type ChannelAccountEntry = {
 };
 
 const formatAccountLabel = (params: { accountId: string; name?: string }) => {
-  const base = params.accountId || DEFAULT_ACCOUNT_ID;
+  const base = params.accountId;
   if (params.name?.trim()) {
     return `${base} (${params.name.trim()})`;
   }
@@ -155,7 +154,7 @@ export async function buildChannelSummary(
   for (const plugin of listChannelPlugins()) {
     const accountIds = plugin.config.listAccountIds(effective);
     const defaultAccountId =
-      plugin.config.defaultAccountId?.(effective) ?? accountIds[0] ?? DEFAULT_ACCOUNT_ID;
+      plugin.config.defaultAccountId?.(effective) ?? accountIds[0] ?? "default";
     const resolvedAccountIds = accountIds.length > 0 ? accountIds : [defaultAccountId];
     const entries: ChannelAccountEntry[] = [];
 
