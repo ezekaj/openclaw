@@ -1,2 +1,3 @@
-2026/03/11-11:08:53.968 1e48067 Creating DB /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/IndexedDB/https_www.kleinanzeigen.de_0.indexeddb.leveldb since it was missing.
-2026/03/11-11:08:53.979 1e48067 Reusing MANIFEST /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/IndexedDB/https_www.kleinanzeigen.de_0.indexeddb.leveldb/MANIFEST-000001
+2026/03/14-04:17:55.438 23edb77 Reusing MANIFEST /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/IndexedDB/https_www.kleinanzeigen.de_0.indexeddb.leveldb/MANIFEST-000001
+2026/03/14-04:17:55.438 23edb77 Recovering log #4
+2026/03/14-04:17:55.438 23edb77 Reusing old log /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/IndexedDB/https_www.kleinanzeigen.de_0.indexeddb.leveldb/000004.log 

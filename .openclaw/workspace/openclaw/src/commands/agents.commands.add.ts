@@ -29,7 +29,7 @@ import { applyAuthChoice, warnIfModelConfigLooksOff } from "./auth-choice.js";
 import { setupChannels } from "./onboard-channels.js";
 import { ensureWorkspaceAndSessions } from "./onboard-helpers.js";
 
-type AgentsAddOptions = {
+export type AgentsAddOptions = {
   name?: string;
   workspace?: string;
   model?: string;
@@ -39,6 +39,9 @@ type AgentsAddOptions = {
   json?: boolean;
 };
 
+/**
+ * Check if a file exists. Returns false for any error (not found, permission denied, etc).
+ */
 async function fileExists(pathname: string): Promise<boolean> {
   try {
     await fs.stat(pathname);
@@ -46,6 +49,18 @@ async function fileExists(pathname: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/**
+ * Safely convert a value to a trimmed string, returning empty string for nullish values.
+ * Prevents "undefined" or "null" string literals from appearing in output.
+ */
+function toTrimmedString(value: unknown): string {
+  if (value == null) {
+    return "";
+  }
+  const str = String(value);
+  return str.trim();
 }
 
 export async function agentsAddCommand(
@@ -120,15 +135,31 @@ export async function agentsAddCommand(
         ? applyAgentBindings(nextConfig, bindingParse.bindings)
         : { config: nextConfig, added: [], skipped: [], conflicts: [] };
 
-    await writeConfigFile(bindingResult.config);
+    try {
+      await writeConfigFile(bindingResult.config);
+    } catch (err) {
+      runtime.error(
+        `Failed to write config: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      runtime.exit(1);
+      return;
+    }
     if (!opts.json) {
       logConfigUpdated(runtime);
     }
     const quietRuntime = opts.json ? createQuietRuntime(runtime) : runtime;
-    await ensureWorkspaceAndSessions(workspaceDir, quietRuntime, {
-      skipBootstrap: Boolean(bindingResult.config.agents?.defaults?.skipBootstrap),
-      agentId,
-    });
+    try {
+      await ensureWorkspaceAndSessions(workspaceDir, quietRuntime, {
+        skipBootstrap: Boolean(bindingResult.config.agents?.defaults?.skipBootstrap),
+        agentId,
+      });
+    } catch (err) {
+      runtime.error(
+        `Failed to create workspace: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      runtime.exit(1);
+      return;
+    }
 
     const payload = {
       agentId,
@@ -187,7 +218,12 @@ export async function agentsAddCommand(
         },
       }));
 
-    const agentName = String(name).trim();
+    const agentName = toTrimmedString(name);
+    if (!agentName) {
+      runtime.error("Agent name is required.");
+      runtime.exit(1);
+      return;
+    }
     const agentId = normalizeAgentId(agentName);
     if (agentName !== agentId) {
       await prompter.note(`Normalized id to "${agentId}".`, "Agent id");
@@ -213,7 +249,8 @@ export async function agentsAddCommand(
       initialValue: workspaceDefault,
       validate: (value) => (value?.trim() ? undefined : "Required"),
     });
-    const workspaceDir = resolveUserPath(String(workspaceInput).trim() || workspaceDefault);
+    const workspaceInputTrimmed = toTrimmedString(workspaceInput);
+    const workspaceDir = resolveUserPath(workspaceInputTrimmed || workspaceDefault);
     const agentDir = resolveAgentDir(cfg, agentId);
 
     let nextConfig = applyAgentConfig(cfg, {
@@ -239,9 +276,15 @@ export async function agentsAddCommand(
           initialValue: false,
         });
         if (shouldCopy) {
-          await fs.mkdir(path.dirname(destAuthPath), { recursive: true });
-          await fs.copyFile(sourceAuthPath, destAuthPath);
-          await prompter.note(`Copied auth profiles from "${defaultAgentId}".`, "Auth profiles");
+          try {
+            await fs.mkdir(path.dirname(destAuthPath), { recursive: true });
+            await fs.copyFile(sourceAuthPath, destAuthPath);
+            await prompter.note(`Copied auth profiles from "${defaultAgentId}".`, "Auth profiles");
+          } catch (err) {
+            runtime.error(
+              `Failed to copy auth profiles: ${err instanceof Error ? err.message : String(err)}`,
+            );
+          }
         }
       }
     }
@@ -333,12 +376,28 @@ export async function agentsAddCommand(
       }
     }
 
-    await writeConfigFile(nextConfig);
+    try {
+      await writeConfigFile(nextConfig);
+    } catch (err) {
+      runtime.error(
+        `Failed to write config: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      runtime.exit(1);
+      return;
+    }
     logConfigUpdated(runtime);
-    await ensureWorkspaceAndSessions(workspaceDir, runtime, {
-      skipBootstrap: Boolean(nextConfig.agents?.defaults?.skipBootstrap),
-      agentId,
-    });
+    try {
+      await ensureWorkspaceAndSessions(workspaceDir, runtime, {
+        skipBootstrap: Boolean(nextConfig.agents?.defaults?.skipBootstrap),
+        agentId,
+      });
+    } catch (err) {
+      runtime.error(
+        `Failed to create workspace: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      runtime.exit(1);
+      return;
+    }
 
     const payload = {
       agentId,

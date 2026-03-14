@@ -1,4 +1,6 @@
-2026/03/14-00:54:29.555 2327b37 Reusing MANIFEST /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/Session Storage/MANIFEST-000001
-2026/03/14-00:54:29.557 2327b37 Recovering log #13
-2026/03/14-00:54:29.558 2327b37 (ignoring error) /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/Session Storage/000013.log: dropping 15427 bytes; Corruption: checksum mismatch
-2026/03/14-00:54:29.558 2327b37 Reusing old log /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/Session Storage/000013.log 
+2026/03/14-04:12:25.434 23edbca Reusing MANIFEST /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/Session Storage/MANIFEST-000001
+2026/03/14-04:12:25.434 23edbca Recovering log #16
+2026/03/14-04:12:25.434 23edbca Reusing old log /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/Session Storage/000016.log 
+2026/03/14-04:15:46.202 23edbcd Level-0 table #20: started
+2026/03/14-04:15:46.204 23edbcd Level-0 table #20: 22213 bytes OK
+2026/03/14-04:15:46.207 23edbcd Delete type=0 #16

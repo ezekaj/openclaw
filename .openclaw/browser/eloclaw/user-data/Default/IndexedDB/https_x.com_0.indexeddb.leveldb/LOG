@@ -1,3 +1,7 @@
-2026/03/14-00:55:59.606 2327af6 Reusing MANIFEST /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/IndexedDB/https_x.com_0.indexeddb.leveldb/MANIFEST-000001
-2026/03/14-00:55:59.606 2327af6 Recovering log #3
-2026/03/14-00:55:59.606 2327af6 Reusing old log /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/IndexedDB/https_x.com_0.indexeddb.leveldb/000003.log 
+2026/03/14-01:47:38.371 2327af6 Reusing MANIFEST /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/IndexedDB/https_x.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/03/14-01:47:38.371 2327af6 Recovering log #3
+2026/03/14-01:47:38.371 2327af6 Reusing old log /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/IndexedDB/https_x.com_0.indexeddb.leveldb/000003.log 
+2026/03/14-03:09:30.341 2327b02 Level-0 table #5: started
+2026/03/14-03:09:30.343 2327b02 Level-0 table #5: 25128 bytes OK
+2026/03/14-03:09:30.347 2327b02 Delete type=0 #3
+2026/03/14-03:09:30.347 2327b02 Manual compaction at level-0 from (begin) .. (end); will stop at (end)

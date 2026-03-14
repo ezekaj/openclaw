@@ -34,3 +34,13 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 ---
 
 Add whatever helps you do your job. This is your cheat sheet.
+
+## Browser Profiles
+
+### eloclaw Chrome Profile
+- **Main PID:** 18297
+- **CDP Port:** 9222
+- **User Data Dir:** /Users/tolga/.openclaw/browser/eloclaw/user-data
+- **Profile:** Already logged into X/Twitter, LinkedIn
+- **Usage:** Use for social media growth automation (X/Twitter, LinkedIn engagement)
+- **Note:** This profile has active sessions - use `profile="chrome"` with browser extension relay, or attach to existing Chrome instance

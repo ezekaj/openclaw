@@ -20,12 +20,55 @@ function escapeHtmlAttr(text: string): string {
   return escapeHtml(text).replace(/"/g, "&quot;");
 }
 
-function buildTelegramLink(link: MarkdownLinkSpan, _text: string) {
+/**
+ * Validates that a URL scheme is safe for Telegram HTML rendering.
+ * Blocks dangerous schemes that could be used for XSS attacks.
+ * Markdown-it already filters these, but this provides defense-in-depth.
+ */
+function isSafeUrlScheme(href: string): boolean {
+  // Allow relative URLs and protocol-relative URLs
+  if (href.startsWith("/") || href.startsWith("#")) {
+    return true;
+  }
+
+  // Extract scheme (everything before the first colon)
+  const colonIndex = href.indexOf(":");
+  if (colonIndex === -1) {
+    // No scheme - could be a relative URL or just text
+    return true;
+  }
+
+  const scheme = href.slice(0, colonIndex).toLowerCase();
+
+  // Allow safe schemes
+  const safeSchemes = new Set([
+    "http",
+    "https",
+    "mailto",
+    "tel",
+    "tg", // Telegram internal links
+  ]);
+
+  return safeSchemes.has(scheme);
+}
+
+type RenderLinkResult = {
+  start: number;
+  end: number;
+  open: string;
+  close: string;
+} | null;
+
+function buildTelegramLink(link: MarkdownLinkSpan, _text: string): RenderLinkResult {
   const href = link.href.trim();
   if (!href) {
     return null;
   }
   if (link.start === link.end) {
+    return null;
+  }
+  // Defense-in-depth: reject dangerous URL schemes even if markdown-it missed them
+  if (!isSafeUrlScheme(href)) {
     return null;
   }
   const safeHref = escapeHtmlAttr(href);

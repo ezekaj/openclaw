@@ -1,4 +1,4 @@
-2026/03/13-23:46:48.664 230fbeb Reusing MANIFEST /Users/tolga/.openclaw/browser/openclaw/user-data/Default/Session Storage/MANIFEST-000001
-2026/03/13-23:46:48.664 230fbeb Recovering log #4
-2026/03/13-23:46:48.664 230fbeb (ignoring error) /Users/tolga/.openclaw/browser/openclaw/user-data/Default/Session Storage/000004.log: dropping 2639 bytes; Corruption: checksum mismatch
-2026/03/13-23:46:48.665 230fbeb Reusing old log /Users/tolga/.openclaw/browser/openclaw/user-data/Default/Session Storage/000004.log 
+2026/03/14-01:58:26.123 231fc3b Reusing MANIFEST /Users/tolga/.openclaw/browser/openclaw/user-data/Default/Session Storage/MANIFEST-000001
+2026/03/14-01:58:26.123 231fc3b Recovering log #4
+2026/03/14-01:58:26.123 231fc3b (ignoring error) /Users/tolga/.openclaw/browser/openclaw/user-data/Default/Session Storage/000004.log: dropping 4435 bytes; Corruption: checksum mismatch
+2026/03/14-01:58:26.124 231fc3b Reusing old log /Users/tolga/.openclaw/browser/openclaw/user-data/Default/Session Storage/000004.log 

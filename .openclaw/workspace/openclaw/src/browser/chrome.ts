@@ -25,6 +25,107 @@ import {
 
 const log = createSubsystemLogger("browser").child("chrome");
 
+// ── PID file persistence ────────────────────────────────────────────────
+// Allows the gateway to rediscover a browser it previously launched after
+// a restart, instead of spawning a new instance.
+
+function pidFilePath(userDataDir: string): string {
+  return path.join(userDataDir, ".openclaw-browser.pid");
+}
+
+function writePidFile(userDataDir: string, pid: number, cdpPort: number): void {
+  try {
+    fs.writeFileSync(
+      pidFilePath(userDataDir),
+      JSON.stringify({ pid, cdpPort, startedAt: Date.now() }),
+    );
+  } catch {
+    // best-effort
+  }
+}
+
+function readPidFile(userDataDir: string): { pid: number; cdpPort: number; startedAt: number } | null {
+  try {
+    const raw = fs.readFileSync(pidFilePath(userDataDir), "utf-8");
+    const data = JSON.parse(raw) as { pid?: number; cdpPort?: number; startedAt?: number };
+    if (typeof data.pid === "number" && typeof data.cdpPort === "number") {
+      return { pid: data.pid, cdpPort: data.cdpPort, startedAt: data.startedAt ?? 0 };
+    }
+  } catch {
+    // missing or corrupt
+  }
+  return null;
+}
+
+function removePidFile(userDataDir: string): void {
+  try {
+    fs.unlinkSync(pidFilePath(userDataDir));
+  } catch {
+    // ignore
+  }
+}
+
+function isProcessAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Try to adopt a Chrome instance from a previous gateway session.
+ * Returns a RunningChrome if the PID file exists, the process is alive,
+ * and CDP is reachable on the expected port.
+ */
+export async function adoptOrphanedChrome(
+  profile: ResolvedBrowserProfile,
+): Promise<RunningChrome | null> {
+  const userDataDir = resolveOpenClawUserDataDir(profile.name);
+  const saved = readPidFile(userDataDir);
+  if (!saved) {
+    return null;
+  }
+
+  if (!isProcessAlive(saved.pid)) {
+    log.info(`PID file exists (pid ${saved.pid}) but process is dead — cleaning up`);
+    removePidFile(userDataDir);
+    return null;
+  }
+
+  if (saved.cdpPort !== profile.cdpPort) {
+    log.info(`PID file CDP port (${saved.cdpPort}) differs from config (${profile.cdpPort}) — ignoring`);
+    return null;
+  }
+
+  if (!(await isChromeReachable(cdpUrlForPort(saved.cdpPort), 1000))) {
+    log.info(`PID ${saved.pid} is alive but CDP not reachable — cleaning up`);
+    removePidFile(userDataDir);
+    return null;
+  }
+
+  log.info(
+    `🦞 adopting existing browser (pid ${saved.pid}) on port ${saved.cdpPort} for profile "${profile.name}"`,
+  );
+
+  // Create a detached ChildProcess-like stub so the existing RunningChrome
+  // type is satisfied. We use spawn("true") which exits immediately — the
+  // real process is already running, we just need the type to fit.
+  const stub = spawn("true", [], { stdio: "pipe" });
+  // Override pid to point at the real process
+  Object.defineProperty(stub, "pid", { value: saved.pid, writable: false });
+
+  return {
+    pid: saved.pid,
+    exe: { kind: "chrome", path: "" },
+    userDataDir,
+    cdpPort: saved.cdpPort,
+    startedAt: saved.startedAt,
+    proc: stub,
+  };
+}
+
 export type { BrowserExecutable } from "./chrome.executables.js";
 export {
   findChromeExecutableLinux,
@@ -167,6 +268,13 @@ export async function launchOpenClawChrome(
   if (!profile.cdpIsLoopback) {
     throw new Error(`Profile "${profile.name}" is remote; cannot launch local Chrome.`);
   }
+
+  // Before claiming the port is busy, check if we own an orphaned browser
+  const adopted = await adoptOrphanedChrome(profile);
+  if (adopted) {
+    return adopted;
+  }
+
   await ensurePortAvailable(profile.cdpPort);
 
   const exe = resolveBrowserExecutable(resolved);
@@ -302,6 +410,14 @@ export async function launchOpenClawChrome(
     `🦞 openclaw browser started (${exe.kind}) profile "${profile.name}" on 127.0.0.1:${profile.cdpPort} (pid ${pid})`,
   );
 
+  // Persist PID so we can rediscover this browser after a gateway restart
+  writePidFile(userDataDir, pid, profile.cdpPort);
+
+  // Clean up PID file when the process exits
+  proc.on("exit", () => {
+    removePidFile(userDataDir);
+  });
+
   return {
     pid,
     exe,
@@ -313,6 +429,9 @@ export async function launchOpenClawChrome(
 }
 
 export async function stopOpenClawChrome(running: RunningChrome, timeoutMs = 2500) {
+  // Clean up PID file on stop
+  removePidFile(running.userDataDir);
+
   const proc = running.proc;
   if (proc.killed) {
     return;

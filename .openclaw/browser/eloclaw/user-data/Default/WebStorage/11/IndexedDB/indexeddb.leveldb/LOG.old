@@ -1,0 +1,6 @@
+2026/03/14-01:00:10.848 2327af6 Creating DB /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/WebStorage/11/IndexedDB/indexeddb.leveldb since it was missing.
+2026/03/14-01:00:10.851 2327af6 Reusing MANIFEST /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/WebStorage/11/IndexedDB/indexeddb.leveldb/MANIFEST-000001
+2026/03/14-01:06:14.704 2327b02 Level-0 table #5: started
+2026/03/14-01:06:14.705 2327b02 Level-0 table #5: 8945 bytes OK
+2026/03/14-01:06:14.709 2327b02 Delete type=0 #3
+2026/03/14-01:06:14.709 2327b02 Manual compaction at level-0 from (begin) .. (end); will stop at (end)

@@ -1,15 +1,21 @@
 {
   "date": "2026-03-14",
-  "generatedAt": 1773446502990,
-  "totalCompactions": 2,
+  "generatedAt": 1773487152303,
+  "totalCompactions": 224,
   "totalTokensSaved": 0,
   "sessions": [
     {
       "sessionKey": "agent:main:main",
       "agentId": "main",
-      "compactionCount": 2,
+      "compactionCount": 223,
       "summary": "Answer #3"
+    },
+    {
+      "sessionKey": "4f88abe5-7837-44df-aabf-cdd5c0085c2c",
+      "agentId": "default",
+      "compactionCount": 1,
+      "summary": "Session 4f88abe5-7837-44df-aabf-cdd5c0085c2c compacted at 1:57:22 AM"
     }
   ],
-  "narrative": "Daily Briefing - 2026-03-14\n2 compaction(s), 0 tokens saved\n\n[main] Answer #3"
+  "narrative": "Daily Briefing - 2026-03-14\n224 compaction(s), 0 tokens saved\n\n[main] Answer #3\n[default] Session 4f88abe5-7837-44df-aabf-cdd5c0085c2c compacted at 1:57:22 AM"
 }

@@ -68,4 +68,40 @@ describe("markdownToTelegramHtml", () => {
     const res = markdownToTelegramHtml("[**bold**](https://example.com)");
     expect(res).toBe('<a href="https://example.com"><b>bold</b></a>');
   });
+
+  it("rejects javascript: scheme in links (XSS protection)", () => {
+    const res = markdownToTelegramHtml("[click](javascript:alert(1))");
+    // markdown-it blocks javascript: by default, but we also validate in buildTelegramLink
+    expect(res).toBe("click");
+  });
+
+  it("rejects data: scheme in links (XSS protection)", () => {
+    const res = markdownToTelegramHtml("[click](data:text/html,<script>alert(1)</script>)");
+    expect(res).toBe("click");
+  });
+
+  it("rejects vbscript: scheme in links (XSS protection)", () => {
+    const res = markdownToTelegramHtml("[click](vbscript:msgbox(1))");
+    expect(res).toBe("click");
+  });
+
+  it("allows safe URL schemes", () => {
+    const https = markdownToTelegramHtml("[link](https://example.com)");
+    expect(https).toBe('<a href="https://example.com">link</a>');
+
+    const http = markdownToTelegramHtml("[link](http://example.com)");
+    expect(http).toBe('<a href="http://example.com">link</a>');
+
+    const mailto = markdownToTelegramHtml("[email](mailto:test@example.com)");
+    expect(mailto).toBe('<a href="mailto:test@example.com">email</a>');
+
+    const tel = markdownToTelegramHtml("[phone](tel:+1234567890)");
+    expect(tel).toBe('<a href="tel:+1234567890">phone</a>');
+  });
+
+  it("handles empty markdown input", () => {
+    expect(markdownToTelegramHtml("")).toBe("");
+    expect(markdownToTelegramHtml(null as unknown as string)).toBe("");
+    expect(markdownToTelegramHtml(undefined as unknown as string)).toBe("");
+  });
 });

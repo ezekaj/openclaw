@@ -1,2 +1,3 @@
-2026/03/14-01:00:10.848 2327af6 Creating DB /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/WebStorage/11/IndexedDB/indexeddb.leveldb since it was missing.
-2026/03/14-01:00:10.851 2327af6 Reusing MANIFEST /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/WebStorage/11/IndexedDB/indexeddb.leveldb/MANIFEST-000001
+2026/03/14-03:49:55.516 2327af6 Reusing MANIFEST /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/WebStorage/11/IndexedDB/indexeddb.leveldb/MANIFEST-000001
+2026/03/14-03:49:55.516 2327af6 Recovering log #4
+2026/03/14-03:49:55.517 2327af6 Reusing old log /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/WebStorage/11/IndexedDB/indexeddb.leveldb/000004.log 

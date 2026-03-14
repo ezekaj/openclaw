@@ -13,9 +13,7 @@
       "endedAt": 2000,
       "outcome": {
         "status": "ok"
-      },
-      "cleanupCompletedAt": 1773445992953,
-      "cleanupHandled": true
+      }
     }
   }
 }

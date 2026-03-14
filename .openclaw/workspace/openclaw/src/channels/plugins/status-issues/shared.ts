@@ -2,26 +2,47 @@ import { isRecord } from "../../../config/legacy.shared.js";
 
 export { isRecord };
 
+/**
+ * Converts an unknown value to a trimmed non-empty string, or undefined.
+ * Returns undefined for non-strings, empty strings, or whitespace-only strings.
+ */
 export function asString(value: unknown): string | undefined {
-  return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
 }
 
+/**
+ * Formats match metadata into a string like "matchKey=123 matchSource=foo".
+ * - matchKey: accepts non-empty strings or finite numbers
+ * - matchSource: accepts non-empty strings only
+ * Returns undefined if both fields are empty/invalid.
+ */
 export function formatMatchMetadata(params: {
   matchKey?: unknown;
   matchSource?: unknown;
 }): string | undefined {
-  const matchKey =
-    typeof params.matchKey === "string"
-      ? params.matchKey
-      : typeof params.matchKey === "number"
-        ? String(params.matchKey)
-        : undefined;
+  const matchKey = formatMatchKeyValue(params.matchKey);
   const matchSource = asString(params.matchSource);
-  const parts = [
-    matchKey ? `matchKey=${matchKey}` : null,
-    matchSource ? `matchSource=${matchSource}` : null,
-  ].filter((entry): entry is string => Boolean(entry));
+  const parts = [matchKey, matchSource].filter((entry): entry is string => entry !== undefined);
   return parts.length > 0 ? parts.join(" ") : undefined;
+}
+
+/**
+ * Formats a matchKey value: accepts non-empty strings or finite numbers.
+ * Returns undefined for invalid/empty values.
+ */
+function formatMatchKeyValue(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? `matchKey=${trimmed}` : undefined;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return `matchKey=${value}`;
+  }
+  return undefined;
 }
 
 export function appendMatchMetadata(

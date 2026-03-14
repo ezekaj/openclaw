@@ -2,27 +2,37 @@
  * Teleport Status Component for TUI
  *
  * Displays teleport status in the TUI interface.
+ * Uses the session teleport manager to show when a session has been
+ * transferred from another device/context.
  */
 
+import { Text } from "@mariozechner/pi-tui";
 import { createText } from "./component-helpers.js";
+import { getSessionTeleportManager } from "../../agents/session-teleport-manager.js";
 
 // ============================================================================
-// TYPES
+// HELPERS
 // ============================================================================
 
-interface TeleportInfo {
-  isTeleported: boolean;
-  sessionId: string;
-  hasLoggedFirstMessage: boolean;
-  teleportedAt?: number;
+/**
+ * Get a shortened session ID for display (first 8 characters)
+ * Safely handles empty or malformed session IDs.
+ */
+function formatShortSessionId(sessionId: string): string {
+  if (!sessionId || sessionId.length === 0) {
+    return "unknown";
+  }
+  return sessionId.slice(0, 8);
 }
 
-// ============================================================================
-// STUB MANAGER (until session-teleport-manager is available)
-// ============================================================================
-
-function getTeleportInfo(): TeleportInfo | null {
-  return null;
+/**
+ * Get status styling based on whether first message has been logged
+ */
+function getStatusStyle(hasLoggedFirstMessage: boolean): { color: "green" | "yellow"; symbol: string } {
+  if (hasLoggedFirstMessage) {
+    return { color: "green", symbol: "✓" };
+  }
+  return { color: "yellow", symbol: "~" };
 }
 
 // ============================================================================
@@ -31,66 +41,65 @@ function getTeleportInfo(): TeleportInfo | null {
 
 /**
  * Render teleport status display
+ *
+ * Returns a styled Text component if session is teleported, null otherwise.
  */
-export function renderTeleportStatus(): any {
-  const info = getTeleportInfo();
+export function renderTeleportStatus(): Text | null {
+  const manager = getSessionTeleportManager();
+  const info = manager.getTeleportedSessionInfo();
 
   if (!info?.isTeleported) {
     return null;
   }
 
-  // Determine color based on first message logged
-  let statusColor = "yellow";
-  let statusSymbol = "~";
+  const { color, symbol } = getStatusStyle(info.hasLoggedFirstMessage);
+  const shortSessionId = formatShortSessionId(info.sessionId);
 
-  if (info.hasLoggedFirstMessage) {
-    statusColor = "green";
-    statusSymbol = "✓";
-  }
-
-  // Format session ID (show first 8 chars)
-  const shortSessionId = info.sessionId.slice(0, 8);
-
-  return createText(`${statusSymbol} Teleported ${shortSessionId}...`, { color: statusColor });
+  return createText(`${symbol} Teleported ${shortSessionId}...`, { color });
 }
 
 /**
  * Render compact teleport status (for status bar)
+ *
+ * Returns a styled Text component if session is teleported, null otherwise.
  */
-export function renderCompactTeleportStatus(): any {
-  const info = getTeleportInfo();
+export function renderCompactTeleportStatus(): Text | null {
+  const manager = getSessionTeleportManager();
+  const info = manager.getTeleportedSessionInfo();
 
   if (!info?.isTeleported) {
     return null;
   }
 
-  const statusColor = info.hasLoggedFirstMessage ? "green" : "yellow";
-  const statusSymbol = info.hasLoggedFirstMessage ? "✓" : "~";
+  const { color, symbol } = getStatusStyle(info.hasLoggedFirstMessage);
+  const shortSessionId = formatShortSessionId(info.sessionId);
 
-  return createText(`${statusSymbol} Teleport ${info.sessionId.slice(0, 8)}`, {
-    color: statusColor,
-  });
+  return createText(`${symbol} Teleport ${shortSessionId}`, { color });
 }
 
 /**
  * Render teleport info for display
+ *
+ * Returns a styled Text component with full teleport details,
+ * or a message indicating no active teleport.
  */
-export function renderTeleportInfo(): any {
-  const info = getTeleportInfo();
+export function renderTeleportInfo(): Text {
+  const manager = getSessionTeleportManager();
+  const info = manager.getTeleportedSessionInfo();
 
   if (!info) {
     return createText("No active teleport", { color: "gray", italic: true });
   }
 
-  const statusColor = info.hasLoggedFirstMessage ? "green" : "yellow";
+  const { color } = getStatusStyle(info.hasLoggedFirstMessage);
   const statusText = info.hasLoggedFirstMessage ? "First message logged" : "Awaiting first message";
-
+  const shortSessionId = formatShortSessionId(info.sessionId);
   const teleportTime = info.teleportedAt
     ? new Date(info.teleportedAt).toLocaleTimeString()
     : "Unknown";
 
   return createText(
-    `Teleported: ${info.sessionId}\n` + `Time: ${teleportTime}\n` + `Status: ${statusText}`,
-    { color: statusColor },
+    `Teleported: ${shortSessionId}\nTime: ${teleportTime}\nStatus: ${statusText}`,
+    { color },
   );
 }

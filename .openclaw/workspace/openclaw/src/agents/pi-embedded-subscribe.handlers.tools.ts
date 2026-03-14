@@ -165,7 +165,10 @@ export function handleToolExecutionEnd(
   const isError = Boolean(evt.isError);
   const result = evt.result;
   const isToolError = isError || isToolResultError(result);
-  const sanitizedResult = sanitizeToolResult(result);
+  // Apply tighter truncation for browser tool results (DOM snapshots are huge)
+  const sanitizedResult = toolName === "browser"
+    ? sanitizeToolResult(result, 1500)
+    : sanitizeToolResult(result);
   const meta = ctx.state.toolMetaById.get(toolCallId);
   ctx.state.toolMetas.push({ toolName, meta });
   ctx.state.toolMetaById.delete(toolCallId);

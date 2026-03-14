@@ -69,7 +69,7 @@ import {
   sanitizeSessionHistory,
   sanitizeToolsForGoogle,
 } from "../google.js";
-import { getDmHistoryLimitFromSessionKey, limitHistoryTurns } from "../history.js";
+import { getDmHistoryLimitFromSessionKey, limitHistoryTurns, compressOldToolResults } from "../history.js";
 import { log } from "../logger.js";
 import { buildModelAliasLines } from "../model.js";
 import {
@@ -559,9 +559,11 @@ export async function runEmbeddedAttempt(
           validated,
           getDmHistoryLimitFromSessionKey(params.sessionKey, params.config),
         );
-        cacheTrace?.recordStage("session:limited", { messages: limited });
-        if (limited.length > 0) {
-          activeSession.agent.replaceMessages(limited);
+        // Compress old tool results (browser DOM snapshots → 1-line summaries)
+        const compressed = compressOldToolResults(limited);
+        cacheTrace?.recordStage("session:limited", { messages: compressed });
+        if (compressed.length > 0) {
+          activeSession.agent.replaceMessages(compressed);
         }
       } catch (err) {
         sessionManager.flushPendingToolResults?.();

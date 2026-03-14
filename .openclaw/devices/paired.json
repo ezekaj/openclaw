@@ -4,7 +4,7 @@
     "publicKey": "iV2KplyqG12t5QmW64BRPLtV5W9Yv-d3-TVn3C0AWb0",
     "platform": "darwin",
     "clientId": "gateway-client",
-    "clientMode": "backend",
+    "clientMode": "ui",
     "role": "operator",
     "roles": [
       "node",
@@ -33,12 +33,12 @@
         ],
         "createdAtMs": 1770239698358,
         "rotatedAtMs": 1770246270723,
-        "lastUsedAtMs": 1773446337102
+        "lastUsedAtMs": 1773487109300
       }
     },
     "createdAtMs": 1770239691569,
     "approvedAtMs": 1770246270723,
-    "displayName": "agent"
+    "displayName": "openclaw-tui"
   },
   "7d491e6da2a93894cd25923577720699854098982304082d22fa7c434a04e6e2": {
     "deviceId": "7d491e6da2a93894cd25923577720699854098982304082d22fa7c434a04e6e2",

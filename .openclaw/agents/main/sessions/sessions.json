@@ -1,7 +1,7 @@
 {
   "agent:main:main": {
     "sessionId": "28c2ad86-70db-4ea6-9c10-090cfbc0ce37",
-    "updatedAt": 1773446503029,
+    "updatedAt": 1773487127167,
     "systemSent": true,
     "skillsSnapshot": {
       "prompt": "\n\nThe following skills provide specialized instructions for specific tasks.\nUse the read tool to load a skill's file when the task matches its description.\nWhen a skill file references a relative path, resolve it against the skill directory (parent of SKILL.md / dirname of the path) and use that absolute path in tool commands.\n\n<available_skills>\n  <skill>\n    <name>1password</name>\n    <description>Set up and use 1Password CLI (op). Use when installing the CLI, enabling desktop app integration, signing in (single or multi-account), or reading/injecting/running secrets via op.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/1password/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>apple-notes</name>\n    <description>Manage Apple Notes via the `memo` CLI on macOS (create, view, edit, delete, search, move, and export notes). Use when a user asks OpenClaw to add a note, list notes, search notes, or manage note folders.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/apple-notes/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>apple-reminders</name>\n    <description>Manage Apple Reminders via the `remindctl` CLI on macOS (list, add, edit, complete, delete). Supports lists, date filters, and JSON/plain output.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/apple-reminders/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>bear-notes</name>\n    <description>Create, search, and manage Bear notes via grizzly CLI.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/bear-notes/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>bird</name>\n    <description>X/Twitter CLI for reading, searching, posting, and engagement via cookies.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/bird/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>blogwatcher</name>\n    <description>Monitor blogs and RSS/Atom feeds for updates using the blogwatcher CLI.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/blogwatcher/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>blucli</name>\n    <description>BluOS CLI (blu) for discovery, playback, grouping, and volume.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/blucli/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>camsnap</name>\n    <description>Capture frames or clips from RTSP/ONVIF cameras.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/camsnap/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>coding-agent</name>\n    <description>Run Codex CLI, Claude Code, OpenCode, or Pi Coding Agent via background process for programmatic control.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/coding-agent/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>eightctl</name>\n    <description>Control Eight Sleep pods (status, temperature, alarms, schedules).</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/eightctl/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>evolution</name>\n    <description>Self-improving code evolution system for OpenClaw. Analyze codebase, propose improvements, and apply changes with approval. Runs weekly by default (Sundays 2am).</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/evolution/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>gemini</name>\n    <description>Gemini CLI for one-shot Q&amp;A, summaries, and generation.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/gemini/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>gifgrep</name>\n    <description>Search GIF providers with CLI/TUI, download results, and extract stills/sheets.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/gifgrep/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>github</name>\n    <description>Interact with GitHub using the `gh` CLI. Use `gh issue`, `gh pr`, `gh run`, and `gh api` for issues, PRs, CI runs, and advanced queries.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/github/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>gog</name>\n    <description>Google Workspace CLI for Gmail, Calendar, Drive, Contacts, Sheets, and Docs.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/gog/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>healthcheck</name>\n    <description>Host security hardening and risk-tolerance configuration for OpenClaw deployments. Use when a user asks for security audits, firewall/SSH/update hardening, risk posture, exposure review, OpenClaw cron scheduling for periodic checks, or version status checks on a machine running OpenClaw (laptop, workstation, Pi, VPS).</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/healthcheck/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>himalaya</name>\n    <description>CLI to manage emails via IMAP/SMTP. Use `himalaya` to list, read, write, reply, forward, search, and organize emails from the terminal. Supports multiple accounts and message composition with MML (MIME Meta Language).</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/himalaya/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>imsg</name>\n    <description>iMessage/SMS CLI for listing chats, history, watch, and sending.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/imsg/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>mcporter</name>\n    <description>Use the mcporter CLI to list, configure, auth, and call MCP servers/tools directly (HTTP or stdio), including ad-hoc servers, config edits, and CLI/type generation.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/mcporter/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>nano-banana-pro</name>\n    <description>Generate or edit images via Gemini 3 Pro Image (Nano Banana Pro).</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/nano-banana-pro/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>nano-pdf</name>\n    <description>Edit PDFs with natural-language instructions using the nano-pdf CLI.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/nano-pdf/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>obsidian</name>\n    <description>Work with Obsidian vaults (plain Markdown notes) and automate via obsidian-cli.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/obsidian/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>openai-whisper</name>\n    <description>Local speech-to-text with the Whisper CLI (no API key).</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/openai-whisper/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>openhue</name>\n    <description>Control Philips Hue lights/scenes via the OpenHue CLI.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/openhue/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>oracle</name>\n    <description>Best practices for using the oracle CLI (prompt + file bundling, engines, sessions, and file attachment patterns).</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/oracle/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>ordercli</name>\n    <description>Foodora-only CLI for checking past orders and active order status (Deliveroo WIP).</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/ordercli/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>peekaboo</name>\n    <description>Capture and automate macOS UI with the Peekaboo CLI.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/peekaboo/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>session-logs</name>\n    <description>Search and analyze your own session logs (older/parent conversations) using jq.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/session-logs/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>skill-creator</name>\n    <description>Create or update AgentSkills. Use when designing, structuring, or packaging skills with scripts, references, and assets.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/skill-creator/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>songsee</name>\n    <description>Generate spectrograms and feature-panel visualizations from audio with the songsee CLI.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/songsee/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>sonoscli</name>\n    <description>Control Sonos speakers (discover/status/play/volume/group).</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/sonoscli/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>spotify-player</name>\n    <description>Terminal Spotify playback/search via spogo (preferred) or spotify_player.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/spotify-player/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>summarize</name>\n    <description>Summarize or extract text/transcripts from URLs, podcasts, and local files (great fallback for “transcribe this YouTube/video”).</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/summarize/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>things-mac</name>\n    <description>Manage Things 3 via the `things` CLI on macOS (add/update projects+todos via URL scheme; read/search/list from the local Things database). Use when a user asks OpenClaw to add a task to Things, list inbox/today/upcoming, search tasks, or inspect projects/areas/tags.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/things-mac/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>tmux</name>\n    <description>Remote-control tmux sessions for interactive CLIs by sending keystrokes and scraping pane output.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/tmux/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>video-frames</name>\n    <description>Extract frames or short clips from videos using ffmpeg.</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/video-frames/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>wacli</name>\n    <description>Send WhatsApp messages to other people or search/sync WhatsApp history via the wacli CLI (not for normal user chats).</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/wacli/SKILL.md</location>\n  </skill>\n  <skill>\n    <name>weather</name>\n    <description>Get current weather and forecasts (no API key required).</description>\n    <location>/Users/tolga/.openclaw/workspace/openclaw/skills/weather/SKILL.md</location>\n  </skill>\n</available_skills>",
@@ -431,28 +431,32 @@
       "version": 0
     },
     "deliveryContext": {
-      "channel": "webchat"
+      "channel": "webchat",
+      "to": "heartbeat"
     },
     "lastChannel": "webchat",
+    "lastTo": "heartbeat",
     "channel": "webchat",
     "modelProvider": "zhipu",
     "model": "glm-5",
     "contextTokens": 128000,
     "abortedLastRun": false,
-    "inputTokens": 9906,
-    "outputTokens": 434,
-    "totalTokens": 36146,
+    "inputTokens": 30,
+    "outputTokens": 25,
+    "totalTokens": 25566,
     "chatType": "direct",
     "origin": {
-      "label": "openclaw-tui",
-      "provider": "webchat",
+      "label": "heartbeat",
+      "provider": "heartbeat",
       "surface": "webchat",
-      "chatType": "direct"
+      "chatType": "direct",
+      "from": "heartbeat",
+      "to": "heartbeat"
     },
     "sessionFile": "/Users/tolga/.openclaw/agents/main/sessions/28c2ad86-70db-4ea6-9c10-090cfbc0ce37.jsonl",
     "systemPromptReport": {
       "source": "run",
-      "generatedAt": 1773446476385,
+      "generatedAt": 1773478706490,
       "sessionId": "28c2ad86-70db-4ea6-9c10-090cfbc0ce37",
       "sessionKey": "agent:main:main",
       "provider": "zhipu",
@@ -464,9 +468,9 @@
         "sandboxed": false
       },
       "systemPrompt": {
-        "chars": 48294,
-        "projectContextChars": 26689,
-        "nonProjectContextChars": 21605
+        "chars": 48740,
+        "projectContextChars": 27129,
+        "nonProjectContextChars": 21611
       },
       "injectedWorkspaceFiles": [
         {
@@ -489,8 +493,8 @@
           "name": "TOOLS.md",
           "path": "/Users/tolga/.openclaw/workspace/TOOLS.md",
           "missing": false,
-          "rawChars": 848,
-          "injectedChars": 848,
+          "rawChars": 1288,
+          "injectedChars": 1288,
           "truncated": false
         },
         {
@@ -727,7 +731,7 @@
           },
           {
             "name": "browser",
-            "summaryChars": 1265,
+            "summaryChars": 1261,
             "schemaChars": 1938,
             "propertiesCount": 30
           },

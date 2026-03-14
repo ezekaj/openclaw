@@ -78,22 +78,12 @@ export function normalizeAgentId(value: string | undefined | null): string {
   );
 }
 
+/**
+ * Sanitize an agent ID for use in file paths and session keys.
+ * This is an alias for normalizeAgentId for semantic clarity at call sites.
+ */
 export function sanitizeAgentId(value: string | undefined | null): string {
-  const trimmed = (value ?? "").trim();
-  if (!trimmed) {
-    return DEFAULT_AGENT_ID;
-  }
-  if (VALID_ID_RE.test(trimmed)) {
-    return trimmed.toLowerCase();
-  }
-  return (
-    trimmed
-      .toLowerCase()
-      .replace(INVALID_CHARS_RE, "-")
-      .replace(LEADING_DASH_RE, "")
-      .replace(TRAILING_DASH_RE, "")
-      .slice(0, 64) || DEFAULT_AGENT_ID
-  );
+  return normalizeAgentId(value);
 }
 
 export function normalizeAccountId(value: string | undefined | null): string {
@@ -230,12 +220,17 @@ export function buildGroupHistoryKey(params: {
   return `${channel}:${accountId}:${params.peerKind}:${peerId}`;
 }
 
+export type ThreadSessionKeys = {
+  sessionKey: string;
+  parentSessionKey?: string;
+};
+
 export function resolveThreadSessionKeys(params: {
   baseSessionKey: string;
   threadId?: string | null;
   parentSessionKey?: string;
   useSuffix?: boolean;
-}): { sessionKey: string; parentSessionKey?: string } {
+}): ThreadSessionKeys {
   const threadId = (params.threadId ?? "").trim();
   if (!threadId) {
     return { sessionKey: params.baseSessionKey, parentSessionKey: undefined };

@@ -61,7 +61,7 @@ type BrowserSession = {
 };
 
 const activeSessions = new Map<string, BrowserSession>();
-const SESSION_IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+const SESSION_IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 
 function getActiveSession(profile: string): BrowserSession | undefined {
   const session = activeSessions.get(profile);
@@ -639,7 +639,7 @@ export function createBrowserTool(opts?: {
       'Profiles: use the default browser profile for all tasks. Other profiles: profile=”chrome” (Chrome extension relay for existing tabs).',
       'Just use the default profile and start working. Never ask which profile to use. If the user mentions Chrome extension / Browser Relay / toolbar button / “attach tab”, use profile=”chrome”.',
       'When a node-hosted browser proxy is available, the tool may auto-route to it. Pin a node with node=<id|name> or target="node".',
-      "Chrome extension relay needs an attached tab: user must click the OpenClaw Browser Relay toolbar icon on the tab (badge ON). If no tab is connected, ask them to attach it.",
+      'Chrome extension relay (profile="chrome") requires an attached tab. This only applies when explicitly using Chrome relay — the default profile works without any setup.',
       "When using refs from snapshot (e.g. e12), keep the same tab: prefer passing targetId from the snapshot response into subsequent actions (act/click/type/etc).",
       'For stable, self-resolving refs across calls, use snapshot with refs="aria" (Playwright aria-ref ids). Default refs="role" are role+name-based.',
       "Use snapshot+act for UI automation. Avoid act:wait by default; use only in exceptional cases when no reliable UI state exists.",
@@ -863,12 +863,12 @@ export function createBrowserTool(opts?: {
             params.snapshotFormat === "ai" || params.snapshotFormat === "aria"
               ? params.snapshotFormat
               : "ai";
+          // Default to efficient mode to keep snapshots small (~10k chars vs 80k)
+          // Agent can override with mode="full" when it needs the complete DOM
           const mode =
-            params.mode === "efficient"
-              ? "efficient"
-              : format === "ai" && snapshotDefaults?.mode === "efficient"
-                ? "efficient"
-                : undefined;
+            params.mode === "full"
+              ? undefined
+              : "efficient";
           const labels = typeof params.labels === "boolean" ? params.labels : undefined;
           const refs = params.refs === "aria" || params.refs === "role" ? params.refs : undefined;
           const hasMaxChars = Object.hasOwn(params, "maxChars");

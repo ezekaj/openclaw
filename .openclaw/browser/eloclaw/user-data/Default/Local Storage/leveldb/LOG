@@ -1,4 +1,30 @@
-2026/03/14-00:54:27.638 2327b37 Reusing MANIFEST /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/Local Storage/leveldb/MANIFEST-000001
-2026/03/14-00:54:27.638 2327b37 Recovering log #17
-2026/03/14-00:54:27.639 2327b37 (ignoring error) /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/Local Storage/leveldb/000017.log: dropping 1747 bytes; Corruption: checksum mismatch
-2026/03/14-00:54:27.640 2327b37 Reusing old log /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/Local Storage/leveldb/000017.log 
+2026/03/14-04:12:25.380 23edbca Reusing MANIFEST /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/Local Storage/leveldb/MANIFEST-000001
+2026/03/14-04:12:25.382 23edbca Recovering log #40
+2026/03/14-04:12:25.382 23edbca Reusing old log /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/Local Storage/leveldb/000040.log 
+2026/03/14-04:15:30.350 23edbcd Level-0 table #45: started
+2026/03/14-04:15:30.354 23edbcd Level-0 table #45: 20468 bytes OK
+2026/03/14-04:15:30.361 23edbcd Delete type=0 #40
+2026/03/14-04:16:54.817 23edbcd Level-0 table #47: started
+2026/03/14-04:16:54.822 23edbcd Level-0 table #47: 32033 bytes OK
+2026/03/14-04:16:54.826 23edbcd Delete type=0 #44
+2026/03/14-04:17:54.855 23edbcd Level-0 table #49: started
+2026/03/14-04:17:54.856 23edbcd Level-0 table #49: 29975 bytes OK
+2026/03/14-04:17:54.860 23edbcd Delete type=0 #46
+2026/03/14-04:18:54.840 23edbcd Level-0 table #51: started
+2026/03/14-04:18:54.849 23edbcd Level-0 table #51: 22220 bytes OK
+2026/03/14-04:18:54.855 23edbcd Delete type=0 #48
+2026/03/14-04:18:54.855 23edbcd Compacting 4@0 + 1@1 files
+2026/03/14-04:18:54.862 23edbcd Generated table #52@0: 183 keys, 92050 bytes
+2026/03/14-04:18:54.863 23edbcd Compacted 4@0 + 1@1 files => 92050 bytes
+2026/03/14-04:18:54.863 23edbcd compacted to: files[ 0 1 0 0 0 0 0 ]
+2026/03/14-04:18:54.864 23edbcd Delete type=2 #49
+2026/03/14-04:18:54.864 23edbcd Delete type=2 #42
+2026/03/14-04:18:54.864 23edbcd Delete type=2 #45
+2026/03/14-04:18:54.864 23edbcd Delete type=2 #51
+2026/03/14-04:18:54.864 23edbcd Delete type=2 #47
+2026/03/14-04:21:00.427 23edbca Level-0 table #54: started
+2026/03/14-04:21:00.457 23edbca Level-0 table #54: 14089 bytes OK
+2026/03/14-04:21:00.473 23edbca Delete type=0 #50
+2026/03/14-07:32:31.755 23edbcd Level-0 table #56: started
+2026/03/14-07:32:31.763 23edbcd Level-0 table #56: 14115 bytes OK
+2026/03/14-07:32:31.765 23edbcd Delete type=0 #53

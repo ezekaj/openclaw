@@ -34942,3 +34942,530 @@
 2026-03-11T21:31:07.753Z [heartbeat-v2/scheduler] Heartbeat scheduler stopped
 2026-03-11T21:31:07.754Z [heartbeat-v2/unified] Unified heartbeat system stopped
 2026-03-11T21:31:07.755Z [heartbeat-v2/integration] Heartbeat V2 system stopped
+[predictive-engine] Prediction schema initialized
+[predictive-engine] Loaded 0 patterns from database
+[predictive-engine] Initialized 5 prediction rules
+[predictive-engine] Predictive engine initialized for agent: main
+[tool-analytics] Tool analytics schema initialized
+[tool-analytics-olap] OLAP analytics schema initialized
+[predictive-integration] ToolAnalyticsOLAP initialized with feedback loops and health scores
+[tool-analytics] Tool analytics schema initialized
+[analytics:rl] Adaptive Tool Selector initialized (enabled: true)
+[predictive-integration] UnifiedToolAnalytics initialized
+[event-mesh] ✅ Production event mesh initialized
+2026-03-14T01:10:23.255Z [predictive-engine] Prediction schema initialized
+2026-03-14T01:10:23.258Z [predictive-engine] Loaded 0 patterns from database
+2026-03-14T01:10:23.260Z [predictive-engine] Initialized 5 prediction rules
+2026-03-14T01:10:23.262Z [predictive-engine] Predictive engine initialized for agent: main
+2026-03-14T01:10:23.265Z [tool-analytics] Tool analytics schema initialized
+2026-03-14T01:10:23.269Z [tool-analytics-olap] OLAP analytics schema initialized
+2026-03-14T01:10:23.272Z [predictive-integration] ToolAnalyticsOLAP initialized with feedback loops and health scores
+2026-03-14T01:10:23.274Z [tool-analytics] Tool analytics schema initialized
+2026-03-14T01:10:23.277Z [analytics:rl] Adaptive Tool Selector initialized (enabled: true)
+2026-03-14T01:10:23.279Z [predictive-integration] UnifiedToolAnalytics initialized
+2026-03-14T01:10:23.325Z [event-mesh] ✅ Production event mesh initialized
+2026-03-14T01:10:23.335Z [canvas] host mounted at http://127.0.0.1:18789/__openclaw__/canvas/ (root /Users/tolga/.openclaw/canvas)
+2026-03-14T01:10:23.342Z [predictive-service] Starting predictive service...
+2026-03-14T01:10:23.343Z [predictive-engine] Prediction schema initialized
+2026-03-14T01:10:23.344Z [predictive-engine] Loaded 0 patterns from database
+2026-03-14T01:10:23.345Z [predictive-engine] Initialized 5 prediction rules
+2026-03-14T01:10:23.346Z [predictive-engine] Predictive engine initialized for agent: main
+2026-03-14T01:10:23.347Z [predictive-service] Wired predictive engine to 19 event types
+2026-03-14T01:10:23.348Z [predictive-service] Periodic prediction checks scheduled every 30 minutes
+2026-03-14T01:10:23.349Z [predictive-service] Pattern consolidation scheduled every 60 minutes
+2026-03-14T01:10:23.349Z [predictive-service] ✅ Predictive service started and wired to all systems
+2026-03-14T01:10:23.392Z [gateway] agent model: zhipu/glm-5
+2026-03-14T01:10:23.394Z [gateway] listening on ws://127.0.0.1:18789 (PID 82735)
+2026-03-14T01:10:23.395Z [gateway] listening on ws://[::1]:18789
+2026-03-14T01:10:23.396Z [gateway] log file: /tmp/openclaw/openclaw-2026-03-14.log
+2026-03-14T01:10:23.400Z [browser/service] Browser control service ready (profiles=3)
+2026-03-14T01:10:23.402Z [compaction-briefing-integration] Compaction briefing listener initialized
+2026-03-14T01:10:23.405Z [answer-briefing-tracker] Answer briefing tracker initialized
+2026-03-14T01:10:23.410Z [adaptive-response-integration] Adaptive response integration initialized
+2026-03-14T01:10:23.416Z [heartbeat-v2/state] Heartbeat state manager initialized
+2026-03-14T01:10:23.418Z [heartbeat-v2/scheduler] Heartbeat scheduler initialized
+2026-03-14T01:10:23.421Z [heartbeat-v2/state] Heartbeat state manager initialized
+2026-03-14T01:10:23.423Z [heartbeat-v2/scheduler] Agent registered for heartbeats
+2026-03-14T01:10:23.425Z [heartbeat-v2/unified] Unified heartbeat system initialized
+2026-03-14T01:10:23.426Z [heartbeat-v2/scheduler] Heartbeat scheduler started
+2026-03-14T01:10:23.427Z [heartbeat-v2/unified] Unified heartbeat system started
+2026-03-14T01:10:23.428Z [heartbeat-v2/integration] Heartbeat V2 system started
+2026-03-14T01:10:23.429Z [gateway] Heartbeat V2 system started with SQLite persistence
+2026-03-14T01:10:23.435Z [hooks] plugin hooks initialized
+2026-03-14T01:10:26.987Z No reply from agent.
+2026-03-14T01:11:58.782Z [gateway] signal SIGTERM received
+2026-03-14T01:11:58.787Z [gateway] received SIGTERM; shutting down
+2026-03-14T01:11:58.810Z [gmail-watcher] gmail watcher stopped
+2026-03-14T01:11:58.813Z [heartbeat-v2/scheduler] Heartbeat scheduler stopped
+2026-03-14T01:11:58.815Z [heartbeat-v2/unified] Unified heartbeat system stopped
+2026-03-14T01:11:58.816Z [heartbeat-v2/integration] Heartbeat V2 system stopped
+[predictive-engine] Prediction schema initialized
+[predictive-engine] Loaded 0 patterns from database
+[predictive-engine] Initialized 5 prediction rules
+[predictive-engine] Predictive engine initialized for agent: main
+[tool-analytics] Tool analytics schema initialized
+[tool-analytics-olap] OLAP analytics schema initialized
+[predictive-integration] ToolAnalyticsOLAP initialized with feedback loops and health scores
+[tool-analytics] Tool analytics schema initialized
+[analytics:rl] Adaptive Tool Selector initialized (enabled: true)
+[predictive-integration] UnifiedToolAnalytics initialized
+[event-mesh] ✅ Production event mesh initialized
+2026-03-14T01:12:00.697Z [predictive-engine] Prediction schema initialized
+2026-03-14T01:12:00.700Z [predictive-engine] Loaded 0 patterns from database
+2026-03-14T01:12:00.702Z [predictive-engine] Initialized 5 prediction rules
+2026-03-14T01:12:00.704Z [predictive-engine] Predictive engine initialized for agent: main
+2026-03-14T01:12:00.707Z [tool-analytics] Tool analytics schema initialized
+2026-03-14T01:12:00.711Z [tool-analytics-olap] OLAP analytics schema initialized
+2026-03-14T01:12:00.713Z [predictive-integration] ToolAnalyticsOLAP initialized with feedback loops and health scores
+2026-03-14T01:12:00.715Z [tool-analytics] Tool analytics schema initialized
+2026-03-14T01:12:00.719Z [analytics:rl] Adaptive Tool Selector initialized (enabled: true)
+2026-03-14T01:12:00.721Z [predictive-integration] UnifiedToolAnalytics initialized
+2026-03-14T01:12:00.767Z [event-mesh] ✅ Production event mesh initialized
+2026-03-14T01:12:00.772Z [gateway] Control UI assets missing; building (ui:build, auto-installs UI deps)…
+2026-03-14T01:12:01.745Z [canvas] host mounted at http://127.0.0.1:18789/__openclaw__/canvas/ (root /Users/tolga/.openclaw/canvas)
+2026-03-14T01:12:01.751Z [predictive-service] Starting predictive service...
+2026-03-14T01:12:01.752Z [predictive-engine] Prediction schema initialized
+2026-03-14T01:12:01.753Z [predictive-engine] Loaded 0 patterns from database
+2026-03-14T01:12:01.754Z [predictive-engine] Initialized 5 prediction rules
+2026-03-14T01:12:01.755Z [predictive-engine] Predictive engine initialized for agent: main
+2026-03-14T01:12:01.756Z [predictive-service] Wired predictive engine to 19 event types
+2026-03-14T01:12:01.757Z [predictive-service] Periodic prediction checks scheduled every 30 minutes
+2026-03-14T01:12:01.758Z [predictive-service] Pattern consolidation scheduled every 60 minutes
+2026-03-14T01:12:01.759Z [predictive-service] ✅ Predictive service started and wired to all systems
+2026-03-14T01:12:01.784Z [gateway] agent model: zhipu/glm-5
+2026-03-14T01:12:01.785Z [gateway] listening on ws://127.0.0.1:18789 (PID 83684)
+2026-03-14T01:12:01.786Z [gateway] listening on ws://[::1]:18789
+2026-03-14T01:12:01.788Z [gateway] log file: /tmp/openclaw/openclaw-2026-03-14.log
+2026-03-14T01:12:01.792Z [browser/service] Browser control service ready (profiles=3)
+2026-03-14T01:12:01.793Z [compaction-briefing-integration] Compaction briefing listener initialized
+2026-03-14T01:12:01.797Z [answer-briefing-tracker] Answer briefing tracker initialized
+2026-03-14T01:12:01.803Z [adaptive-response-integration] Adaptive response integration initialized
+2026-03-14T01:12:01.809Z [heartbeat-v2/state] Heartbeat state manager initialized
+2026-03-14T01:12:01.810Z [heartbeat-v2/scheduler] Heartbeat scheduler initialized
+2026-03-14T01:12:01.814Z [heartbeat-v2/state] Heartbeat state manager initialized
+2026-03-14T01:12:01.816Z [heartbeat-v2/scheduler] Agent registered for heartbeats
+2026-03-14T01:12:01.818Z [heartbeat-v2/unified] Unified heartbeat system initialized
+2026-03-14T01:12:01.819Z [heartbeat-v2/scheduler] Heartbeat scheduler started
+2026-03-14T01:12:01.820Z [heartbeat-v2/unified] Unified heartbeat system started
+2026-03-14T01:12:01.822Z [heartbeat-v2/integration] Heartbeat V2 system started
+2026-03-14T01:12:01.823Z [gateway] Heartbeat V2 system started with SQLite persistence
+2026-03-14T01:12:01.828Z [hooks] plugin hooks initialized
+2026-03-14T01:14:18.098Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:14:21.771Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:14:24.147Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:14:34.671Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:14:38.070Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:14:42.334Z [auto-compaction] Fast-truncate: session agent:main:main is 336KB (threshold: 293KB)
+2026-03-14T01:14:42.354Z [auto-compaction] Fast-truncate complete: 57 → 14 entries, 337KB → 157KB
+2026-03-14T01:14:42.377Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:14:45.739Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:14:49.144Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:14:51.643Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:14:55.262Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:14:57.385Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:15:00.890Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:15:03.360Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:15:08.248Z [auto-compaction] Fast-truncate: session agent:main:main is 390KB (threshold: 293KB)
+2026-03-14T01:15:08.257Z [auto-compaction] Fast-truncate complete: 30 → 14 entries, 391KB → 142KB
+2026-03-14T01:15:08.263Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:15:10.859Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:15:13.570Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:15:16.170Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:15:21.266Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:15:23.957Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:15:26.453Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:15:28.834Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:15:31.686Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:15:35.300Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:15:38.223Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:15:42.038Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:15:45.061Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:15:48.203Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:15:51.354Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:15:54.978Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:15:58.408Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:16:01.501Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:16:04.516Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:16:08.655Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:16:11.626Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:16:18.845Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:16:21.916Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:16:25.592Z [auto-compaction] Fast-truncate: session agent:main:main is 358KB (threshold: 293KB)
+2026-03-14T01:16:25.609Z [auto-compaction] Fast-truncate complete: 60 → 14 entries, 359KB → 119KB
+2026-03-14T01:16:25.629Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:16:33.391Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:16:36.440Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:16:40.628Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:16:54.040Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:16:57.671Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:17:13.977Z [auto-compaction] Fast-truncate: session agent:main:main is 316KB (threshold: 293KB)
+2026-03-14T01:17:13.987Z [auto-compaction] Fast-truncate complete: 26 → 14 entries, 317KB → 119KB
+2026-03-14T01:17:14.005Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:18:52.887Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T01:19:00.727Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T01:19:07.198Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T01:19:11.965Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T01:19:20.121Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T01:20:44.276Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T01:21:00.682Z [agent/embedded] Session already compacted, injecting marker to force re-compaction
+2026-03-14T01:22:01.344Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T01:22:01.373Z [agent/embedded] Session already compacted, injecting marker to force re-compaction
+2026-03-14T01:22:23.450Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:22:29.384Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:22:33.877Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:22:39.281Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:22:39.417Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:22:44.425Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:22:48.024Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:22:54.858Z [auto-compaction] Fast-truncate: session agent:main:main is 386KB (threshold: 293KB)
+2026-03-14T01:22:54.866Z [auto-compaction] Fast-truncate complete: 58 → 14 entries, 387KB → 111KB
+2026-03-14T01:22:54.869Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:22:54.972Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:22:55.044Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:23:03.165Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:23:03.253Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:23:03.327Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:23:10.641Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:23:10.772Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:23:10.879Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:23:19.979Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:23:20.046Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:23:20.111Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:23:28.546Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:23:28.649Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:23:28.733Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:23:35.111Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:23:39.528Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:23:45.456Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:23:45.475Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:23:52.548Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T01:23:57.725Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T01:24:01.839Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T01:24:07.551Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T01:24:17.682Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T01:24:23.319Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T01:25:53.422Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T01:26:51.369Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T01:27:21.064Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:27:25.629Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:27:29.536Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:27:32.617Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:27:41.508Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T01:27:56.894Z [auto-compaction] Fast-truncate: session agent:main:main is 359KB (threshold: 293KB)
+2026-03-14T01:27:56.904Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:27:56.906Z [auto-compaction] Fast-truncate complete: 59 → 14 entries, 360KB → 123KB
+2026-03-14T01:28:08.898Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:28:11.313Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:28:16.095Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:28:29.116Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:28:34.540Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:28:49.238Z [auto-compaction] Fast-truncate: session agent:main:main is 443KB (threshold: 293KB)
+2026-03-14T01:28:49.255Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:28:49.277Z [auto-compaction] Fast-truncate complete: 30 → 14 entries, 444KB → 196KB
+2026-03-14T01:28:55.545Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:28:59.691Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:29:04.088Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:29:08.608Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:29:11.398Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:29:16.232Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:29:21.094Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:29:24.168Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:29:31.062Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:29:45.696Z [auto-compaction] Fast-truncate: session agent:main:main is 342KB (threshold: 293KB)
+2026-03-14T01:29:45.709Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:29:45.727Z [auto-compaction] Fast-truncate complete: 36 → 14 entries, 343KB → 90KB
+2026-03-14T01:29:51.627Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:29:58.092Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T01:32:49.303Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T01:32:53.626Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T01:32:58.299Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T02:26:25.088Z [predictive-engine] Pruned 0 old patterns
+2026-03-14T02:28:44.822Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T02:28:53.434Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:28:58.009Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:29:00.844Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:31:12.433Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T02:31:12.467Z [agent/embedded] Session already compacted, injecting marker to force re-compaction
+2026-03-14T02:31:16.095Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:31:19.927Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:31:22.242Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:31:26.717Z [auto-compaction] Fast-truncate: session agent:main:main is 392KB (threshold: 293KB)
+2026-03-14T02:31:26.725Z [auto-compaction] Fast-truncate complete: 43 → 14 entries, 392KB → 246KB
+2026-03-14T02:32:41.464Z [ws] ⇄ res ✓ chat.send 56ms runId=c8413a44-a3aa-4daa-b70a-c4971ee2bd3d conn=a553d8b6…9db7 id=7adc7b18…75fc
+2026-03-14T02:34:12.538Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T02:35:09.699Z [auto-compaction] Fast-truncate: session agent:main:main is 405KB (threshold: 293KB)
+2026-03-14T02:35:09.711Z [auto-compaction] Fast-truncate complete: 29 → 14 entries, 406KB → 229KB
+2026-03-14T02:35:30.696Z [auto-compaction] Fast-truncate: session agent:main:main is 422KB (threshold: 293KB)
+2026-03-14T02:35:30.709Z [auto-compaction] Fast-truncate complete: 22 → 14 entries, 423KB → 227KB
+2026-03-14T02:35:57.570Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T02:36:03.356Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T02:36:09.427Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T02:36:16.690Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T02:36:23.139Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T02:38:11.991Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:38:14.655Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:38:18.743Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:38:24.181Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:38:29.759Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:38:33.473Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:38:39.625Z [auto-compaction] Fast-truncate: session agent:main:main is 446KB (threshold: 293KB)
+2026-03-14T02:38:39.641Z [auto-compaction] Fast-truncate complete: 22 → 14 entries, 447KB → 250KB
+2026-03-14T02:38:39.653Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:38:42.856Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:38:50.180Z [auto-compaction] Fast-truncate: session agent:main:main is 442KB (threshold: 293KB)
+2026-03-14T02:38:50.202Z [auto-compaction] Fast-truncate complete: 18 → 14 entries, 443KB → 340KB
+2026-03-14T02:38:50.253Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:38:54.705Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:39:02.155Z [auto-compaction] Fast-truncate: session agent:main:main is 532KB (threshold: 293KB)
+2026-03-14T02:39:02.180Z [auto-compaction] Fast-truncate complete: 18 → 14 entries, 533KB → 341KB
+2026-03-14T02:39:02.201Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:39:07.715Z [auto-compaction] Fast-truncate: session agent:main:main is 342KB (threshold: 293KB)
+2026-03-14T02:39:07.742Z [auto-compaction] Fast-truncate complete: 17 → 14 entries, 343KB → 230KB
+2026-03-14T02:39:15.053Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:39:21.494Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:39:31.741Z [auto-compaction] Fast-truncate: session agent:main:main is 423KB (threshold: 293KB)
+2026-03-14T02:39:31.752Z [auto-compaction] Fast-truncate complete: 19 → 14 entries, 424KB → 230KB
+2026-03-14T02:39:31.764Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:39:38.199Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T02:48:17.366Z [gateway] signal SIGTERM received
+2026-03-14T02:48:17.370Z [gateway] received SIGTERM; shutting down
+2026-03-14T02:48:17.384Z [gmail-watcher] gmail watcher stopped
+2026-03-14T02:48:17.385Z [heartbeat-v2/scheduler] Heartbeat scheduler stopped
+2026-03-14T02:48:17.386Z [heartbeat-v2/unified] Unified heartbeat system stopped
+2026-03-14T02:48:17.387Z [heartbeat-v2/integration] Heartbeat V2 system stopped
+[predictive-engine] Prediction schema initialized
+[predictive-engine] Loaded 0 patterns from database
+[predictive-engine] Initialized 5 prediction rules
+[predictive-engine] Predictive engine initialized for agent: main
+[tool-analytics] Tool analytics schema initialized
+[tool-analytics-olap] OLAP analytics schema initialized
+[predictive-integration] ToolAnalyticsOLAP initialized with feedback loops and health scores
+[tool-analytics] Tool analytics schema initialized
+[analytics:rl] Adaptive Tool Selector initialized (enabled: true)
+[predictive-integration] UnifiedToolAnalytics initialized
+[event-mesh] ✅ Production event mesh initialized
+2026-03-14T02:48:20.737Z [gateway] [plugins] memory slot plugin not found or not marked as memory: memory-core
+2026-03-14T02:48:20.743Z [gateway] Control UI assets missing; building (ui:build, auto-installs UI deps)…
+2026-03-14T02:48:22.055Z [canvas] host mounted at http://127.0.0.1:18789/__openclaw__/canvas/ (root /Users/tolga/.openclaw/canvas)
+2026-03-14T02:48:22.062Z [predictive-service] Starting predictive service...
+2026-03-14T02:48:22.064Z [predictive-engine] Prediction schema initialized
+2026-03-14T02:48:22.065Z [predictive-engine] Loaded 0 patterns from database
+2026-03-14T02:48:22.066Z [predictive-engine] Initialized 5 prediction rules
+2026-03-14T02:48:22.068Z [predictive-engine] Predictive engine initialized for agent: main
+2026-03-14T02:48:22.069Z [predictive-service] Wired predictive engine to 19 event types
+2026-03-14T02:48:22.070Z [predictive-service] Periodic prediction checks scheduled every 30 minutes
+2026-03-14T02:48:22.071Z [predictive-service] Pattern consolidation scheduled every 60 minutes
+2026-03-14T02:48:22.072Z [predictive-service] ✅ Predictive service started and wired to all systems
+2026-03-14T02:48:22.119Z [gateway] agent model: zhipu/glm-5
+2026-03-14T02:48:22.121Z [gateway] listening on ws://127.0.0.1:18789 (PID 21978)
+2026-03-14T02:48:22.122Z [gateway] listening on ws://[::1]:18789
+2026-03-14T02:48:22.124Z [gateway] log file: /tmp/openclaw/openclaw-2026-03-14.log
+2026-03-14T02:48:22.128Z [browser/service] Browser control service ready (profiles=3)
+2026-03-14T02:48:22.132Z [compaction-briefing-integration] Compaction briefing listener initialized
+2026-03-14T02:48:22.140Z [answer-briefing-tracker] Answer briefing tracker initialized
+2026-03-14T02:48:22.142Z [adaptive-response-integration] Adaptive response integration initialized
+2026-03-14T02:48:22.187Z [heartbeat-v2/state] Heartbeat state manager initialized
+2026-03-14T02:48:22.189Z [heartbeat-v2/scheduler] Heartbeat scheduler initialized
+2026-03-14T02:48:22.194Z [heartbeat-v2/state] Heartbeat state manager initialized
+2026-03-14T02:48:22.195Z [heartbeat-v2/scheduler] Agent registered for heartbeats
+2026-03-14T02:48:22.197Z [heartbeat-v2/unified] Unified heartbeat system initialized
+2026-03-14T02:48:22.198Z [heartbeat-v2/scheduler] Heartbeat scheduler started
+2026-03-14T02:48:22.199Z [heartbeat-v2/unified] Unified heartbeat system started
+2026-03-14T02:48:22.200Z [heartbeat-v2/integration] Heartbeat V2 system started
+2026-03-14T02:48:22.201Z [gateway] Heartbeat V2 system started with SQLite persistence
+2026-03-14T02:48:25.925Z No reply from agent.
+2026-03-14T02:54:06.701Z [gateway] signal SIGTERM received
+2026-03-14T02:54:06.706Z [gateway] received SIGTERM; shutting down
+2026-03-14T02:54:06.718Z [gmail-watcher] gmail watcher stopped
+[predictive-engine] Prediction schema initialized
+[predictive-engine] Loaded 0 patterns from database
+[predictive-engine] Initialized 5 prediction rules
+[predictive-engine] Predictive engine initialized for agent: main
+[tool-analytics] Tool analytics schema initialized
+[tool-analytics-olap] OLAP analytics schema initialized
+[predictive-integration] ToolAnalyticsOLAP initialized with feedback loops and health scores
+[tool-analytics] Tool analytics schema initialized
+[analytics:rl] Adaptive Tool Selector initialized (enabled: true)
+[predictive-integration] UnifiedToolAnalytics initialized
+[event-mesh] ✅ Production event mesh initialized
+2026-03-14T02:54:10.288Z [gateway] [plugins] memory slot plugin not found or not marked as memory: memory-core
+2026-03-14T02:54:10.294Z [gateway] Control UI assets missing; building (ui:build, auto-installs UI deps)…
+2026-03-14T02:54:11.382Z [canvas] host mounted at http://127.0.0.1:18789/__openclaw__/canvas/ (root /Users/tolga/.openclaw/canvas)
+2026-03-14T02:54:11.388Z [predictive-service] Starting predictive service...
+2026-03-14T02:54:11.390Z [predictive-engine] Prediction schema initialized
+2026-03-14T02:54:11.391Z [predictive-engine] Loaded 0 patterns from database
+2026-03-14T02:54:11.392Z [predictive-engine] Initialized 5 prediction rules
+2026-03-14T02:54:11.393Z [predictive-engine] Predictive engine initialized for agent: main
+2026-03-14T02:54:11.394Z [predictive-service] Wired predictive engine to 19 event types
+2026-03-14T02:54:11.395Z [predictive-service] Periodic prediction checks scheduled every 30 minutes
+2026-03-14T02:54:11.396Z [predictive-service] Pattern consolidation scheduled every 60 minutes
+2026-03-14T02:54:11.397Z [predictive-service] ✅ Predictive service started and wired to all systems
+2026-03-14T02:54:11.424Z [gateway] agent model: zhipu/glm-5
+2026-03-14T02:54:11.425Z [gateway] listening on ws://127.0.0.1:18789 (PID 26664)
+2026-03-14T02:54:11.426Z [gateway] listening on ws://[::1]:18789
+2026-03-14T02:54:11.428Z [gateway] log file: /tmp/openclaw/openclaw-2026-03-14.log
+2026-03-14T02:54:11.432Z [browser/service] Browser control service ready (profiles=3)
+2026-03-14T02:54:11.434Z [compaction-briefing-integration] Compaction briefing listener initialized
+2026-03-14T02:54:11.438Z [answer-briefing-tracker] Answer briefing tracker initialized
+2026-03-14T02:54:11.440Z [adaptive-response-integration] Adaptive response integration initialized
+2026-03-14T02:54:11.449Z [heartbeat-v2/state] Heartbeat state manager initialized
+2026-03-14T02:54:11.451Z [heartbeat-v2/scheduler] Heartbeat scheduler initialized
+2026-03-14T02:54:11.456Z [heartbeat-v2/state] Heartbeat state manager initialized
+2026-03-14T02:54:11.458Z [heartbeat-v2/scheduler] Agent registered for heartbeats
+2026-03-14T02:54:11.460Z [heartbeat-v2/unified] Unified heartbeat system initialized
+2026-03-14T02:54:11.461Z [heartbeat-v2/scheduler] Heartbeat scheduler started
+2026-03-14T02:54:11.462Z [heartbeat-v2/unified] Unified heartbeat system started
+2026-03-14T02:54:11.463Z [heartbeat-v2/integration] Heartbeat V2 system started
+2026-03-14T02:54:11.464Z [gateway] Heartbeat V2 system started with SQLite persistence
+2026-03-14T02:54:14.490Z No reply from agent.
+2026-03-14T02:57:53.276Z [gateway] signal SIGTERM received
+2026-03-14T02:57:53.285Z [gateway] received SIGTERM; shutting down
+2026-03-14T02:57:53.297Z [gmail-watcher] gmail watcher stopped
+[predictive-engine] Prediction schema initialized
+[predictive-engine] Loaded 0 patterns from database
+[predictive-engine] Initialized 5 prediction rules
+[predictive-engine] Predictive engine initialized for agent: main
+[tool-analytics] Tool analytics schema initialized
+[tool-analytics-olap] OLAP analytics schema initialized
+[predictive-integration] ToolAnalyticsOLAP initialized with feedback loops and health scores
+[tool-analytics] Tool analytics schema initialized
+[analytics:rl] Adaptive Tool Selector initialized (enabled: true)
+[predictive-integration] UnifiedToolAnalytics initialized
+[event-mesh] ✅ Production event mesh initialized
+2026-03-14T02:57:56.587Z [gateway] [plugins] memory slot plugin not found or not marked as memory: memory-core
+2026-03-14T02:57:56.592Z [gateway] Control UI assets missing; building (ui:build, auto-installs UI deps)…
+2026-03-14T02:57:57.688Z [canvas] host mounted at http://127.0.0.1:18789/__openclaw__/canvas/ (root /Users/tolga/.openclaw/canvas)
+2026-03-14T02:57:57.695Z [predictive-service] Starting predictive service...
+2026-03-14T02:57:57.697Z [predictive-engine] Prediction schema initialized
+2026-03-14T02:57:57.698Z [predictive-engine] Loaded 0 patterns from database
+2026-03-14T02:57:57.699Z [predictive-engine] Initialized 5 prediction rules
+2026-03-14T02:57:57.700Z [predictive-engine] Predictive engine initialized for agent: main
+2026-03-14T02:57:57.701Z [predictive-service] Wired predictive engine to 19 event types
+2026-03-14T02:57:57.702Z [predictive-service] Periodic prediction checks scheduled every 30 minutes
+2026-03-14T02:57:57.703Z [predictive-service] Pattern consolidation scheduled every 60 minutes
+2026-03-14T02:57:57.704Z [predictive-service] ✅ Predictive service started and wired to all systems
+2026-03-14T02:57:57.736Z [gateway] agent model: zhipu/glm-5
+2026-03-14T02:57:57.737Z [gateway] listening on ws://127.0.0.1:18789 (PID 28207)
+2026-03-14T02:57:57.738Z [gateway] listening on ws://[::1]:18789
+2026-03-14T02:57:57.741Z [gateway] log file: /tmp/openclaw/openclaw-2026-03-14.log
+2026-03-14T02:57:57.748Z [browser/service] Browser control service ready (profiles=3)
+2026-03-14T02:57:57.751Z [compaction-briefing-integration] Compaction briefing listener initialized
+2026-03-14T02:57:57.755Z [answer-briefing-tracker] Answer briefing tracker initialized
+2026-03-14T02:57:57.758Z [adaptive-response-integration] Adaptive response integration initialized
+2026-03-14T02:57:57.791Z [heartbeat-v2/state] Heartbeat state manager initialized
+2026-03-14T02:57:57.793Z [heartbeat-v2/scheduler] Heartbeat scheduler initialized
+2026-03-14T02:57:57.798Z [heartbeat-v2/state] Heartbeat state manager initialized
+2026-03-14T02:57:57.800Z [heartbeat-v2/scheduler] Agent registered for heartbeats
+2026-03-14T02:57:57.802Z [heartbeat-v2/unified] Unified heartbeat system initialized
+2026-03-14T02:57:57.803Z [heartbeat-v2/scheduler] Heartbeat scheduler started
+2026-03-14T02:57:57.803Z [heartbeat-v2/unified] Unified heartbeat system started
+2026-03-14T02:57:57.805Z [heartbeat-v2/integration] Heartbeat V2 system started
+2026-03-14T02:57:57.806Z [gateway] Heartbeat V2 system started with SQLite persistence
+2026-03-14T03:00:23.029Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:00:26.412Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:00:32.583Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:00:35.939Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:00:44.346Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:00:51.612Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:00:55.274Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:01:00.013Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:01:05.127Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:01:08.027Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:01:13.916Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:01:18.287Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:01:26.593Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:01:30.573Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:01:35.299Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:01:41.337Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:01:45.020Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:01:50.872Z [auto-compaction] Fast-truncate: session agent:main:main is 324KB (threshold: 293KB)
+2026-03-14T03:01:50.883Z [auto-compaction] Fast-truncate complete: 84 → 14 entries, 325KB → 90KB
+2026-03-14T03:01:50.891Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:01:54.094Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:02:00.244Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:02:03.480Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:02:07.916Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:02:23.145Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T03:02:27.855Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T03:02:34.256Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T03:02:39.581Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T03:02:44.691Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T03:04:30.883Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:04:32.965Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:04:35.329Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:04:38.835Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:04:41.496Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:04:43.849Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:04:46.810Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:04:50.619Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:04:53.837Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:04:56.490Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:04:58.279Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:05:01.160Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:05:03.414Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:05:06.311Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:05:08.210Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:05:10.949Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:05:13.298Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:05:16.686Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:05:24.780Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:05:27.563Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:05:30.469Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:05:33.749Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:05:37.125Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:05:39.503Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:05:47.316Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:05:50.030Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:06:17.319Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:06:23.728Z [auto-compaction] Fast-truncate: session agent:main:main is 435KB (threshold: 293KB)
+2026-03-14T03:06:23.736Z [auto-compaction] Fast-truncate complete: 70 → 14 entries, 436KB → 73KB
+2026-03-14T03:06:23.743Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:06:29.204Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:06:36.162Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:06:40.968Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:06:45.315Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:06:52.746Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:07:05.138Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:07:09.956Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:07:22.386Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:07:26.023Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:07:37.964Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:07:44.246Z [auto-compaction] Fast-truncate: session agent:main:main is 299KB (threshold: 293KB)
+2026-03-14T03:07:44.255Z [auto-compaction] Fast-truncate complete: 36 → 14 entries, 300KB → 220KB
+2026-03-14T03:07:44.263Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:07:46.621Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:07:49.988Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:07:53.930Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:08:07.319Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:08:10.895Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:08:14.715Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:08:20.942Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:08:35.126Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T03:08:41.993Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T03:10:35.815Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:10:41.282Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:10:46.821Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:11:02.117Z [ws] ⇄ res ✓ node.list 120ms conn=9696c7f4…5118 id=b19930c3…781e
+2026-03-14T03:11:02.141Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:11:07.347Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:11:19.504Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:11:22.798Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:11:32.092Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T03:11:46.454Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:11:54.330Z [browser/chrome] 🦞 adopting existing browser (pid 18297) on port 9222 for profile "eloclaw"
+2026-03-14T03:11:57.590Z [browser/chrome] PID file exists (pid 18297) but process is dead — cleaning up
+2026-03-14T03:12:02.765Z [browser/chrome] 🦞 openclaw browser started (chrome) profile "eloclaw" on 127.0.0.1:9222 (pid 36761)
+2026-03-14T03:12:11.959Z [browser/chrome] 🦞 openclaw browser started (chrome) profile "eloclaw" on 127.0.0.1:9222 (pid 36801)
+2026-03-14T03:12:25.554Z [browser/chrome] 🦞 openclaw browser started (chrome) profile "eloclaw" on 127.0.0.1:9222 (pid 36886)
+2026-03-14T03:14:18.594Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T03:16:31.825Z [auto-compaction] Fast-truncate: session agent:main:main is 842KB (threshold: 293KB)
+2026-03-14T03:16:31.844Z [auto-compaction] Fast-truncate complete: 78 → 14 entries, 842KB → 66KB
+2026-03-14T03:21:58.176Z [auto-compaction] completed for agent:main:main: compacted
+2026-03-14T04:13:12.053Z [predictive-engine] Pruned 0 old patterns
+2026-03-14T05:19:12.047Z [predictive-engine] Pruned 0 old patterns
+2026-03-14T06:24:35.022Z [predictive-engine] Pruned 0 old patterns
+2026-03-14T07:25:34.954Z [predictive-engine] Pruned 0 old patterns
+2026-03-14T08:26:34.918Z [predictive-engine] Pruned 0 old patterns
+2026-03-14T09:27:34.985Z [predictive-engine] Pruned 0 old patterns
+2026-03-14T10:28:34.971Z [predictive-engine] Pruned 0 old patterns
+2026-03-14T11:18:47.219Z [agent/embedded] Merged orphaned user message with new prompt. runId=aad75783-227c-4538-9b94-045ea52bdff2 sessionId=28c2ad86-70db-4ea6-9c10-090cfbc0ce37

@@ -1,3 +1,6 @@
-2026/03/14-00:54:27.710 2327b03 Reusing MANIFEST /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/shared_proto_db/MANIFEST-000001
-2026/03/14-00:54:27.710 2327b03 Recovering log #3
-2026/03/14-00:54:27.710 2327b03 Reusing old log /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/shared_proto_db/000003.log 
+2026/03/14-04:12:25.497 23edb82 Reusing MANIFEST /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/shared_proto_db/MANIFEST-000001
+2026/03/14-04:12:25.498 23edb82 Recovering log #3
+2026/03/14-04:12:25.498 23edb82 Reusing old log /Users/tolga/.openclaw/browser/eloclaw/user-data/Default/shared_proto_db/000003.log 
+2026/03/14-04:12:25.507 23edb81 Level-0 table #5: started
+2026/03/14-04:12:25.521 23edb81 Level-0 table #5: 112609 bytes OK
+2026/03/14-04:12:25.524 23edb81 Delete type=0 #3

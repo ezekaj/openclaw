@@ -9,8 +9,15 @@ import type {
   ProfileRuntimeState,
   ProfileStatus,
 } from "./server-context.types.js";
-import { appendCdpPath, createTargetViaCdp, getHeadersWithAuth, normalizeCdpWsUrl } from "./cdp.js";
 import {
+  appendCdpPath,
+  createTargetViaCdp,
+  fetchJson,
+  fetchOk,
+  normalizeCdpWsUrl,
+} from "./cdp.js";
+import {
+  adoptOrphanedChrome,
   isChromeCdpReady,
   isChromeReachable,
   launchOpenClawChrome,
@@ -49,33 +56,24 @@ function normalizeWsUrl(raw: string | undefined, cdpBaseUrl: string): string | u
   }
 }
 
-async function fetchJson<T>(url: string, timeoutMs = 1500, init?: RequestInit): Promise<T> {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), timeoutMs);
-  try {
-    const headers = getHeadersWithAuth(url, (init?.headers as Record<string, string>) || {});
-    const res = await fetch(url, { ...init, headers, signal: ctrl.signal });
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
-    return (await res.json()) as T;
-  } finally {
-    clearTimeout(t);
-  }
-}
+/**
+ * Type-safe helper to get a method from the Playwright module.
+ * Returns null if the module is not available or the method doesn't exist.
+ */
+type PlaywrightMethod<K extends keyof PwAiModule> = PwAiModule[K];
 
-async function fetchOk(url: string, timeoutMs = 1500, init?: RequestInit): Promise<void> {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), timeoutMs);
-  try {
-    const headers = getHeadersWithAuth(url, (init?.headers as Record<string, string>) || {});
-    const res = await fetch(url, { ...init, headers, signal: ctrl.signal });
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
-  } finally {
-    clearTimeout(t);
+async function getPwAiMethod<K extends keyof PwAiModule>(
+  methodName: K,
+): Promise<PlaywrightMethod<K> | null> {
+  const mod = await getPwAiModule({ mode: "strict" });
+  if (!mod) {
+    return null;
   }
+  const method = mod[methodName];
+  if (typeof method !== "function") {
+    return null;
+  }
+  return method;
 }
 
 /**
@@ -111,9 +109,8 @@ function createProfileContext(
   const listTabs = async (): Promise<BrowserTab[]> => {
     // For remote profiles, use Playwright's persistent connection to avoid ephemeral sessions
     if (!profile.cdpIsLoopback) {
-      const mod = await getPwAiModule({ mode: "strict" });
-      const listPagesViaPlaywright = (mod as Partial<PwAiModule> | null)?.listPagesViaPlaywright;
-      if (typeof listPagesViaPlaywright === "function") {
+      const listPagesViaPlaywright = await getPwAiMethod("listPagesViaPlaywright");
+      if (listPagesViaPlaywright) {
         const pages = await listPagesViaPlaywright({ cdpUrl: profile.cdpUrl });
         return pages.map((p) => ({
           targetId: p.targetId,
@@ -148,9 +145,8 @@ function createProfileContext(
     // For remote profiles, use Playwright's persistent connection to create tabs
     // This ensures the tab persists beyond a single request
     if (!profile.cdpIsLoopback) {
-      const mod = await getPwAiModule({ mode: "strict" });
-      const createPageViaPlaywright = (mod as Partial<PwAiModule> | null)?.createPageViaPlaywright;
-      if (typeof createPageViaPlaywright === "function") {
+      const createPageViaPlaywright = await getPwAiMethod("createPageViaPlaywright");
+      if (createPageViaPlaywright) {
         const page = await createPageViaPlaywright({ cdpUrl: profile.cdpUrl, url });
         const profileState = getProfileState();
         profileState.lastTargetId = page.targetId;
@@ -327,11 +323,26 @@ function createProfileContext(
 
     // Port is reachable - check if we own it
     if (await isReachable()) {
+      // If we don't have a running reference (e.g. gateway restarted), try to adopt via PID file
+      if (!profileState.running && profile.cdpIsLoopback) {
+        const adopted = await adoptOrphanedChrome(profile);
+        if (adopted) {
+          attachRunning(adopted);
+        }
+      }
       return;
     }
 
     // HTTP responds but WebSocket fails - port in use by something else
     if (!profileState.running) {
+      // Try to adopt via PID file before giving up
+      if (profile.cdpIsLoopback) {
+        const adopted = await adoptOrphanedChrome(profile);
+        if (adopted) {
+          attachRunning(adopted);
+          return;
+        }
+      }
       throw new Error(
         `Port ${profile.cdpPort} is in use for profile "${profile.name}" but not by openclaw. ` +
           `Run action=reset-profile profile=${profile.name} to kill the process.`,
@@ -438,10 +449,8 @@ function createProfileContext(
     }
 
     if (!profile.cdpIsLoopback) {
-      const mod = await getPwAiModule({ mode: "strict" });
-      const focusPageByTargetIdViaPlaywright = (mod as Partial<PwAiModule> | null)
-        ?.focusPageByTargetIdViaPlaywright;
-      if (typeof focusPageByTargetIdViaPlaywright === "function") {
+      const focusPageByTargetIdViaPlaywright = await getPwAiMethod("focusPageByTargetIdViaPlaywright");
+      if (focusPageByTargetIdViaPlaywright) {
         await focusPageByTargetIdViaPlaywright({
           cdpUrl: profile.cdpUrl,
           targetId: resolved.targetId,
@@ -469,10 +478,8 @@ function createProfileContext(
 
     // For remote profiles, use Playwright's persistent connection to close tabs
     if (!profile.cdpIsLoopback) {
-      const mod = await getPwAiModule({ mode: "strict" });
-      const closePageByTargetIdViaPlaywright = (mod as Partial<PwAiModule> | null)
-        ?.closePageByTargetIdViaPlaywright;
-      if (typeof closePageByTargetIdViaPlaywright === "function") {
+      const closePageByTargetIdViaPlaywright = await getPwAiMethod("closePageByTargetIdViaPlaywright");
+      if (closePageByTargetIdViaPlaywright) {
         await closePageByTargetIdViaPlaywright({
           cdpUrl: profile.cdpUrl,
           targetId: resolved.targetId,
@@ -515,7 +522,7 @@ function createProfileContext(
 
     const httpReachable = await isHttpReachable(300);
     if (httpReachable && !profileState.running) {
-      // Port in use but not by us - kill it
+      // Port in use but not by us - close any orphaned Playwright connections
       try {
         const mod = await import("./pw-ai.js");
         await mod.closePlaywrightBrowserConnection();
@@ -528,6 +535,7 @@ function createProfileContext(
       await stopRunningBrowser();
     }
 
+    // Close Playwright connections before deleting user data
     try {
       const mod = await import("./pw-ai.js");
       await mod.closePlaywrightBrowserConnection();

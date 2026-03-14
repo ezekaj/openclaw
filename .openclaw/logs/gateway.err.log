@@ -21250,3 +21250,321 @@ If the gateway is supervised, stop it with: openclaw gateway stop
 2026-03-11T21:30:45.775Z [gateway] predictive integration ready: engine=true, mesh=true, neuro-memory=disabled, analytics={"basic":true,"olap":true,"unified":true,"rlEnabled":true}
 2026-03-11T21:30:55.636Z Config was last written by a newer OpenClaw (2026.2.3); current version is 0.0.0.
 2026-03-11T21:30:55.706Z [gateway] predictive integration ready: engine=true, mesh=true, neuro-memory=disabled, analytics={"basic":true,"olap":true,"unified":true,"rlEnabled":true}
+2026-03-14T01:10:23.321Z Config was last written by a newer OpenClaw (2026.2.3); current version is 0.0.0.
+2026-03-14T01:10:23.411Z [gateway] predictive integration ready: engine=true, mesh=true, neuro-memory=disabled, analytics={"basic":true,"olap":true,"unified":true,"rlEnabled":true}
+2026-03-14T01:10:41.115Z [gateway-http] Unhandled error for GET /api/status ReferenceError: url is not defined
+    at handleRequest (file:///Users/tolga/.openclaw/workspace/openclaw/dist/gateway-cli-DCOOSaZN.js:15861:4)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-03-14T01:12:00.763Z Config was last written by a newer OpenClaw (2026.2.3); current version is 0.0.0.
+2026-03-14T01:12:01.804Z [gateway] predictive integration ready: engine=true, mesh=true, neuro-memory=disabled, analytics={"basic":true,"olap":true,"unified":true,"rlEnabled":true}
+2026-03-14T01:18:46.832Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=244529 queueAhead=4
+2026-03-14T01:18:46.872Z [agent/embedded] session file repair skipped: invalid session header (28c2ad86-70db-4ea6-9c10-090cfbc0ce37.jsonl)
+2026-03-14T01:18:52.876Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=224651 queueAhead=3
+2026-03-14T01:19:00.716Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=155145 queueAhead=3
+2026-03-14T01:19:07.187Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=99427 queueAhead=2
+2026-03-14T01:19:11.954Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=74869 queueAhead=1
+2026-03-14T01:19:20.109Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=24751 queueAhead=0
+2026-03-14T01:19:23.927Z [agent/embedded] read tool called without path: toolCallId=call_3a4d82fcf4d543db80bba040 argsType=object
+2026-03-14T01:19:23.942Z [agent/embedded] read tool called without path: toolCallId=call_d8854613660a48259f005872 argsType=object
+2026-03-14T01:19:36.930Z [agent/embedded] read tool called without path: toolCallId=call_be1297fcd61340d392672ada argsType=object
+2026-03-14T01:19:44.948Z [agent/embedded] read tool called without path: toolCallId=call_1e52337b43f64c12b1a33c58 argsType=object
+2026-03-14T01:19:47.656Z [agent/embedded] read tool called without path: toolCallId=call_cbe0194fca3648a3919d3aa7 argsType=object
+2026-03-14T01:20:38.294Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=56221 queueAhead=0
+2026-03-14T01:21:56.700Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=37080 queueAhead=1
+2026-03-14T01:22:01.332Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=28573 queueAhead=0
+2026-03-14T01:22:01.377Z [auto-compaction] failed for agent:main:main: Already compacted
+2026-03-14T01:23:48.289Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=92148 queueAhead=5
+2026-03-14T01:23:48.317Z [agent/embedded] session file repair skipped: invalid session header (28c2ad86-70db-4ea6-9c10-090cfbc0ce37.jsonl)
+2026-03-14T01:23:52.537Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=83182 queueAhead=4
+2026-03-14T01:23:57.713Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=73316 queueAhead=3
+2026-03-14T01:24:01.828Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=58698 queueAhead=2
+2026-03-14T01:24:07.539Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=39022 queueAhead=2
+2026-03-14T01:24:17.672Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=32240 queueAhead=1
+2026-03-14T01:24:23.308Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=17905 queueAhead=0
+2026-03-14T01:24:27.556Z [agent/embedded] read tool called without path: toolCallId=call_6491d4d3f9014f0b9172b6d4 argsType=object
+2026-03-14T01:24:27.571Z [agent/embedded] read tool called without path: toolCallId=call_b4e01fb1f94040189c650ddf argsType=object
+2026-03-14T01:25:40.429Z [agent/embedded] read tool called without path: toolCallId=call_c5bc70f7bcc249338a370a6c argsType=object
+2026-03-14T01:25:46.047Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=71366 queueAhead=0
+2026-03-14T01:26:15.346Z [agent/embedded] read tool called without path: toolCallId=call_65537622c77e49b299a67ebd argsType=object
+2026-03-14T01:26:45.996Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=38121 queueAhead=0
+2026-03-14T01:27:33.033Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=11989 queueAhead=0
+2026-03-14T01:32:43.399Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=254323 queueAhead=2
+2026-03-14T01:32:43.432Z [agent/embedded] session file repair skipped: invalid session header (28c2ad86-70db-4ea6-9c10-090cfbc0ce37.jsonl)
+2026-03-14T01:32:49.283Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=208233 queueAhead=1
+2026-03-14T01:32:53.574Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=37419 queueAhead=0
+2026-03-14T02:27:56.054Z [agent/embedded] read tool called without path: toolCallId=call_687a639c466a45639921192c argsType=object
+2026-03-14T02:28:39.759Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=28512 queueAhead=0
+2026-03-14T02:28:44.809Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=5027 queueAhead=0
+2026-03-14T02:28:48.271Z [agent/embedded] read tool called without path: toolCallId=call_e9423fc760504b78be6345b5 argsType=object
+2026-03-14T02:28:48.286Z [agent/embedded] read tool called without path: toolCallId=call_4fa0daed88b4481faaa86d6e argsType=object
+2026-03-14T02:28:50.933Z [agent/embedded] read tool called without path: toolCallId=call_b59f155fc4dd47479acf1851 argsType=object
+2026-03-14T02:31:05.985Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=132583 queueAhead=1
+2026-03-14T02:31:12.421Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=6474 queueAhead=1
+2026-03-14T02:31:12.471Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=6465 queueAhead=0
+2026-03-14T02:31:12.476Z [auto-compaction] failed for agent:main:main: Already compacted
+2026-03-14T02:31:26.709Z [agent/embedded] read tool called without path: toolCallId=call_c9255f42bdd644409f37d602 argsType=object
+2026-03-14T02:34:08.215Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=20744 queueAhead=0
+2026-03-14T02:34:08.272Z [agent/embedded] session file repair skipped: invalid session header (28c2ad86-70db-4ea6-9c10-090cfbc0ce37.jsonl)
+2026-03-14T02:34:12.461Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=4200 queueAhead=0
+2026-03-14T02:34:16.002Z [agent/embedded] read tool called without path: toolCallId=call_1593092b2e574b1b806b0270 argsType=object
+2026-03-14T02:34:16.026Z [agent/embedded] read tool called without path: toolCallId=call_d40a6c195ffd4078a2d7d5af argsType=object
+2026-03-14T02:34:19.447Z [agent/embedded] read tool called without path: toolCallId=call_5bc9aa21f53048528a10e285 argsType=object
+2026-03-14T02:34:19.483Z [agent/embedded] read tool called without path: toolCallId=call_6b9cac68d91e46a586c66c70 argsType=object
+2026-03-14T02:34:23.402Z [agent/embedded] read tool called without path: toolCallId=call_9d569c307edd4a3db796a191 argsType=object
+2026-03-14T02:34:23.415Z [agent/embedded] read tool called without path: toolCallId=call_fdee22e6aaff43faa53e2ca6 argsType=object
+2026-03-14T02:35:51.035Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=91595 queueAhead=4
+2026-03-14T02:35:51.059Z [agent/embedded] session file repair skipped: invalid session header (28c2ad86-70db-4ea6-9c10-090cfbc0ce37.jsonl)
+2026-03-14T02:35:57.558Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=86680 queueAhead=3
+2026-03-14T02:36:03.344Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=66816 queueAhead=2
+2026-03-14T02:36:09.417Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=49222 queueAhead=1
+2026-03-14T02:36:16.678Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=25667 queueAhead=0
+2026-03-14T02:38:07.409Z [agent/embedded] read tool called without path: toolCallId=call_dee197df13d846c49dba8a6f argsType=object
+2026-03-14T02:38:07.429Z [agent/embedded] read tool called without path: toolCallId=call_ce8e7ea0570b4263a756aa37 argsType=object
+2026-03-14T02:48:02.655Z [agent/embedded] embedded run timeout: runId=16d4207a-ad1d-4b6e-bd35-28dcd75fe3d0 sessionId=28c2ad86-70db-4ea6-9c10-090cfbc0ce37 timeoutMs=600000
+2026-03-14T02:48:20.728Z [gateway] [plugins] memory-core failed to load from /Users/tolga/.openclaw/workspace/openclaw/extensions/memory-core/index.ts: Error: Cannot find module './chunk-D_Kn1npm.js'
+Require stack:
+- /Users/tolga/.openclaw/workspace/openclaw/dist/plugin-sdk/index.js
+2026-03-14T02:48:20.734Z [gateway] [plugins] telegram failed to load from /Users/tolga/.openclaw/workspace/openclaw/extensions/telegram/index.ts: Error: Cannot find module '/Users/tolga/.openclaw/workspace/openclaw/dist/plugin-sdk/index.js'
+Require stack:
+- /Users/tolga/.openclaw/workspace/openclaw/extensions/telegram/index.ts
+2026-03-14T02:48:20.735Z [gateway] [plugins] failed to load plugin: Error: Cannot find module './chunk-D_Kn1npm.js'
+Require stack:
+- /Users/tolga/.openclaw/workspace/openclaw/dist/plugin-sdk/index.js (plugin=memory-core, source=/Users/tolga/.openclaw/workspace/openclaw/extensions/memory-core/index.ts)
+2026-03-14T02:48:20.736Z [gateway] [plugins] failed to load plugin: Error: Cannot find module '/Users/tolga/.openclaw/workspace/openclaw/dist/plugin-sdk/index.js'
+Require stack:
+- /Users/tolga/.openclaw/workspace/openclaw/extensions/telegram/index.ts (plugin=telegram, source=/Users/tolga/.openclaw/workspace/openclaw/extensions/telegram/index.ts)
+2026-03-14T02:48:22.144Z [gateway] predictive integration ready: engine=true, mesh=true, neuro-memory=disabled, analytics={"basic":true,"olap":true,"unified":true,"rlEnabled":true}
+2026-03-14T02:48:22.147Z [hooks] failed to initialize plugin hooks: Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/tolga/.openclaw/workspace/openclaw/dist/config-C_FfLgH9.js' imported from /Users/tolga/.openclaw/workspace/openclaw/dist/tui-BHZOXlPp.js
+2026-03-14T02:48:22.466Z [agent/embedded] session file repair skipped: invalid session header (28c2ad86-70db-4ea6-9c10-090cfbc0ce37.jsonl)
+2026-03-14T02:54:10.279Z [gateway] [plugins] memory-core failed to load from /Users/tolga/.openclaw/workspace/openclaw/extensions/memory-core/index.ts: Error: Cannot find module './chunk-D_Kn1npm.js'
+Require stack:
+- /Users/tolga/.openclaw/workspace/openclaw/dist/plugin-sdk/index.js
+2026-03-14T02:54:10.284Z [gateway] [plugins] telegram failed to load from /Users/tolga/.openclaw/workspace/openclaw/extensions/telegram/index.ts: Error: Cannot find module '/Users/tolga/.openclaw/workspace/openclaw/dist/plugin-sdk/index.js'
+Require stack:
+- /Users/tolga/.openclaw/workspace/openclaw/extensions/telegram/index.ts
+2026-03-14T02:54:10.285Z [gateway] [plugins] failed to load plugin: Error: Cannot find module './chunk-D_Kn1npm.js'
+Require stack:
+- /Users/tolga/.openclaw/workspace/openclaw/dist/plugin-sdk/index.js (plugin=memory-core, source=/Users/tolga/.openclaw/workspace/openclaw/extensions/memory-core/index.ts)
+2026-03-14T02:54:10.287Z [gateway] [plugins] failed to load plugin: Error: Cannot find module '/Users/tolga/.openclaw/workspace/openclaw/dist/plugin-sdk/index.js'
+Require stack:
+- /Users/tolga/.openclaw/workspace/openclaw/extensions/telegram/index.ts (plugin=telegram, source=/Users/tolga/.openclaw/workspace/openclaw/extensions/telegram/index.ts)
+2026-03-14T02:54:11.441Z [gateway] predictive integration ready: engine=true, mesh=true, neuro-memory=disabled, analytics={"basic":true,"olap":true,"unified":true,"rlEnabled":true}
+2026-03-14T02:54:11.444Z [hooks] failed to initialize plugin hooks: Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/tolga/.openclaw/workspace/openclaw/dist/config-C_FfLgH9.js' imported from /Users/tolga/.openclaw/workspace/openclaw/dist/tui-BHZOXlPp.js
+2026-03-14T02:57:56.579Z [gateway] [plugins] memory-core failed to load from /Users/tolga/.openclaw/workspace/openclaw/extensions/memory-core/index.ts: Error: Cannot find module './chunk-D_Kn1npm.js'
+Require stack:
+- /Users/tolga/.openclaw/workspace/openclaw/dist/plugin-sdk/index.js
+2026-03-14T02:57:56.584Z [gateway] [plugins] telegram failed to load from /Users/tolga/.openclaw/workspace/openclaw/extensions/telegram/index.ts: Error: Cannot find module '/Users/tolga/.openclaw/workspace/openclaw/dist/plugin-sdk/index.js'
+Require stack:
+- /Users/tolga/.openclaw/workspace/openclaw/extensions/telegram/index.ts
+2026-03-14T02:57:56.585Z [gateway] [plugins] failed to load plugin: Error: Cannot find module './chunk-D_Kn1npm.js'
+Require stack:
+- /Users/tolga/.openclaw/workspace/openclaw/dist/plugin-sdk/index.js (plugin=memory-core, source=/Users/tolga/.openclaw/workspace/openclaw/extensions/memory-core/index.ts)
+2026-03-14T02:57:56.586Z [gateway] [plugins] failed to load plugin: Error: Cannot find module '/Users/tolga/.openclaw/workspace/openclaw/dist/plugin-sdk/index.js'
+Require stack:
+- /Users/tolga/.openclaw/workspace/openclaw/extensions/telegram/index.ts (plugin=telegram, source=/Users/tolga/.openclaw/workspace/openclaw/extensions/telegram/index.ts)
+2026-03-14T02:57:57.759Z [gateway] predictive integration ready: engine=true, mesh=true, neuro-memory=disabled, analytics={"basic":true,"olap":true,"unified":true,"rlEnabled":true}
+2026-03-14T02:57:57.762Z [hooks] failed to initialize plugin hooks: Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/tolga/.openclaw/workspace/openclaw/dist/config-C_FfLgH9.js' imported from /Users/tolga/.openclaw/workspace/openclaw/dist/tui-BHZOXlPp.js
+2026-03-14T02:58:54.306Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T02:59:11.749Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T02:59:14.662Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T02:59:18.196Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T02:59:21.380Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T02:59:26.192Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T02:59:29.099Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T02:59:32.218Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T02:59:36.348Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T02:59:41.872Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T02:59:46.272Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T02:59:53.498Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T02:59:56.478Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:00:00.723Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:00:06.335Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:00:15.732Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:00:20.066Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:00:23.093Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:00:26.876Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:00:32.744Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:00:36.072Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:00:44.402Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:00:51.651Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:00:54.301Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:00:55.359Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:01:00.137Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:01:05.148Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:01:08.093Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:01:14.009Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:01:18.356Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:01:26.628Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:01:30.646Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:01:35.441Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:01:41.355Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:01:45.088Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:01:50.986Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:01:54.190Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:01:54.304Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:02:00.285Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:02:03.572Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:02:08.073Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:02:13.672Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:02:16.907Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=104364 queueAhead=4
+2026-03-14T03:02:16.940Z [agent/embedded] session file repair skipped: invalid session header (28c2ad86-70db-4ea6-9c10-090cfbc0ce37.jsonl)
+2026-03-14T03:02:23.132Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=78043 queueAhead=3
+2026-03-14T03:02:27.843Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=52577 queueAhead=2
+2026-03-14T03:02:34.245Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=34034 queueAhead=1
+2026-03-14T03:02:39.569Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=22696 queueAhead=0
+2026-03-14T03:02:54.304Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:03:54.305Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:04:26.362Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:04:28.763Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:04:30.946Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:04:33.041Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:04:35.582Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:04:38.872Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:04:41.538Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:04:44.143Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:04:46.864Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:04:51.427Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:04:53.901Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:04:54.301Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:04:56.584Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:04:58.320Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:05:01.315Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:05:03.463Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:05:06.528Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:05:08.283Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:05:10.991Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:05:13.354Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:05:16.718Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:05:24.831Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:05:28.083Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:05:30.518Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:05:33.778Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:05:37.176Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:05:40.043Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:05:43.908Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:05:47.361Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:05:54.302Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:05:58.059Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:06:02.582Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:06:06.571Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:06:12.254Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:06:17.383Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:06:23.785Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:06:29.251Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:06:36.212Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:06:41.000Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:06:48.362Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:06:54.302Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:07:00.787Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:07:05.189Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:07:17.996Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:07:22.428Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:07:34.074Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:07:38.462Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:07:44.293Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:07:46.678Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:07:50.044Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:07:54.318Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:08:01.973Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:08:07.355Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:08:11.026Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:08:17.750Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:08:21.009Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:08:28.971Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=125265 queueAhead=1
+2026-03-14T03:08:29.058Z [agent/embedded] session file repair skipped: invalid session header (28c2ad86-70db-4ea6-9c10-090cfbc0ce37.jsonl)
+2026-03-14T03:08:35.000Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=27701 queueAhead=0
+2026-03-14T03:08:54.319Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:09:54.328Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:10:24.585Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:10:25.018Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:10:25.240Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:10:28.017Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:10:35.865Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:10:41.465Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:10:53.767Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:10:54.354Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:11:03.355Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:11:13.233Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:11:16.791Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:11:19.558Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:11:25.615Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:11:27.236Z [diagnostic] lane wait exceeded: lane=session:agent:main:main waitedMs=51469 queueAhead=0
+2026-03-14T03:11:46.518Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:11:54.355Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:11:54.602Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:12:02.893Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:12:08.312Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:12:11.991Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:12:16.882Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:12:21.100Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:12:25.575Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:12:30.792Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:12:54.382Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:13:54.380Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:14:54.384Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:14:54.470Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:14:57.808Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:15:03.378Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:15:07.278Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:15:12.196Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:15:16.298Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:15:20.427Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:15:37.036Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:15:41.966Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:15:46.016Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:15:49.325Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:15:51.590Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:15:54.379Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:16:03.674Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:16:11.740Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:16:25.002Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:17:54.378Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:19:54.384Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:20:54.379Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:21:39.133Z [agent/embedded] session file repair skipped: invalid session header (28c2ad86-70db-4ea6-9c10-090cfbc0ce37.jsonl)
+2026-03-14T03:22:11.469Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T03:39:52.074Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T03:57:48.038Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T04:13:12.060Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T04:28:21.031Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T04:46:11.029Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T05:02:00.021Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T05:19:12.020Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T05:23:34.019Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T05:40:46.029Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T05:56:15.016Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T06:12:49.016Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T06:24:35.007Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T06:24:39.121Z [agent/embedded] read tool called without path: toolCallId=call_3d3b46b8321b41cdb7fd10b0 argsType=object
+2026-03-14T06:24:39.131Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T06:24:42.018Z [agent/embedded] embedded run timeout: runId=6df5feb1-c7e7-4d51-93ea-ead24ed3c368 sessionId=28c2ad86-70db-4ea6-9c10-090cfbc0ce37 timeoutMs=600000
+2026-03-14T06:32:27.000Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T06:49:51.991Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T07:04:56.973Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T07:21:01.957Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T07:25:34.950Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T07:41:34.935Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T07:56:45.924Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T08:14:40.919Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T08:26:34.910Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T08:43:00.898Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T08:58:23.946Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T09:14:06.953Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T09:27:34.961Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T09:27:38.513Z [agent/embedded] embedded run timeout: runId=50a4c932-867a-476f-8569-8016f249a80e sessionId=28c2ad86-70db-4ea6-9c10-090cfbc0ce37 timeoutMs=600000
+2026-03-14T09:44:12.987Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T09:59:28.967Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T10:15:25.984Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T10:28:34.946Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T10:44:09.925Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T10:59:14.919Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T11:15:58.916Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T11:18:24.027Z [tool-analytics-olap] Aggregation failed: no such table: tool_analytics_facts
+2026-03-14T11:18:54.234Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T11:18:54.243Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T11:18:54.249Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T11:18:57.134Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T11:19:03.076Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T11:19:06.186Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T11:19:09.318Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts
+2026-03-14T11:19:12.325Z [tool-analytics-olap] Failed to track execution: Error: no such table: tool_analytics_facts

@@ -3,13 +3,29 @@ import { makeProxyFetch } from "./proxy.js";
 
 const TELEGRAM_API_BASE = "https://api.telegram.org";
 
+/** Valid ChatMember status values from Telegram Bot API */
+export type ChatMemberStatus =
+  | "creator"
+  | "administrator"
+  | "member"
+  | "restricted"
+  | "left"
+  | "kicked";
+
+/** ChatMember object returned by getChatMember API */
+export type TelegramChatMember = {
+  status: ChatMemberStatus;
+  user: { id: number };
+  // Other fields vary by status (can_be_edited, can_change_info, etc.)
+};
+
 export type TelegramGroupMembershipAuditEntry = {
   chatId: string;
   ok: boolean;
-  status?: string | null;
-  error?: string | null;
-  matchKey?: string;
-  matchSource?: "id";
+  status: ChatMemberStatus | null;
+  error: string | null;
+  matchKey: string;
+  matchSource: "id";
 };
 
 export type TelegramGroupMembershipAudit = {
@@ -24,6 +40,13 @@ export type TelegramGroupMembershipAudit = {
 type TelegramApiOk<T> = { ok: true; result: T };
 type TelegramApiErr = { ok: false; description?: string };
 
+/** Statuses that indicate the bot is a member of the group */
+const BOT_MEMBER_STATUSES: ReadonlySet<ChatMemberStatus> = new Set([
+  "creator",
+  "administrator",
+  "member",
+] as const);
+
 async function fetchWithTimeout(
   url: string,
   timeoutMs: number,
@@ -32,7 +55,8 @@ async function fetchWithTimeout(
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetcher(url, { signal: controller.signal });
+    const response = await fetcher(url, { signal: controller.signal });
+    return response;
   } finally {
     clearTimeout(timer);
   }
@@ -42,12 +66,36 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
+function isChatMemberStatus(value: unknown): value is ChatMemberStatus {
+  return (
+    typeof value === "string" &&
+    (value === "creator" ||
+      value === "administrator" ||
+      value === "member" ||
+      value === "restricted" ||
+      value === "left" ||
+      value === "kicked")
+  );
+}
+
+function extractChatMemberStatus(result: unknown): ChatMemberStatus | null {
+  if (!isRecord(result)) {
+    return null;
+  }
+  const status = result.status;
+  return isChatMemberStatus(status) ? status : null;
+}
+
 export function collectTelegramUnmentionedGroupIds(
   groups: Record<string, TelegramGroupConfig> | undefined,
-) {
+): {
+  groupIds: string[];
+  unresolvedGroups: number;
+  hasWildcardUnmentionedGroups: boolean;
+} {
   if (!groups || typeof groups !== "object") {
     return {
-      groupIds: [] as string[],
+      groupIds: [],
       unresolvedGroups: 0,
       hasWildcardUnmentionedGroups: false,
     };
@@ -111,10 +159,25 @@ export async function auditTelegramGroupMembership(params: {
     try {
       const url = `${base}/getChatMember?chat_id=${encodeURIComponent(chatId)}&user_id=${encodeURIComponent(String(params.botId))}`;
       const res = await fetchWithTimeout(url, params.timeoutMs, fetcher);
-      const json = (await res.json()) as TelegramApiOk<{ status?: string }> | TelegramApiErr;
-      if (!res.ok || !isRecord(json) || !json.ok) {
+
+      let json: unknown;
+      try {
+        json = await res.json();
+      } catch {
+        groups.push({
+          chatId,
+          ok: false,
+          status: null,
+          error: `invalid JSON response (${res.status})`,
+          matchKey: chatId,
+          matchSource: "id",
+        });
+        continue;
+      }
+
+      if (!res.ok || !isRecord(json) || json.ok !== true) {
         const desc =
-          isRecord(json) && !json.ok && typeof json.description === "string"
+          isRecord(json) && json.ok === false && typeof json.description === "string"
             ? json.description
             : `getChatMember failed (${res.status})`;
         groups.push({
@@ -127,10 +190,9 @@ export async function auditTelegramGroupMembership(params: {
         });
         continue;
       }
-      const status = isRecord((json as TelegramApiOk<unknown>).result)
-        ? ((json as TelegramApiOk<{ status?: string }>).result.status ?? null)
-        : null;
-      const ok = status === "creator" || status === "administrator" || status === "member";
+
+      const status = extractChatMemberStatus(json.result);
+      const ok = status !== null && BOT_MEMBER_STATUSES.has(status);
       groups.push({
         chatId,
         ok,
