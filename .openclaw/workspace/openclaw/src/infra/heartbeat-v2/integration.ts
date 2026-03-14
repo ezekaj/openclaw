@@ -1,6 +1,3 @@
-// Integration between Heartbeat V2 and existing HeartbeatRunner
-// Provides backward compatibility and gradual migration path
-
 import type { OpenClawConfig } from "../../config/config.js";
 import type { HeartbeatRunResult } from "./types.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
@@ -8,7 +5,6 @@ import { resolveDefaultAgentId } from "../../agents/agent-scope.js";
 import {
   startHeartbeatRunner,
   type HeartbeatRunner,
-  runHeartbeatOnce,
   setHeartbeatsEnabled,
 } from "../heartbeat-runner.js";
 import {
@@ -169,9 +165,6 @@ export class HybridHeartbeatRunner {
     if (system) {
       system.pause(agentId, reason);
     }
-
-    // Also disable legacy
-    setHeartbeatsEnabled(false);
   }
 
   /**
@@ -182,9 +175,6 @@ export class HybridHeartbeatRunner {
     if (system) {
       system.resume(agentId);
     }
-
-    // Re-enable legacy
-    setHeartbeatsEnabled(true);
   }
 
   /**
