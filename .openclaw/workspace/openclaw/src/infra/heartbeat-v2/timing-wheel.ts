@@ -122,10 +122,6 @@ export class HierarchicalTimingWheel {
     this.tickInterval = setInterval(() => {
       this.tick();
     }, this.tickIntervalMs);
-
-    if (this.tickInterval.unref) {
-      this.tickInterval.unref();
-    }
   }
 
   stop(): void {
@@ -165,22 +161,26 @@ export class HierarchicalTimingWheel {
     slot.timers.clear();
 
     for (const entry of timersToFire) {
-      try {
-        const result = entry.callback();
-        if (result instanceof Promise) {
-          result.catch((err) => {
-            console.error(`Timer callback error for ${entry.id}:`, err);
-          });
-        }
-      } catch (err) {
-        console.error(`Timer callback error for ${entry.id}:`, err);
-      }
+      this.executeTimer(entry);
     }
 
     level.currentIndex = (level.currentIndex + 1) % level.numSlots;
 
     if (level.currentIndex === 0 && levelIndex < this.levels.length - 1) {
       this.cascadeFromLevel(levelIndex + 1, now);
+    }
+  }
+
+  private executeTimer(entry: TimerEntry): void {
+    try {
+      const result = entry.callback();
+      if (result instanceof Promise) {
+        result.catch((err) => {
+          console.error(`Timer callback error for ${entry.id}:`, err);
+        });
+      }
+    } catch (err) {
+      console.error(`Timer callback error for ${entry.id}:`, err);
     }
   }
 
@@ -191,28 +191,13 @@ export class HierarchicalTimingWheel {
     for (const entry of slot.timers.values()) {
       const remainingMs = entry.deadline - now;
       if (remainingMs <= 0) {
-        try {
-          const result = entry.callback();
-          if (result instanceof Promise) {
-            result.catch((err) => {
-              console.error(`Timer callback error for ${entry.id}:`, err);
-            });
-          }
-        } catch (err) {
-          console.error(`Timer callback error for ${entry.id}:`, err);
-        }
+        this.executeTimer(entry);
       } else {
         this.insertIntoWheel(entry, remainingMs);
       }
     }
 
     slot.timers.clear();
-
-    level.currentIndex = (level.currentIndex + 1) % level.numSlots;
-
-    if (level.currentIndex === 0 && levelIndex < this.levels.length - 1) {
-      this.cascadeFromLevel(levelIndex + 1, now);
-    }
   }
 
   clear(): void {
