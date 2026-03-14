@@ -1,6 +1,5 @@
 import { spawnSync } from "node:child_process";
 import {
-  resolveGatewayLaunchAgentLabel,
   resolveGatewaySystemdServiceName,
 } from "../daemon/constants.js";
 
@@ -19,10 +18,7 @@ let sigusr1AuthorizedUntil = 0;
 let sigusr1ExternalAllowed = false;
 
 function resetSigusr1AuthorizationIfExpired(now = Date.now()) {
-  if (sigusr1AuthorizedCount <= 0) {
-    return;
-  }
-  if (now <= sigusr1AuthorizedUntil) {
+  if (sigusr1AuthorizedCount <= 0 || now <= sigusr1AuthorizedUntil) {
     return;
   }
   sigusr1AuthorizedCount = 0;
@@ -96,11 +92,7 @@ function formatSpawnDetail(result: {
 }
 
 function normalizeSystemdUnit(raw?: string, profile?: string): string {
-  const unit = raw?.trim();
-  if (!unit) {
-    return `${resolveGatewaySystemdServiceName(profile)}.service`;
-  }
-  return unit.endsWith(".service") ? unit : `${unit}.service`;
+  return (raw?.trim() || `${resolveGatewaySystemdServiceName(profile)}.service`).replace(/\.service$/, ".service");
 }
 
 export function triggerOpenClawRestart(): RestartAttempt {
@@ -181,7 +173,7 @@ export function scheduleGatewaySigusr1Restart(opts?: {
   reason?: string;
 }): ScheduledRestart {
   const delayMsRaw =
-    typeof opts?.delayMs === "number" && Number.isFinite(opts.delayMs)
+    typeof opts?.delayMs === "number" && Number.isFinite(opts?.delayMs)
       ? Math.floor(opts.delayMs)
       : 2000;
   const delayMs = Math.min(Math.max(delayMsRaw, 0), 60_000);
