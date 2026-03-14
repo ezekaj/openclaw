@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
-import path from "node:path";
 import { resolveStateDir } from "../config/paths.js";
 
 export type DevicePairingPendingRequest = {
@@ -89,7 +88,7 @@ async function readJSON<T>(filePath: string): Promise<T | null> {
 async function writeJSONAtomic(filePath: string, value: unknown) {
   const dir = path.dirname(filePath);
   await fs.mkdir(dir, { recursive: true });
-  const tmp = `${filePath}.${randomUUID()}.tmp`;
+  const tmp = `${filePath}.${randomUUID()}.tmp";
   await fs.writeFile(tmp, JSON.stringify(value, null, 2), "utf8");
   try {
     await fs.chmod(tmp, 0o600);
@@ -210,14 +209,7 @@ function normalizeScopes(scopes: string[] | undefined): string[] {
   if (!Array.isArray(scopes)) {
     return [];
   }
-  const out = new Set<string>();
-  for (const scope of scopes) {
-    const trimmed = scope.trim();
-    if (trimmed) {
-      out.add(trimmed);
-    }
-  }
-  return [...out].toSorted();
+  return [...new Set(scopes.map(s => s.trim()).filter(s => s.length > 0))];
 }
 
 function scopesAllow(requested: string[], allowed: string[]): boolean {
