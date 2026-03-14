@@ -1,6 +1,5 @@
 import type { ProviderUsageSnapshot, UsageWindow } from "./provider-usage.types.js";
 import { fetchJson } from "./provider-usage.fetch.shared.js";
-import { PROVIDER_LABELS } from "./provider-usage.shared.js";
 
 const RESET_KEYS = [
   "reset_at",
@@ -9,12 +8,8 @@ const RESET_KEYS = [
   "resetTime",
   "next_reset_at",
   "nextResetAt",
-  "next_reset_time",
-  "nextResetTime",
   "expires_at",
   "expiresAt",
-  "expire_at",
-  "expireAt",
   "end_time",
   "endTime",
   "window_end",
@@ -92,16 +87,12 @@ const REMAINING_KEYS = [
   "remaining",
   "remain_amount",
   "remainingAmount",
-  "remaining_amount",
   "remain_tokens",
   "remainingTokens",
-  "remaining_tokens",
   "remain_quota",
   "remainingQuota",
-  "remaining_quota",
   "remain_times",
   "remainingTimes",
-  "remaining_times",
   "prompt_remain",
   "promptRemain",
   "remain_prompt",
@@ -311,7 +302,7 @@ export async function fetchMinimaxUsage(
   if (!res.ok) {
     return {
       provider: "minimax",
-      displayName: PROVIDER_LABELS.minimax,
+      displayName: "Minimax",
       windows: [],
       error: `HTTP ${res.status}`,
     };
@@ -321,7 +312,7 @@ export async function fetchMinimaxUsage(
   if (!isRecord(data)) {
     return {
       provider: "minimax",
-      displayName: PROVIDER_LABELS.minimax,
+      displayName: "Minimax",
       windows: [],
       error: "Invalid JSON",
     };
@@ -330,7 +321,7 @@ export async function fetchMinimaxUsage(
   if (typeof data.status_code === "number" && data.status_code !== 0) {
     return {
       provider: "minimax",
-      displayName: PROVIDER_LABELS.minimax,
+      displayName: "Minimax",
       windows: [],
       error: (data.status_msg as string | undefined)?.trim() || "API error",
     };
@@ -354,7 +345,7 @@ export async function fetchMinimaxUsage(
   if (usedPercent === null) {
     return {
       provider: "minimax",
-      displayName: PROVIDER_LABELS.minimax,
+      displayName: "Minimax",
       windows: [],
       error: "Unsupported response shape",
     };
@@ -375,7 +366,7 @@ export async function fetchMinimaxUsage(
 
   return {
     provider: "minimax",
-    displayName: PROVIDER_LABELS.minimax,
+    displayName: "Minimax",
     windows,
     plan: pickString(usageRecord, PLAN_KEYS) ?? pickString(payload, PLAN_KEYS),
   };
