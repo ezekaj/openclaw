@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import path from "node:path";
 import readline from "node:readline";
 import type { NormalizedUsage, UsageLike } from "../agents/usage.js";
 import type { OpenClawConfig } from "../config/config.js";
@@ -102,31 +101,22 @@ const parseTimestamp = (entry: Record<string, unknown>): Date | undefined => {
 };
 
 const parseUsageEntry = (entry: Record<string, unknown>): ParsedUsageEntry | null => {
-  const message = entry.message as Record<string, unknown> | undefined;
-  const role = message?.role;
-  if (role !== "assistant") {
+  const message = entry.message as Record<string, unknown>;
+  if (!message || message.role !== "assistant") {
     return null;
   }
 
-  const usageRaw =
-    (message?.usage as UsageLike | undefined) ?? (entry.usage as UsageLike | undefined);
+  const usageRaw = (message.usage ?? entry.usage) as UsageLike | undefined;
   const usage = normalizeUsage(usageRaw);
   if (!usage) {
     return null;
   }
 
-  const provider =
-    (typeof message?.provider === "string" ? message?.provider : undefined) ??
-    (typeof entry.provider === "string" ? entry.provider : undefined);
-  const model =
-    (typeof message?.model === "string" ? message?.model : undefined) ??
-    (typeof entry.model === "string" ? entry.model : undefined);
-
   return {
     usage,
     costTotal: extractCostTotal(usageRaw),
-    provider,
-    model,
+    provider: typeof message.provider === "string" ? message.provider : typeof entry.provider === "string" ? entry.provider : undefined,
+    model: typeof message.model === "string" ? message.model : typeof entry.model === "string" ? entry.model : undefined,
     timestamp: parseTimestamp(entry),
   };
 };
