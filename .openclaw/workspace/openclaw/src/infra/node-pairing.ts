@@ -42,16 +42,6 @@ export type NodePairingPairedNode = {
   lastConnectedAtMs?: number;
 };
 
-export type NodePairingList = {
-  pending: NodePairingPendingRequest[];
-  paired: NodePairingPairedNode[];
-};
-
-type NodePairingStateFile = {
-  pendingById: Record<string, NodePairingPendingRequest>;
-  pairedByNodeId: Record<string, NodePairingPairedNode>;
-};
-
 const PENDING_TTL_MS = 5 * 60 * 1000;
 
 function resolvePaths(baseDir?: string) {
@@ -117,13 +107,16 @@ async function withLock<T>(fn: () => Promise<T>): Promise<T> {
   }
 }
 
-async function loadState(baseDir?: string): Promise<NodePairingStateFile> {
+async function loadState(baseDir?: string): Promise<{
+  pendingById: Record<string, NodePairingPendingRequest>;
+  pairedByNodeId: Record<string, NodePairingPairedNode>;
+}> {
   const { pendingPath, pairedPath } = resolvePaths(baseDir);
   const [pending, paired] = await Promise.all([
     readJSON<Record<string, NodePairingPendingRequest>>(pendingPath),
     readJSON<Record<string, NodePairingPairedNode>>(pairedPath),
   ]);
-  const state: NodePairingStateFile = {
+  const state = {
     pendingById: pending ?? {},
     pairedByNodeId: paired ?? {},
   };
@@ -131,7 +124,13 @@ async function loadState(baseDir?: string): Promise<NodePairingStateFile> {
   return state;
 }
 
-async function persistState(state: NodePairingStateFile, baseDir?: string) {
+async function persistState(
+  state: {
+    pendingById: Record<string, NodePairingPendingRequest>;
+    pairedByNodeId: Record<string, NodePairingPairedNode>;
+  },
+  baseDir?: string,
+) {
   const { pendingPath, pairedPath } = resolvePaths(baseDir);
   await Promise.all([
     writeJSONAtomic(pendingPath, state.pendingById),
@@ -147,7 +146,10 @@ function newToken() {
   return randomUUID().replaceAll("-", "");
 }
 
-export async function listNodePairing(baseDir?: string): Promise<NodePairingList> {
+export async function listNodePairing(baseDir?: string): Promise<{
+  pending: NodePairingPendingRequest[];
+  paired: NodePairingPairedNode[];
+}> {
   const state = await loadState(baseDir);
   const pending = Object.values(state.pendingById).toSorted((a, b) => b.ts - a.ts);
   const paired = Object.values(state.pairedByNodeId).toSorted(
