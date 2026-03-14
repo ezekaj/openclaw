@@ -184,27 +184,26 @@ async function statMtimeMs(p: string): Promise<number | null> {
   }
 }
 
-function resolveDepsMarker(params: { root: string; manager: PackageManager }): {
+function resolveDepsMarker(params: { manager: PackageManager }): {
   lockfilePath: string | null;
   markerPath: string | null;
 } {
-  const root = params.root;
   if (params.manager === "pnpm") {
     return {
-      lockfilePath: path.join(root, "pnpm-lock.yaml"),
-      markerPath: path.join(root, "node_modules", ".modules.yaml"),
+      lockfilePath: "pnpm-lock.yaml",
+      markerPath: "node_modules/.modules.yaml",
     };
   }
   if (params.manager === "bun") {
     return {
-      lockfilePath: path.join(root, "bun.lockb"),
-      markerPath: path.join(root, "node_modules"),
+      lockfilePath: "bun.lockb",
+      markerPath: "node_modules",
     };
   }
   if (params.manager === "npm") {
     return {
-      lockfilePath: path.join(root, "package-lock.json"),
-      markerPath: path.join(root, "node_modules"),
+      lockfilePath: "package-lock.json",
+      markerPath: "node_modules",
     };
   }
   return { lockfilePath: null, markerPath: null };
@@ -216,7 +215,6 @@ export async function checkDepsStatus(params: {
 }): Promise<DepsStatus> {
   const root = params.root; // Simplified: input is already resolved by caller
   const { lockfilePath, markerPath } = resolveDepsMarker({
-    root,
     manager: params.manager,
   });
 
@@ -232,13 +230,13 @@ export async function checkDepsStatus(params: {
 
   let lockExists = false;
   try {
-    await fs.access(lockfilePath);
+    await fs.access(path.join(root, lockfilePath));
     lockExists = true;
   } catch {}
 
   let markerExists = false;
   try {
-    await fs.access(markerPath);
+    await fs.access(path.join(root, markerPath));
     markerExists = true;
   } catch {}
 
@@ -261,8 +259,8 @@ export async function checkDepsStatus(params: {
     };
   }
 
-  const lockMtime = await statMtimeMs(lockfilePath);
-  const markerMtime = await statMtimeMs(markerPath);
+  const lockMtime = await statMtimeMs(path.join(root, lockfilePath));
+  const markerMtime = await statMtimeMs(path.join(root, markerPath));
   if (!lockMtime || !markerMtime) {
     return {
       manager: params.manager,
