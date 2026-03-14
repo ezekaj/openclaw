@@ -16,7 +16,6 @@ const DEFAULT_OPTIONS: Required<ChannelSummaryOptions> = {
 
 type ChannelAccountEntry = {
   accountId: string;
-  account: unknown;
   enabled: boolean;
   configured: boolean;
   snapshot: ChannelAccountSnapshot;
@@ -173,7 +172,7 @@ export async function buildChannelSummary(
         enabled,
         configured,
       });
-      entries.push({ accountId, account, enabled, configured, snapshot });
+      entries.push({ accountId, enabled, configured, snapshot });
     }
 
     const configuredEntries = entries.filter((entry) => entry.configured);
@@ -190,17 +189,12 @@ export async function buildChannelSummary(
         })
       : undefined;
 
-    const summaryRecord = summary;
-    const linked =
-      summaryRecord && typeof summaryRecord.linked === "boolean" ? summaryRecord.linked : null;
-    const configured =
-      summaryRecord && typeof summaryRecord.configured === "boolean"
-        ? summaryRecord.configured
-        : configuredEntries.length > 0;
+    const linked = summary?.linked;
+    const configured = summary?.configured ?? configuredEntries.length > 0;
 
     const status = !anyEnabled
       ? "disabled"
-      : linked !== null
+      : linked != null
         ? linked
           ? "linked"
           : "not linked"
@@ -217,9 +211,8 @@ export async function buildChannelSummary(
     const baseLabel = plugin.meta.label ?? plugin.id;
     let line = `${baseLabel}: ${status}`;
 
-    const authAgeMs =
-      summaryRecord && typeof summaryRecord.authAgeMs === "number" ? summaryRecord.authAgeMs : null;
-    const self = summaryRecord?.self as { e164?: string | null } | undefined;
+    const authAgeMs = summary?.authAgeMs;
+    const self = summary?.self as { e164?: string | null } | undefined;
     if (self?.e164) {
       line += ` ${self.e164}`;
     }
