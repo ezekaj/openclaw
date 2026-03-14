@@ -113,6 +113,7 @@ export function resolveControlUiRootSync(opts: ControlUiRootResolveOptions = {})
 
   // Packaged app: control-ui lives alongside the executable.
   addCandidate(candidates, execDir ? path.join(execDir, "control-ui") : null);
+  
   if (moduleDir) {
     // dist/<bundle>.js -> dist/control-ui
     addCandidate(candidates, path.join(moduleDir, "control-ui"));
@@ -121,14 +122,14 @@ export function resolveControlUiRootSync(opts: ControlUiRootResolveOptions = {})
     // src/gateway/control-ui.ts -> dist/control-ui
     addCandidate(candidates, path.join(moduleDir, "../../dist/control-ui"));
   }
+  
   if (argv1Dir) {
     // openclaw.mjs or dist/<bundle>.js
     addCandidate(candidates, path.join(argv1Dir, "dist", "control-ui"));
     addCandidate(candidates, path.join(argv1Dir, "control-ui"));
   }
-  if (packageRoot) {
-    addCandidate(candidates, path.join(packageRoot, "dist", "control-ui"));
-  }
+  
+  addCandidate(candidates, packageRoot ? path.join(packageRoot, "dist", "control-ui") : null);
   addCandidate(candidates, path.join(cwd, "dist", "control-ui"));
 
   for (const dir of candidates) {
