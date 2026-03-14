@@ -57,7 +57,7 @@ export type LegacyStateDetection = {
   preview: string[];
 };
 
-type MigrationLogger = {
+export type MigrationLogger = {
   info: (message: string) => void;
   warn: (message: string) => void;
 };
@@ -81,7 +81,6 @@ function isLegacyGroupKey(key: string): boolean {
   if (!lower.includes("@g.us")) {
     return false;
   }
-  // Legacy WhatsApp group keys: bare JID or "whatsapp:<jid>" without explicit ":group:" kind.
   if (!trimmed.includes(":")) {
     return true;
   }
@@ -322,13 +321,6 @@ function removeDirIfEmpty(dir: string) {
 
 export function resetAutoMigrateLegacyStateForTest() {
   autoMigrateChecked = false;
-}
-
-export function resetAutoMigrateLegacyAgentDirForTest() {
-  resetAutoMigrateLegacyStateForTest();
-}
-
-export function resetAutoMigrateLegacyStateDirForTest() {
   autoMigrateStateDirChecked = false;
 }
 
@@ -481,7 +473,6 @@ export async function autoMigrateLegacyStateDir(params: {
     } catch (fallbackErr) {
       try {
         if (!legacyDir) {
-          // oxlint-disable-next-line preserve-caught-error
           throw new Error("Legacy state dir not found", { cause: fallbackErr });
         }
         fs.renameSync(targetDir, legacyDir);
@@ -817,21 +808,6 @@ export async function runLegacyStateMigrations(params: {
     changes: [...sessions.changes, ...agentDir.changes, ...whatsappAuth.changes],
     warnings: [...sessions.warnings, ...agentDir.warnings, ...whatsappAuth.warnings],
   };
-}
-
-export async function autoMigrateLegacyAgentDir(params: {
-  cfg: OpenClawConfig;
-  env?: NodeJS.ProcessEnv;
-  homedir?: () => string;
-  log?: MigrationLogger;
-  now?: () => number;
-}): Promise<{
-  migrated: boolean;
-  skipped: boolean;
-  changes: string[];
-  warnings: string[];
-}> {
-  return await autoMigrateLegacyState(params);
 }
 
 export async function autoMigrateLegacyState(params: {
