@@ -1,0 +1,33 @@
+{
+  "date": "2026-03-13",
+  "generatedAt": 1773446385029,
+  "totalCompactions": 258,
+  "totalTokensSaved": 0,
+  "sessions": [
+    {
+      "sessionKey": "agent:main:main",
+      "agentId": "main",
+      "compactionCount": 255,
+      "summary": "Answer #1"
+    },
+    {
+      "sessionKey": "0920bf15-e27e-4026-9285-ee2a629ceb0b",
+      "agentId": "default",
+      "compactionCount": 1,
+      "summary": "Session 0920bf15-e27e-4026-9285-ee2a629ceb0b compacted at 11:33:07 PM"
+    },
+    {
+      "sessionKey": "4e2aa929-c671-499c-8690-a98d780af4d5",
+      "agentId": "default",
+      "compactionCount": 1,
+      "summary": "Session 4e2aa929-c671-499c-8690-a98d780af4d5 compacted at 11:49:11 PM"
+    },
+    {
+      "sessionKey": "b3214bfa-8a7e-4080-9d08-b48ff7ee7038",
+      "agentId": "default",
+      "compactionCount": 1,
+      "summary": "Session b3214bfa-8a7e-4080-9d08-b48ff7ee7038 compacted at 12:10:13 AM"
+    }
+  ],
+  "narrative": "Daily Briefing - 2026-03-13\n258 compaction(s), 0 tokens saved\n\n[main] Answer #1\n[default] Session 0920bf15-e27e-4026-9285-ee2a629ceb0b compacted at 11:33:07 PM\n[default] Session 4e2aa929-c671-499c-8690-a98d780af4d5 compacted at 11:49:11 PM\n[default] Session b3214bfa-8a7e-4080-9d08-b48ff7ee7038 compacted at 12:10:13 AM"
+}

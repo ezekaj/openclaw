@@ -1,0 +1,7 @@
+2026/03/09-08:09:19.216 1bdc8ac Reusing MANIFEST /Users/tolga/.openclaw/browser/eloclaw/user-data/Profile 1/IndexedDB/https_www.youtube.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/03/09-08:09:19.216 1bdc8ac Recovering log #3
+2026/03/09-08:09:19.221 1bdc8ac Reusing old log /Users/tolga/.openclaw/browser/eloclaw/user-data/Profile 1/IndexedDB/https_www.youtube.com_0.indexeddb.leveldb/000003.log 
+2026/03/09-08:09:51.683 1bdc8ba Level-0 table #5: started
+2026/03/09-08:09:51.690 1bdc8ba Level-0 table #5: 505276 bytes OK
+2026/03/09-08:09:51.692 1bdc8ba Delete type=0 #3
+2026/03/09-08:09:51.695 1bdc8ba Manual compaction at level-0 from (begin) .. (end); will stop at (end)

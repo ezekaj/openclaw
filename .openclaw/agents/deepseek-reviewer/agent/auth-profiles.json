@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "profiles": {
+    "zedigital:default": {
+      "type": "api_key",
+      "provider": "zedigital",
+      "key": "none"
+    },
+    "qwen-portal:qwen-cli": {
+      "type": "oauth",
+      "provider": "qwen-portal",
+      "access": "3_o5jp87cLXith5WCS010PFhLGQ9qmNr6uRxyvZI530cRAudUdolb4GjkaOv3c9_JqPNBWI0JXfsvfQwH4Mw5w",
+      "refresh": "uD-HCdNDyVTMzDjKS-ubzAzoiFFhFrDgWQGkWPKHEQ2IJ05ssQUdEhgI7cccvw94A5BCBT2oVaVwTK0QLDBjZg",
+      "expires": 1772983419300
+    }
+  },
+  "lastGood": {
+    "zedigital": "zedigital:default"
+  },
+  "usageStats": {
+    "zedigital:default": {
+      "lastUsed": 1770657528490,
+      "errorCount": 0,
+      "lastFailureAt": 1770657528478
+    }
+  }
+}

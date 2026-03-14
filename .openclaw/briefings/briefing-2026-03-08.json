@@ -1,0 +1,147 @@
+{
+  "date": "2026-03-08",
+  "generatedAt": 1773014227331,
+  "totalCompactions": 1198,
+  "totalTokensSaved": 0,
+  "sessions": [
+    {
+      "sessionKey": "agent:main:main",
+      "agentId": "main",
+      "compactionCount": 1141,
+      "summary": "Answer #11"
+    },
+    {
+      "sessionKey": "c05517ac-ca88-4b3c-a53a-0ce94c69c3cf",
+      "agentId": "default",
+      "compactionCount": 1,
+      "summary": "Session c05517ac-ca88-4b3c-a53a-0ce94c69c3cf compacted at 10:38:14 AM"
+    },
+    {
+      "sessionKey": "64f163c7-d703-4895-b984-5c3fb1175b21",
+      "agentId": "default",
+      "compactionCount": 1,
+      "summary": "Session 64f163c7-d703-4895-b984-5c3fb1175b21 compacted at 10:56:50 AM"
+    },
+    {
+      "sessionKey": "agent:claude-3-5-sonnet:subagent:a78a60c3-0297-484d-bc89-5b4f22b374b7",
+      "agentId": "claude-3-5-sonnet",
+      "compactionCount": 4,
+      "summary": "Answer #4"
+    },
+    {
+      "sessionKey": "agent:claude-3-5-sonnet:subagent:86d344b8-bf6e-498d-9582-ed222cf8928f",
+      "agentId": "claude-3-5-sonnet",
+      "compactionCount": 1,
+      "summary": "Answer #1"
+    },
+    {
+      "sessionKey": "agent:claude-3-5-sonnet:subagent:1221fe0f-30b1-4ea0-bd37-272e46f1df83",
+      "agentId": "claude-3-5-sonnet",
+      "compactionCount": 5,
+      "summary": "Answer #5"
+    },
+    {
+      "sessionKey": "agent:mistral-large-latest:subagent:05018650-4ab7-4dc3-be51-220cc79e5a01",
+      "agentId": "mistral-large-latest",
+      "compactionCount": 8,
+      "summary": "Answer #8"
+    },
+    {
+      "sessionKey": "agent:deepseek-reviewer:subagent:3e6b5988-862e-4e99-824f-390f1b26017a",
+      "agentId": "deepseek-reviewer",
+      "compactionCount": 2,
+      "summary": "Answer #2"
+    },
+    {
+      "sessionKey": "agent:mistral-reviewer:subagent:cec38b89-8bc5-418a-8421-ff008525665e",
+      "agentId": "mistral-reviewer",
+      "compactionCount": 2,
+      "summary": "Answer #2"
+    },
+    {
+      "sessionKey": "agent:main:subagent:c1b45a9f-7ec2-4c2e-a654-0b7cd6eace90",
+      "agentId": "main",
+      "compactionCount": 3,
+      "summary": "Answer #3"
+    },
+    {
+      "sessionKey": "agent:mistral:subagent:17079d81-4d08-4d23-9d71-b68745b6fa3d",
+      "agentId": "mistral",
+      "compactionCount": 4,
+      "summary": "Answer #4"
+    },
+    {
+      "sessionKey": "agent:deepseek:subagent:bc6eb477-57bd-48ec-9123-a9e1b1c86c22",
+      "agentId": "deepseek",
+      "compactionCount": 8,
+      "summary": "Answer #8"
+    },
+    {
+      "sessionKey": "agent:deepseek:subagent:584d186a-d794-4d46-ac3d-e7bee7056c67",
+      "agentId": "deepseek",
+      "compactionCount": 1,
+      "summary": "Answer #1"
+    },
+    {
+      "sessionKey": "agent:deepseek:subagent:3bb0487e-3cd9-4ae7-929d-46c77bf4d71e",
+      "agentId": "deepseek",
+      "compactionCount": 1,
+      "summary": "Answer #1"
+    },
+    {
+      "sessionKey": "agent:deepseek:subagent:925fac93-04ef-4ca3-a8e5-dba33a807922",
+      "agentId": "deepseek",
+      "compactionCount": 1,
+      "summary": "Answer #1"
+    },
+    {
+      "sessionKey": "agent:deepseek:subagent:0a11b2d5-bc6d-497e-bf03-f68d443f8903",
+      "agentId": "deepseek",
+      "compactionCount": 1,
+      "summary": "Answer #1"
+    },
+    {
+      "sessionKey": "agent:deepseek:subagent:62f45eea-5d80-47ed-ba59-829c40a0527a",
+      "agentId": "deepseek",
+      "compactionCount": 1,
+      "summary": "Answer #1"
+    },
+    {
+      "sessionKey": "agent:mistral:subagent:72c7764b-792b-44c1-9421-4818fcad54e9",
+      "agentId": "mistral",
+      "compactionCount": 1,
+      "summary": "Answer #1"
+    },
+    {
+      "sessionKey": "agent:deepseek:subagent:93655758-0b54-4a42-a297-2ccb8b1693cc",
+      "agentId": "deepseek",
+      "compactionCount": 1,
+      "summary": "Answer #1"
+    },
+    {
+      "sessionKey": "agent:mistral:subagent:4ef6ca22-bc63-430b-9159-72bcbccb836a",
+      "agentId": "mistral",
+      "compactionCount": 1,
+      "summary": "Answer #1"
+    },
+    {
+      "sessionKey": "agent:mistral:subagent:3fa57ae2-c5b4-456f-bd40-9781a9efd4ec",
+      "agentId": "mistral",
+      "compactionCount": 1,
+      "summary": "Answer #1"
+    },
+    {
+      "sessionKey": "agent:main:subagent:281fdb16-62a5-474a-9437-92d4bc628434",
+      "agentId": "main",
+      "compactionCount": 3,
+      "summary": "Answer #3"
+    },
+    {
+      "sessionKey": "agent:main:subagent:7ffb2258-a6b2-45f9-aa44-e27b5d85c038",
+      "agentId": "main",
+      "compactionCount": 6,
+      "summary": "Answer #6"
+    }
+  ],
+  "narrative": "Daily Briefing - 2026-03-08\n1198 compaction(s), 0 tokens saved\n\n[main] Answer #11\n[default] Session c05517ac-ca88-4b3c-a53a-0ce94c69c3cf compacted at 10:38:14 AM\n[default] Session 64f163c7-d703-4895-b984-5c3fb1175b21 compacted at 10:56:50 AM\n[claude-3-5-sonnet] Answer #4\n[claude-3-5-sonnet] Answer #1\n[claude-3-5-sonnet] Answer #5\n[mistral-large-latest] Answer #8\n[deepseek-reviewer] Answer #2\n[mistral-reviewer] Answer #2\n[main] Answer #3\n[mistral] Answer #4\n[deepseek] Answer #8\n[deepseek] Answer #1\n[deepseek] Answer #1\n[deepseek] Answer #1\n[deepseek] Answer #1\n[deepseek] Answer #1\n[mistral] Answer #1\n[deepseek] Answer #1\n[mistral] Answer #1\n[mistral] Answer #1\n[main] Answer #3\n[main] Answer #6"
+}

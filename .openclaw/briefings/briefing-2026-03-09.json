@@ -1,0 +1,39 @@
+{
+  "date": "2026-03-09",
+  "generatedAt": 1773100778572,
+  "totalCompactions": 2045,
+  "totalTokensSaved": 3420,
+  "sessions": [
+    {
+      "sessionKey": "agent:main:main",
+      "agentId": "main",
+      "compactionCount": 2038,
+      "summary": "Answer #17"
+    },
+    {
+      "sessionKey": "agent:deepseek:subagent:927f5d92-ce2d-4429-8d50-f855bca6a677",
+      "agentId": "deepseek",
+      "compactionCount": 3,
+      "summary": "Answer #3"
+    },
+    {
+      "sessionKey": "agent:mistral:subagent:5855fee1-0a82-4a61-b63b-8e770461d19d",
+      "agentId": "mistral",
+      "compactionCount": 2,
+      "summary": "Answer #2"
+    },
+    {
+      "sessionKey": "5546d3ee-9083-4927-8418-54fc699edd6c",
+      "agentId": "default",
+      "compactionCount": 1,
+      "summary": "Session 5546d3ee-9083-4927-8418-54fc699edd6c compacted at 9:04:24 PM"
+    },
+    {
+      "sessionKey": "3170aa0b-22f3-4a63-b6a7-2e60662c0e5f",
+      "agentId": "default",
+      "compactionCount": 1,
+      "summary": "Session 3170aa0b-22f3-4a63-b6a7-2e60662c0e5f compacted at 9:10:09 PM"
+    }
+  ],
+  "narrative": "Daily Briefing - 2026-03-09\n2045 compaction(s), 3,420 tokens saved\n\n[main] Answer #17\n[deepseek] Answer #3\n[mistral] Answer #2\n[default] Session 5546d3ee-9083-4927-8418-54fc699edd6c compacted at 9:04:24 PM\n[default] Session 3170aa0b-22f3-4a63-b6a7-2e60662c0e5f compacted at 9:10:09 PM"
+}

@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-03-09T19:04:14.906Z",
+  "eventCount": 1,
+  "events": [
+    {
+      "id": "1f2208b3-856d-40f2-815b-b945b6a01302",
+      "type": "compaction_summary",
+      "source": "compaction-briefing",
+      "data": "{\"sessionKey\":\"agent:main:main\",\"agentId\":\"main\",\"summary\":\"Answer #1\",\"topics\":[],\"tokensSaved\":0,\"messagesCompacted\":0,\"timestamp\":1773083054684}",
+      "timestamp": 1773083054684
+    }
+  ],
+  "error": "database is not open"
+}

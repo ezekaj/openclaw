@@ -1,26 +1,22 @@
-# Ignore everything by default
+# Ignore everything outside .openclaw
 /*
-
-# Only track the openclaw workspace
 !/.openclaw/
-/.openclaw/*
-!/.openclaw/workspace/
-/.openclaw/workspace/*
-!/.openclaw/workspace/openclaw/
 !/.gitignore
 
-# Inside workspace: ignore build/runtime artifacts
+# Other workspaces (have embedded git repos)
+.openclaw/workspace-*/
+
+# Embedded git repos in research
+.openclaw/workspace/openclaw/research/**/.git/
+
+# Build artifacts
 .openclaw/workspace/openclaw/node_modules/
 .openclaw/workspace/openclaw/dist/
-.openclaw/workspace/openclaw/.DS_Store
-.openclaw/workspace/openclaw/.git/
 
-# Database files
-*.db
-*.db-shm
-*.db-wal
+# OS files
+.DS_Store
 
-# Temporary files
+# Temp/lock files
 *.tmp
 *.swp
-*.bak
+*.lock

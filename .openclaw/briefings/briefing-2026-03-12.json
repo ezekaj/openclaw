@@ -1,0 +1,15 @@
+{
+  "date": "2026-03-12",
+  "generatedAt": 1773358083544,
+  "totalCompactions": 105,
+  "totalTokensSaved": 0,
+  "sessions": [
+    {
+      "sessionKey": "agent:main:main",
+      "agentId": "main",
+      "compactionCount": 105,
+      "summary": "Answer #6"
+    }
+  ],
+  "narrative": "Daily Briefing - 2026-03-12\n105 compaction(s), 0 tokens saved\n\n[main] Answer #6"
+}

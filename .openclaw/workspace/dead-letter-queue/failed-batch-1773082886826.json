@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-03-09T19:01:26.826Z",
+  "eventCount": 1,
+  "events": [
+    {
+      "id": "cabf3b8c-9e1e-4b8f-befa-c3e22d2d9981",
+      "type": "tool.executed",
+      "source": "predictive-integration",
+      "data": "{\"tool\":\"exec\",\"toolCallId\":\"call_9e9c2a90b7174ef3a71f78d5\",\"success\":true,\"durationMs\":3081,\"runId\":\"3d0895ae-7a94-4e9c-9cd1-03d6185cca8d\",\"timestamp\":1773082885697}",
+      "timestamp": 1773082885697
+    }
+  ],
+  "error": "database is not open"
+}

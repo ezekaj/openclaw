@@ -1,0 +1,84 @@
+{
+  // Performance-optimized config
+  // Created: 2026-03-03
+  // Updated: 2026-03-13 - Fixed compaction, browser, LM Studio integration
+
+  agents: {
+    defaults: {
+      model: {
+        primary: "zhipu/glm-4-flash",
+        fallbacks: ["zhipu/glm-5"]
+      },
+
+      // Compaction uses LM Studio (local, fast, free)
+      compaction: {
+        compactionModel: "openai/liquid/lfm2-24b-a2b",
+        maxTokens: 512
+      },
+
+      // Briefing cycle summaries also use LM Studio
+      briefingConfig: {
+        apiKey: "lm-studio",
+        model: "liquid/lfm2-24b-a2b",
+        baseUrl: "http://127.0.0.1:1234/v1"
+      },
+
+      // Context pruning
+      contextPruning: {
+        mode: "cache-ttl",
+        ttl: "30m",
+        softTrimRatio: 0.3,
+        tools: {
+          deny: ["canvas"]  // Browser needs to stay for automation
+        }
+      },
+
+      humanDelay: {
+        enabled: false
+      },
+
+      heartbeat: {
+        intervalMs: 3600000
+      }
+    }
+  },
+
+  // Predictive engine
+  predictive: {
+    enabled: true,
+    schedule: {
+      checkIntervalMs: 3600000,
+      consolidationIntervalMs: 7200000
+    },
+    autoDeliver: {
+      maxPerDay: 1
+    },
+    learning: {
+      autoLearn: false
+    }
+  },
+
+  // Memory search limits
+  tools: {
+    memorySearch: {
+      maxResults: 3,
+      maxSnippetChars: 500
+    }
+  },
+
+  // Browser automation enabled
+  browser: {
+    enabled: true
+  },
+
+  // Logging
+  logging: {
+    level: "info",
+    verbose: false
+  },
+
+  // Session settings
+  session: {
+    maxHistoryMessages: 50
+  }
+}

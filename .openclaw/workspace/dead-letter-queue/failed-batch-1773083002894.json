@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-03-09T19:03:22.894Z",
+  "eventCount": 2,
+  "events": [
+    {
+      "id": "107d8932-39b4-46ff-8c16-58e5d52a63af",
+      "type": "compaction_summary",
+      "source": "compaction-briefing",
+      "data": "{\"sessionKey\":\"agent:main:main\",\"agentId\":\"main\",\"summary\":\"Answer #20\",\"topics\":[],\"tokensSaved\":0,\"messagesCompacted\":0,\"timestamp\":1773083001626}",
+      "timestamp": 1773083001626
+    },
+    {
+      "id": "98d13694-d13f-4bcd-8c26-979a7573faf4",
+      "type": "tool.executed",
+      "source": "predictive-integration",
+      "data": "{\"tool\":\"exec\",\"toolCallId\":\"call_18d95ad5669544beae71dabe\",\"success\":true,\"durationMs\":15,\"runId\":\"3d0895ae-7a94-4e9c-9cd1-03d6185cca8d\",\"timestamp\":1773083001634}",
+      "timestamp": 1773083001634
+    }
+  ],
+  "error": "database is not open"
+}
