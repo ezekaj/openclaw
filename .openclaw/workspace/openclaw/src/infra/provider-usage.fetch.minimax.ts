@@ -2,12 +2,6 @@ import type { ProviderUsageSnapshot, UsageWindow } from "./provider-usage.types.
 import { fetchJson } from "./provider-usage.fetch.shared.js";
 import { PROVIDER_LABELS } from "./provider-usage.shared.js";
 
-type MinimaxUsageResponse = {
-  status_code?: number;
-  status_msg?: string;
-  [key: string]: unknown;
-};
-
 const RESET_KEYS = [
   "reset_at",
   "resetAt",
@@ -323,7 +317,7 @@ export async function fetchMinimaxUsage(
     };
   }
 
-  const data = (await res.json().catch(() => null)) as MinimaxUsageResponse;
+  const data = (await res.json()) as Record<string, unknown>;
   if (!isRecord(data)) {
     return {
       provider: "minimax",
@@ -338,7 +332,7 @@ export async function fetchMinimaxUsage(
       provider: "minimax",
       displayName: PROVIDER_LABELS.minimax,
       windows: [],
-      error: data.status_msg?.trim() || "API error",
+      error: (data.status_msg as string | undefined)?.trim() || "API error",
     };
   }
 
