@@ -73,26 +73,19 @@ async function pickEphemeralPort(): Promise<number> {
   });
 }
 
-async function canConnectLocal(port: number): Promise<boolean> {
-  return await new Promise<boolean>((resolve) => {
-    const socket = createServer().connect({ host: "127.0.0.1", port });
+async function waitForLocalListener(port: number, timeoutMs: number): Promise<void> {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const socket = new (require("node:net")).Socket();
     const done = (ok: boolean) => {
       socket.removeAllListeners();
       socket.destroy();
       resolve(ok);
     };
+    socket.connect({ host: "127.0.0.1", port });
     socket.once("connect", () => done(true));
     socket.once("error", () => done(false));
     socket.setTimeout(250, () => done(false));
-  });
-}
-
-async function waitForLocalListener(port: number, timeoutMs: number): Promise<void> {
-  const startedAt = Date.now();
-  while (Date.now() - startedAt < timeoutMs) {
-    if (await canConnectLocal(port)) {
-      return;
-    }
     await new Promise((r) => setTimeout(r, 50));
   }
   throw new Error(`ssh tunnel did not start listening on localhost:${port}`);
