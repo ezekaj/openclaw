@@ -46,15 +46,6 @@ export type UpdateCheckResult = {
   registry?: RegistryStatus;
 };
 
-async function exists(p: string): Promise<boolean> {
-  try {
-    await fs.access(p);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 async function detectPackageManager(root: string): Promise<PackageManager> {
   try {
     const raw = await fs.readFile(path.join(root, "package.json"), "utf-8");
@@ -239,8 +230,18 @@ export async function checkDepsStatus(params: {
     };
   }
 
-  const lockExists = await exists(lockfilePath);
-  const markerExists = await exists(markerPath);
+  let lockExists = false;
+  try {
+    await fs.access(lockfilePath);
+    lockExists = true;
+  } catch {}
+
+  let markerExists = false;
+  try {
+    await fs.access(markerPath);
+    markerExists = true;
+  } catch {}
+
   if (!lockExists) {
     return {
       manager: params.manager,
