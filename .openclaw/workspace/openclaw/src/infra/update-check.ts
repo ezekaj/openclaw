@@ -88,7 +88,7 @@ export async function checkGitUpdateStatus(params: {
   fetch?: boolean;
 }): Promise<GitUpdateStatus> {
   const timeoutMs = params.timeoutMs ?? 6000;
-  const root = params.root; // Simplified: input is already resolved by caller
+  const root = params.root;
 
   const base: GitUpdateStatus = {
     root,
@@ -184,39 +184,23 @@ async function statMtimeMs(p: string): Promise<number | null> {
   }
 }
 
-function resolveDepsMarker(params: { manager: PackageManager }): {
-  lockfilePath: string | null;
-  markerPath: string | null;
-} {
-  if (params.manager === "pnpm") {
-    return {
-      lockfilePath: "pnpm-lock.yaml",
-      markerPath: "node_modules/.modules.yaml",
-    };
-  }
-  if (params.manager === "bun") {
-    return {
-      lockfilePath: "bun.lockb",
-      markerPath: "node_modules",
-    };
-  }
-  if (params.manager === "npm") {
-    return {
-      lockfilePath: "package-lock.json",
-      markerPath: "node_modules",
-    };
-  }
-  return { lockfilePath: null, markerPath: null };
-}
-
 export async function checkDepsStatus(params: {
   root: string;
   manager: PackageManager;
 }): Promise<DepsStatus> {
-  const root = params.root; // Simplified: input is already resolved by caller
-  const { lockfilePath, markerPath } = resolveDepsMarker({
-    manager: params.manager,
-  });
+  const root = params.root;
+  const { lockfilePath, markerPath } = (() => {
+    if (params.manager === "pnpm") {
+      return { lockfilePath: "pnpm-lock.yaml", markerPath: "node_modules/.modules.yaml" };
+    }
+    if (params.manager === "bun") {
+      return { lockfilePath: "bun.lockb", markerPath: "node_modules" };
+    }
+    if (params.manager === "npm") {
+      return { lockfilePath: "package-lock.json", markerPath: "node_modules" };
+    }
+    return { lockfilePath: null, markerPath: null };
+  })();
 
   if (!lockfilePath || !markerPath) {
     return {
@@ -377,7 +361,7 @@ export async function checkUpdateStatus(params: {
   includeRegistry?: boolean;
 }): Promise<UpdateCheckResult> {
   const timeoutMs = params.timeoutMs ?? 6000;
-  const root = params.root; // Simplified: input is already resolved by caller
+  const root = params.root;
   if (!root) {
     return {
       root: null,
@@ -389,7 +373,7 @@ export async function checkUpdateStatus(params: {
 
   const pm = await detectPackageManager(root);
   const gitRoot = await detectGitRoot(root);
-  const isGit = gitRoot && gitRoot === root; // Simplified: no need to resolve again
+  const isGit = gitRoot && gitRoot === root;
 
   const installKind: UpdateCheckResult["installKind"] = isGit ? "git" : "package";
   const git = isGit
