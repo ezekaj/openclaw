@@ -2,7 +2,6 @@ import type { ChannelAccountSnapshot, ChannelPlugin } from "../channels/plugins/
 import { listChannelPlugins } from "../channels/plugins/index.js";
 import { type OpenClawConfig, loadConfig } from "../config/config.js";
 import { DEFAULT_ACCOUNT_ID } from "../routing/session-key.js";
-import { theme } from "../terminal/theme.js";
 
 export type ChannelSummaryOptions = {
   colorize?: boolean;
@@ -90,7 +89,9 @@ const formatAllowFrom = (params: {
       allowFrom: params.allowFrom,
     });
   }
-  return params.allowFrom.map((entry) => String(entry).trim()).filter(Boolean);
+  return (params.allowFrom ?? [])
+    .map((entry) => String(entry).trim())
+    .filter(Boolean);
 };
 
 const buildAccountDetails = (params: {
@@ -150,8 +151,6 @@ export async function buildChannelSummary(
   const effective = cfg ?? loadConfig();
   const lines: string[] = [];
   const resolved = { ...DEFAULT_OPTIONS, ...options };
-  const tint = (value: string, color?: (input: string) => string) =>
-    resolved.colorize && color ? color(value) : value;
 
   for (const plugin of listChannelPlugins()) {
     const accountIds = plugin.config.listAccountIds(effective);
@@ -220,7 +219,7 @@ export async function buildChannelSummary(
       line += ` auth ${formatAge(authAgeMs)}`;
     }
 
-    lines.push(tint(line, statusColor));
+    lines.push(line);
 
     if (configuredEntries.length > 0) {
       for (const entry of configuredEntries) {
@@ -247,20 +246,12 @@ export async function buildChannelSummary(
 }
 
 export function formatAge(ms: number): string {
-  if (ms < 0) {
-    return "unknown";
-  }
+  if (ms < 0) return "unknown";
   const minutes = Math.round(ms / 60_000);
-  if (minutes < 1) {
-    return "just now";
-  }
-  if (minutes < 60) {
-    return `${minutes}m ago`;
-  }
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.round(minutes / 60);
-  if (hours < 48) {
-    return `${hours}h ago`;
-  }
+  if (hours < 48) return `${hours}h ago`;
   const days = Math.round(hours / 24);
   return `${days}d ago`;
 }
