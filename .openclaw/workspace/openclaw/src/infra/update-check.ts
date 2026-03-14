@@ -88,7 +88,7 @@ export async function checkGitUpdateStatus(params: {
   fetch?: boolean;
 }): Promise<GitUpdateStatus> {
   const timeoutMs = params.timeoutMs ?? 6000;
-  const root = path.resolve(params.root);
+  const root = params.root; // Simplified: input is already resolved by caller
 
   const base: GitUpdateStatus = {
     root,
@@ -214,7 +214,7 @@ export async function checkDepsStatus(params: {
   root: string;
   manager: PackageManager;
 }): Promise<DepsStatus> {
-  const root = path.resolve(params.root);
+  const root = params.root; // Simplified: input is already resolved by caller
   const { lockfilePath, markerPath } = resolveDepsMarker({
     root,
     manager: params.manager,
@@ -379,7 +379,7 @@ export async function checkUpdateStatus(params: {
   includeRegistry?: boolean;
 }): Promise<UpdateCheckResult> {
   const timeoutMs = params.timeoutMs ?? 6000;
-  const root = params.root ? path.resolve(params.root) : null;
+  const root = params.root; // Simplified: input is already resolved by caller
   if (!root) {
     return {
       root: null,
@@ -391,7 +391,7 @@ export async function checkUpdateStatus(params: {
 
   const pm = await detectPackageManager(root);
   const gitRoot = await detectGitRoot(root);
-  const isGit = gitRoot && path.resolve(gitRoot) === root;
+  const isGit = gitRoot && gitRoot === root; // Simplified: no need to resolve again
 
   const installKind: UpdateCheckResult["installKind"] = isGit ? "git" : "package";
   const git = isGit
