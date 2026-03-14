@@ -1,10 +1,6 @@
-// CLI commands for Heartbeat V2 management
-// Allows inspecting and controlling the production heartbeat system
-
 import { Command } from "commander";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { getHeartbeatScheduler } from "./scheduler.js";
-import { getGlobalHeartbeatSystem } from "./unified.js";
 
 const log = createSubsystemLogger("heartbeat-v2/cli");
 
@@ -131,9 +127,9 @@ heartbeatV2Command
         process.exit(1);
       }
 
-      const validRanges = ["1h", "24h", "7d", "30d"] as const;
-      const timeRange = validRanges.includes(options.timeRange)
-        ? (options.timeRange as (typeof validRanges)[number])
+      const validRanges = new Set(["1h", "24h", "7d", "30d"] as const);
+      const timeRange = validRanges.has(options.timeRange as any)
+        ? (options.timeRange as (typeof validRanges)[keyof typeof validRanges])
         : "24h";
 
       const analytics = await scheduler.getAnalytics(agentId, timeRange);
