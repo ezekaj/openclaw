@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import { resolveStateDir } from "../config/paths.js";
-import path from "node:path";
 
 export type DevicePairingPendingRequest = {
   requestId: string;
@@ -89,7 +88,7 @@ async function readJSON<T>(filePath: string): Promise<T | null> {
 async function writeJSONAtomic(filePath: string, value: unknown) {
   const dir = path.dirname(filePath);
   await fs.mkdir(dir, { recursive: true });
-  const tmp = `${filePath}.${randomUUID()}.tmp`;
+  const tmp = `${filePath}.${randomUUID()}.tmp";
   await fs.writeFile(tmp, JSON.stringify(value, null, 2), "utf8");
   try {
     await fs.chmod(tmp, 0o600);
@@ -206,20 +205,9 @@ function mergeScopes(...items: Array<string[] | undefined>): string[] | undefine
   return [...scopes];
 }
 
-function normalizeScopes(scopes: string[] | undefined): string[] {
-  if (!Array.isArray(scopes)) {
-    return [];
-  }
-  return [...new Set(scopes.map(s => s.trim()).filter(Boolean))];
-}
-
 function scopesAllow(requested: string[], allowed: string[]): boolean {
-  if (requested.length === 0) {
-    return true;
-  }
-  if (allowed.length === 0) {
-    return false;
-  }
+  if (requested.length === 0) return true;
+  if (allowed.length === 0) return false;
   const allowedSet = new Set(allowed);
   return requested.every((scope) => allowedSet.has(scope));
 }
@@ -303,8 +291,9 @@ export async function approveDevicePairing(
     const tokens = existing?.tokens ? { ...existing.tokens } : {};
     const roleForToken = normalizeRole(pending.role);
     if (roleForToken) {
-      const nextScopes = normalizeScopes(pending.scopes);
+      const nextScopes = pending.scopes?.map(s => s.trim()).filter(s => s.length > 0) ?? [];
       const existingToken = tokens[roleForToken];
+      const now = Date.now();
       tokens[roleForToken] = {
         token: newToken(),
         role: roleForToken,
@@ -426,7 +415,7 @@ export async function verifyDeviceToken(params: {
     if (entry.token !== params.token) {
       return { ok: false, reason: "token-mismatch" };
     }
-    const requestedScopes = normalizeScopes(params.scopes);
+    const requestedScopes = params.scopes?.map(s => s.trim()).filter(s => s.length > 0) ?? [];
     if (!scopesAllow(requestedScopes, entry.scopes)) {
       return { ok: false, reason: "scope-mismatch" };
     }
@@ -455,7 +444,7 @@ export async function ensureDeviceToken(params: {
     if (!role) {
       return null;
     }
-    const requestedScopes = normalizeScopes(params.scopes);
+    const requestedScopes = params.scopes?.map(s => s.trim()).filter(s => s.length > 0) ?? [];
     const tokens = device.tokens ? { ...device.tokens } : {};
     const existing = tokens[role];
     if (existing && !existing.revokedAtMs) {
@@ -499,7 +488,7 @@ export async function rotateDeviceToken(params: {
     }
     const tokens = device.tokens ? { ...device.tokens } : {};
     const existing = tokens[role];
-    const requestedScopes = normalizeScopes(params.scopes ?? existing?.scopes ?? device.scopes);
+    const requestedScopes = (params.scopes ?? existing?.scopes ?? device.scopes)?.map(s => s.trim()).filter(s => s.length > 0) ?? [];
     const now = Date.now();
     const next: DeviceAuthToken = {
       token: newToken(),
