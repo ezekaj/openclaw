@@ -1,4 +1,4 @@
-import { lookup as dnsLookupCb, type LookupAddress } from "node:dns";
+import { type LookupAddress } from "node:dns";
 import { lookup as dnsLookup } from "node:dns/promises";
 import { Agent, type Dispatcher } from "undici";
 
@@ -158,64 +158,41 @@ export function isBlockedHostname(hostname: string): boolean {
 export function createPinnedLookup(params: {
   hostname: string;
   addresses: string[];
-  fallback?: typeof dnsLookupCb;
-}): typeof dnsLookupCb {
+  fallback?: typeof dnsLookup;
+}): typeof dnsLookup {
   const normalizedHost = normalizeHostname(params.hostname);
-  const fallback = params.fallback ?? dnsLookupCb;
-  const fallbackLookup = fallback as unknown as (
-    hostname: string,
-    callback: LookupCallback,
-  ) => void;
-  const fallbackWithOptions = fallback as unknown as (
-    hostname: string,
-    options: unknown,
-    callback: LookupCallback,
-  ) => void;
+  const fallback = params.fallback ?? dnsLookup;
   const records = params.addresses.map((address) => ({
     address,
     family: address.includes(":") ? 6 : 4,
   }));
   let index = 0;
 
-  return ((host: string, options?: unknown, callback?: unknown) => {
-    const cb: LookupCallback =
-      typeof options === "function" ? (options as LookupCallback) : (callback as LookupCallback);
-    if (!cb) {
-      return;
-    }
+  return ((host: string, options?: { all?: boolean; family?: number }) => {
     const normalized = normalizeHostname(host);
     if (!normalized || normalized !== normalizedHost) {
-      if (typeof options === "function" || options === undefined) {
-        return fallbackLookup(host, cb);
-      }
-      return fallbackWithOptions(host, options, cb);
+      return fallback(host, options);
     }
 
-    const opts =
-      typeof options === "object" && options !== null
-        ? (options as { all?: boolean; family?: number })
-        : {};
-    const requestedFamily =
-      typeof options === "number" ? options : typeof opts.family === "number" ? opts.family : 0;
+    const requestedFamily = typeof options?.family === "number" ? options.family : 0;
     const candidates =
       requestedFamily === 4 || requestedFamily === 6
         ? records.filter((entry) => entry.family === requestedFamily)
         : records;
     const usable = candidates.length > 0 ? candidates : records;
-    if (opts.all) {
-      cb(null, usable as LookupAddress[]);
-      return;
+    if (options?.all) {
+      return Promise.resolve(usable as LookupAddress[]);
     }
     const chosen = usable[index % usable.length];
     index += 1;
-    cb(null, chosen.address, chosen.family);
-  }) as typeof dnsLookupCb;
+    return Promise.resolve(chosen.address);
+  }) as typeof dnsLookup;
 }
 
 export type PinnedHostname = {
   hostname: string;
   addresses: string[];
-  lookup: typeof dnsLookupCb;
+  lookup: typeof dnsLookup;
 };
 
 export async function resolvePinnedHostnameWithPolicy(
