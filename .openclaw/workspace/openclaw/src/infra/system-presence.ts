@@ -32,9 +32,7 @@ const TTL_MS = 5 * 60 * 1000; // 5 minutes
 const MAX_ENTRIES = 200;
 
 function normalizePresenceKey(key: string | undefined): string | undefined {
-  if (!key) return undefined;
-  const trimmed = key.trim();
-  return trimmed ? trimmed.toLowerCase() : undefined;
+  return key?.trim().toLowerCase() || undefined;
 }
 
 function resolvePrimaryIPv4(): string | undefined {
