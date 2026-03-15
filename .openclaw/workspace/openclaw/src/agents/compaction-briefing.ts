@@ -185,14 +185,14 @@ export function loadDailyBriefing(config?: CompactionBriefingConfig, date?: stri
     }
   }
 
-  // Return empty briefing
+  // Return fresh briefing for today
   return {
     date: dateStr,
     generatedAt: Date.now(),
     totalCompactions: 0,
     totalTokensSaved: 0,
     sessions: [],
-    narrative: "",
+    narrative: `Daily Briefing - ${dateStr}\nNo compactions yet. Briefing will update after first compaction (every 7 answers).`,
   };
 }
 

@@ -79,7 +79,7 @@ export async function startGatewaySidecars(params: {
     const briefingConfig = params.cfg.agents?.defaults?.briefingConfig;
 
     initAnswerBriefingTracker({
-      compactAfterAnswers: 13,
+      compactAfterAnswers: 7,
       // Only provide llmConfig if apiKey is actually set
       llmConfig: briefingConfig?.apiKey
         ? {
