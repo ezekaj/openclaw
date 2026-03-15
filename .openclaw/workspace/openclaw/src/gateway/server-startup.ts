@@ -91,6 +91,11 @@ export async function startGatewaySidecars(params: {
       onCompactNeeded: async (sessionKey, agentId) => {
         await triggerAutoCompaction(sessionKey, agentId);
       },
+      // Pass compaction context so file-size-based checks can find session files
+      compactionContext: {
+        config: params.cfg,
+        workspaceDir: params.defaultWorkspaceDir,
+      },
     });
   } catch (err) {
     params.log.warn(`answer briefing tracker failed to start: ${String(err)}`);

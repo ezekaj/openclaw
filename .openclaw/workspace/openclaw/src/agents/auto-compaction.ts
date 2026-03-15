@@ -128,7 +128,7 @@ export async function triggerAutoCompaction(
       groupSpace: sessionEntry.space,
       spawnedBy: sessionEntry.spawnedBy,
       skillsSnapshot: sessionEntry.skillsSnapshot,
-      customInstructions: "Auto-compaction triggered after 25 answers.",
+      customInstructions: "Auto-compaction triggered. Summarize the conversation concisely.",
     });
 
     if (result.ok) {
@@ -152,7 +152,7 @@ export async function triggerAutoCompaction(
 // ============================================================================
 
 /** Max session file size before fast-truncate kicks in (bytes) */
-const FAST_TRUNCATE_THRESHOLD = 300_000; // 300KB
+const FAST_TRUNCATE_THRESHOLD = 150_000; // 150KB
 /** Max chars per content block after truncation */
 const MAX_BLOCK_CHARS = 400;
 /** Number of recent messages to keep */

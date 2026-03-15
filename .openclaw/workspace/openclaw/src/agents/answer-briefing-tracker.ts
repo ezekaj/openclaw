@@ -13,8 +13,10 @@
  */
 
 import { promises as fs } from "fs";
+import { statSync } from "fs";
 import path from "path";
 import { onAgentEvent, type AgentEventPayload } from "../infra/agent-events.js";
+import { loadSessionStore, resolveSessionFilePath, resolveStorePath } from "../config/sessions.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { isVerbose } from "../globals.js";
 import {
@@ -23,7 +25,7 @@ import {
   type CompactionEvent,
 } from "./compaction-briefing.js";
 import { extractAgentIdFromSessionKey } from "./session-utils.js";
-import { fastTruncateSession } from "./auto-compaction.js";
+import { fastTruncateSession, type AutoCompactionContext } from "./auto-compaction.js";
 
 const log = createSubsystemLogger("answer-briefing-tracker");
 
@@ -47,6 +49,8 @@ export interface AnswerBriefingConfig extends CompactionBriefingConfig {
     model?: string;
     baseUrl?: string;
   };
+  /** Auto-compaction context for file-size-based compaction checks */
+  compactionContext?: AutoCompactionContext;
 }
 
 /** Internal tracking state for a session */
@@ -78,6 +82,7 @@ export function getRecentSummaries(): string[] {
 
 let unsubscribe: (() => void) | null = null;
 let config: AnswerBriefingConfig | null = null;
+let autoCompactionContext: AutoCompactionContext | null = null;
 
 /** Check if the tracker is initialized */
 export function isInitialized(): boolean {
@@ -95,6 +100,7 @@ export function initAnswerBriefingTracker(cfg?: AnswerBriefingConfig): void {
   }
 
   config = cfg ?? null;
+  autoCompactionContext = cfg?.compactionContext ?? null;
   unsubscribe = onAgentEvent(handleAgentEvent);
   log.info("Answer briefing tracker initialized");
 }
@@ -112,6 +118,7 @@ export function stopAnswerBriefingTracker(): void {
   recentSummaries.length = 0;
   cycleCount = 0;
   config = null;
+  autoCompactionContext = null;
   log.info("Answer briefing tracker stopped");
 }
 
@@ -167,9 +174,9 @@ function handleAgentEvent(evt: AgentEventPayload): void {
   // Record briefing for this answer
   void recordAnswerBriefing(sessionKey, agentId, tracker.count, answerText);
 
-  // Check if we need to trigger auto-compact (token-based OR answer-count-based)
+  // Check if we need to trigger auto-compact (file-size-based OR answer-count-based)
   const compactAfter = config?.compactAfterAnswers ?? DEFAULT_COMPACT_AFTER_ANSWERS;
-  const shouldCompact = checkCompactionNeeded(tracker, compactAfter, sessionKey);
+  const shouldCompact = checkCompactionNeeded(tracker, compactAfter, sessionKey, agentId);
 
   if (shouldCompact) {
     triggerCompaction(sessionKey, agentId, tracker);
@@ -186,31 +193,45 @@ function extractAnswerText(data: Record<string, unknown> | undefined): string {
   return "";
 }
 
+/** Session file size threshold for triggering LLM compaction (bytes) */
+const FILE_SIZE_COMPACT_THRESHOLD = 100_000; // 100KB — compact before fast-truncate (150KB) kicks in
+
 /**
- * Check if compaction is needed based on token estimate or answer count
+ * Check if compaction is needed based on session file size or answer count.
+ * Token estimation from answer text alone is unreliable (ignores tool results,
+ * user messages, system prompt), so we check actual session file size instead.
  */
 function checkCompactionNeeded(
   tracker: SessionTracker,
   compactAfter: number,
   sessionKey: string,
+  agentId: string,
 ): boolean {
-  // Token-based: estimate from accumulated answer text sizes (~4 chars per token)
-  // Use cached estimatedChars for O(1) check
-  const estimatedSessionTokens = tracker.estimatedChars * 3; // rough multiplier (includes tool results, system prompt)
-  const tokenThreshold = 50000; // compact when estimated tokens exceed this
-
-  if (estimatedSessionTokens > tokenThreshold && tracker.count >= 2) {
-    log.info(
-      `Session ${sessionKey} estimated at ${estimatedSessionTokens} tokens (threshold: ${tokenThreshold}), triggering token-based auto-compact`,
-    );
+  // Answer-count-based trigger
+  if (tracker.count >= compactAfter) {
+    log.info(`Session ${sessionKey} reached ${tracker.count} answers, triggering auto-compact`);
     return true;
   }
 
-  if (tracker.count >= compactAfter) {
-    if (isVerbose()) {
-      log.info(`Session ${sessionKey} reached ${tracker.count} answers, triggering auto-compact`);
+  // File-size-based trigger — check actual session file size (more reliable than token estimation)
+  if (tracker.count >= 2 && autoCompactionContext) {
+    try {
+      const storePath = resolveStorePath(autoCompactionContext.config?.session?.store, { agentId });
+      const store = loadSessionStore(storePath);
+      const sessionEntry = store[sessionKey];
+      if (sessionEntry?.sessionId) {
+        const sessionFile = resolveSessionFilePath(sessionEntry.sessionId, sessionEntry, { agentId });
+        const stat = statSync(sessionFile);
+        if (stat.size > FILE_SIZE_COMPACT_THRESHOLD) {
+          log.info(
+            `Session ${sessionKey} file is ${(stat.size / 1024).toFixed(0)}KB (threshold: ${(FILE_SIZE_COMPACT_THRESHOLD / 1024).toFixed(0)}KB), triggering size-based auto-compact`,
+          );
+          return true;
+        }
+      }
+    } catch {
+      // Non-critical — fall through to answer-count check
     }
-    return true;
   }
 
   return false;
