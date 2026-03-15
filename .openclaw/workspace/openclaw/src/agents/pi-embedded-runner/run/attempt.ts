@@ -718,8 +718,19 @@ export async function runEmbeddedAttempt(
       try {
         const promptStartedAt = Date.now();
 
-        // Run before_agent_start hooks to allow plugins to inject context
+        // Auto-decompose complex tasks so models work step-by-step
         let effectivePrompt = params.prompt;
+        try {
+          const { applyTaskDecomposition } = await import("../../task-decomposition.js");
+          const decomposition = applyTaskDecomposition(effectivePrompt);
+          if (decomposition) {
+            effectivePrompt = `${decomposition}\n\n${effectivePrompt}`;
+          }
+        } catch {
+          // Non-critical — continue without decomposition
+        }
+
+        // Run before_agent_start hooks to allow plugins to inject context
         if (hookRunner?.hasHooks("before_agent_start")) {
           try {
             const hookResult = await hookRunner.runBeforeAgentStart(
