@@ -439,10 +439,10 @@ export class ToolAnalyticsOLAP {
       if (this.dbPath) {
         try {
           const fs = require("fs");
-          this.db.close();
-          fs.unlinkSync(this.dbPath);
-          fs.unlinkSync(this.dbPath + "-shm").catch?.(() => {});
-          fs.unlinkSync(this.dbPath + "-wal").catch?.(() => {});
+          try { this.db.close(); } catch {}
+          try { fs.unlinkSync(this.dbPath); } catch {}
+          try { fs.unlinkSync(this.dbPath + "-shm"); } catch {}
+          try { fs.unlinkSync(this.dbPath + "-wal"); } catch {}
           const { DatabaseSync } = require("node:sqlite");
           this.db = new DatabaseSync(this.dbPath);
           this.ensureSchema();
